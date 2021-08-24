@@ -48,7 +48,7 @@ class FireboltTypeCompiler(compiler.GenericTypeCompiler):
 
 """
 FireboltDialect defines the behavior of Firebolt database and DB-API combination.
-It is responsible for metadata definition, SQL query generation, execution, result-set handling.
+It is responsible for metadata definition and firing queries for receiving Database schema and table information.
 """
 
 # TODO: Test dialect and queries on getting Firebolt Database access
@@ -81,7 +81,7 @@ class FireboltDialect(default.DefaultDialect):
     @classmethod
     def dbapi(cls):
         try:
-            import sql_alchemy_adapter.connector as connector  # TODO: Connector Under development
+            import sql_alchemy_adapter.connector as connector  # TODO: Connector under development
         except:
             import connector
         return connector
