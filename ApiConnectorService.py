@@ -9,10 +9,6 @@ shared with the dialect class to retrieve the metadata from Firebolt DB.
 
 class ApiConnectorService:
 
-    def __init__(self, user_email, password):
-        self._user_email = user_email  # provided by firebolt
-        self._password = password  # provided by firebolt
-
     # retrieve authentication token
     """
     This method uses the user email and the password to fire the API to generate access-token.
@@ -20,7 +16,7 @@ class ApiConnectorService:
     :returns access-token
     """
 
-    def get_access_token(self, token_url, request_type, header):
+    def get_access_token(self, token_url, request_type, header, user_email, password):
         json_response = ""  # base case
         try:
 
@@ -36,7 +32,7 @@ class ApiConnectorService:
             token_response = requests.get(
                 "curl --request {0} \'{1}\' \\\n--header \'{2}\' \\\n--data-binary\n\'{\"username\":"
                 "\"{3}\",\"password\":\"{4}\"}\'".format(
-                    request_type, token_url, header, self._user_email, self._password))
+                    request_type, token_url, header, user_email, password))
             token_response.raise_for_status()
 
             """
@@ -116,8 +112,8 @@ class ApiConnectorService:
     :returns engine url
     """
 
-    def get_engine_url_by_db(self, engine_db_url, request_type, header, token):
-        engine_url = ""
+    def get_engine_url_by_db(self, engine_db_url, request_type, header):
+        engine_url = ""     # base case
         try:
             """
                 Request:
@@ -126,8 +122,8 @@ class ApiConnectorService:
                 --header 'Authorization: Bearer YOUR_ACCESS_TOKEN_VALUE'
                 """
             query_engine_response = requests.get(
-                "curl --request {0} \'{1}\' \\\n--header \'{2}{3}\'".format(
-                    request_type, engine_db_url, header, token))
+                "curl --request {0} \'{1}\' \\\n--header \'{2}\'".format(
+                    request_type, engine_db_url, header))
             query_engine_response.raise_for_status()
 
             """
@@ -151,16 +147,16 @@ class ApiConnectorService:
     :returns engine url
     """
 
-    def get_engine_url_by_name(self, engine_url, request_type, header, token):
-        engine_url = ""
+    def get_engine_url_by_name(self, engine_name_url, request_type, engine_name, header, token):
+        engine_url = ""     # base case
         try:
             """ Request:
                 curl --request GET 'https://api.app.firebolt.io/core/v1/account/engines?filter.name_contains=YOUR_ENGINE_NAME' \  
                 --header 'Authorization: Bearer YOUR_ACCESS_TOKEN_VALUE'
                 """
             query_engine_response = requests.get(
-                "curl --request {0} \'{1}\' \\\n--header \'{2}{3}\'".format(
-                    request_type, engine_url, header, token))
+                "curl --request {0} \'{1}{2}\' \\\n--header \'{3}{4}\'".format(
+                    request_type, engine_name_url, engine_name, header, token))
             query_engine_response.raise_for_status()
             # access JSOn content
 
@@ -200,7 +196,7 @@ class ApiConnectorService:
     :returns access-token
     """
 
-    def run_query(self, query_url, request_type, header, token):
+    def run_query(self, request_type, query_url, header):
         json_response = ""  # base case
         try:
 
@@ -213,8 +209,8 @@ class ApiConnectorService:
             """
 
             query_response = requests.get(
-                "echo \"SELECT_QUERY\" | curl\n--request {0} \'{1}\' \\\n--header \'{2}{3}\' \\\n--data-binary @-".format(
-                    request_type, query_url, header, token))
+                "echo \"SELECT_QUERY\" | curl\n--request {0} \'{1}\' \\\n--header \'{2}\' \\\n--data-binary @-".format(
+                    request_type, query_url, header))
             query_response.raise_for_status()
 
             """
