@@ -1,3 +1,4 @@
+import json
 import requests
 from requests.exceptions import HTTPError
 
@@ -8,7 +9,6 @@ shared with the dialect class to retrieve the metadata from Firebolt DB.
 
 
 class ApiConnectorService:
-
     # retrieve authentication token
     """
     This method uses the user email and the password to fire the API to generate access-token.
@@ -16,23 +16,23 @@ class ApiConnectorService:
     :returns access-token
     """
 
-    def get_access_token(self, token_url, request_type, header, user_email, password):
-        json_response = ""  # base case
+    def get_access_token(self, token_url, header, data):
+        json_data = {
+            "access_token": "",
+            "expires_in": 86400,
+            "refresh_token": "",
+            "scope": "offline_access",
+            "token_type": "Bearer"
+        }  # base case
         try:
 
             """
                General format of request:
 
-               curl --request POST 'https://api.app.firebolt.io/auth/v1/login' \
-               --header 'Content-Type: application/json;charset=UTF-8' \
-               --data-binary
-               '{"username":"YOUR_USER_EMAIL","password":"YOUR_PASSWORD"}'
-               """
-
-            token_response = requests.get(
-                "curl --request {0} \'{1}\' \\\n--header \'{2}\' \\\n--data-binary\n\'{\"username\":"
-                "\"{3}\",\"password\":\"{4}\"}\'".format(
-                    request_type, token_url, header, user_email, password))
+              curl --request POST 'https://api.app.firebolt.io/auth/v1/login' --header 'Content-Type: application/json;charset=UTF-8' --data-binary '{"username":"raghavs@sigmoidanalytics.com","password":"Sharma%1"}'
+            """
+            token_response = requests.post(
+                url=token_url, data=json.dumps(data), headers=header)
             token_response.raise_for_status()
 
             """
@@ -47,7 +47,8 @@ class ApiConnectorService:
             }
             """
 
-            json_response = token_response.json()
+            json_data = json.loads(token_response.text)
+            # json_response = token_response.json()
 
             # print("Entire JSON response")
             # print(jsonResponse)
@@ -57,7 +58,7 @@ class ApiConnectorService:
         except Exception as err:
             print(f'Other error occurred: {err}')
 
-        return json_response
+        return json_data
 
     # refresh access token
     """
@@ -67,8 +68,8 @@ class ApiConnectorService:
     :returns new access-token
     """
 
-    def get_access_token_via_refresh(self, refresh_url, request_type, header, refresh_token):
-        refresh_access_token = 0
+    def get_access_token_via_refresh(self, refresh_url, header, data):
+        refresh_access_token = ""
         try:
             """
                 Request:
@@ -76,10 +77,8 @@ class ApiConnectorService:
                 --header 'Content-Type: application/json;charset=UTF-8' \  
                 --data-binary '{"refresh_token":"YOUR_REFRESH_TOKEN_VALUE"}'
                 """
-            token_response = requests.get(
-                "curl --request {0} \'{1}\' \\\n--header \'{2}\' \\\n--data-binary\n\'{\"refresh_token\":"
-                "\"{3}\"}\'".format(
-                    request_type, refresh_url, header, refresh_token))
+            token_response = requests.post(
+                url=refresh_url, data=json.dumps(data), headers=header)
             token_response.raise_for_status()
 
             """
@@ -92,8 +91,8 @@ class ApiConnectorService:
             }
             """
 
-            jsonResponse = token_response.json()
-            refresh_access_token = jsonResponse["access_token"]
+            json_data = json.loads(token_response.text)
+            refresh_access_token = json_data["access_token"]
 
             # print("Entire JSON response")
             # print(jsonResponse)
@@ -112,74 +111,24 @@ class ApiConnectorService:
     :returns engine url
     """
 
-    def get_engine_url_by_db(self, engine_db_url, request_type, header):
-        engine_url = ""     # base case
+    def get_engine_url_by_db(self, engine_db_url, db_name, header):
+        engine_url = ""  # base case
         try:
             """
-                Request:
-
-                curl --request GET 'https://api.app.firebolt.io/core/v1/account/engines:getURLByDatabaseName?database_name=YOUR_DATABASE_NAME' \  
-                --header 'Authorization: Bearer YOUR_ACCESS_TOKEN_VALUE'
-                """
+            Request:
+            curl --request GET 'https://api.app.firebolt.io/core/v1/account/engines:getURLByDatabaseName?database_name=YOUR_DATABASE_NAME' \  
+            --header 'Authorization: Bearer YOUR_ACCESS_TOKEN_VALUE'
+            """
             query_engine_response = requests.get(
-                "curl --request {0} \'{1}\' \\\n--header \'{2}\'".format(
-                    request_type, engine_db_url, header))
+                engine_db_url, params={'database_name': db_name}, headers=header)
             query_engine_response.raise_for_status()
 
             """
             Response:
             {"engine_url": "YOUR_DATABASES_DEFAULT_ENGINE_URL"}
             """
-            jsonResponse = query_engine_response.json()
-            engine_url = jsonResponse["engine_url"]
-
-        except HTTPError as http_err:
-            print(f'HTTP error occurred: {http_err}')
-        except Exception as err:
-            print(f'Other error occurred: {err}')
-
-        return engine_url
-
-    # get engine url by engine name
-    """
-    This method generates engine url using engine name and access-token
-    :input api url, request type, authentication header and access-token
-    :returns engine url
-    """
-
-    def get_engine_url_by_name(self, engine_name_url, request_type, engine_name, header, token):
-        engine_url = ""     # base case
-        try:
-            """ Request:
-                curl --request GET 'https://api.app.firebolt.io/core/v1/account/engines?filter.name_contains=YOUR_ENGINE_NAME' \  
-                --header 'Authorization: Bearer YOUR_ACCESS_TOKEN_VALUE'
-                """
-            query_engine_response = requests.get(
-                "curl --request {0} \'{1}{2}\' \\\n--header \'{3}{4}\'".format(
-                    request_type, engine_name_url, engine_name, header, token))
-            query_engine_response.raise_for_status()
-            # access JSOn content
-
-            """
-            Response:
-            {
-              "page": {
-                ...
-              },
-              "edges": [
-                {
-                  ...
-                    "endpoint": "YOUR_ENGINE_URL",
-                  ...
-                  }
-                }
-              ]
-            }
-            """
-
-            jsonResponse = query_engine_response.json()
-            edges = jsonResponse['edges']
-            engine_url = edges["endpoint"]
+            json_data = json.loads(query_engine_response.text)
+            engine_url = json_data["engine_url"]
 
         except HTTPError as http_err:
             print(f'HTTP error occurred: {http_err}')
@@ -196,21 +145,19 @@ class ApiConnectorService:
     :returns access-token
     """
 
-    def run_query(self, request_type, query_url, header):
-        json_response = ""  # base case
+    def run_query(self, query_url, db_name, header, query_file):
+        json_data = {}  # base case
         try:
 
             """
             Request:
-            echo "SELECT_QUERY" | curl
+            echo "SELECT * FROM lineitem LIMIT 1000" | curl
             --request POST 'https://YOUR_ENGINE_ENDPOINT/?database=YOUR_DATABASE_NAME' \
             --header 'Authorization: Bearer YOUR_ACCESS_TOKEN_VALUE' \
             --data-binary @-
             """
-
-            query_response = requests.get(
-                "echo \"SELECT_QUERY\" | curl\n--request {0} \'{1}\' \\\n--header \'{2}\' \\\n--data-binary @-".format(
-                    request_type, query_url, header))
+            query_response = requests.post(
+                url=query_url, params={'database': db_name}, headers=header, files=query_file)
             query_response.raise_for_status()
 
             """
@@ -219,13 +166,62 @@ class ApiConnectorService:
             """
 
             json_response = query_response.json()
+            json_data = json.loads(query_response.text)
 
-            # print("Entire JSON response")
-            # print(jsonResponse)
+            print("Entire JSON response")
+            print(json_response)
 
         except HTTPError as http_err:
             print(f'HTTP error occurred: {http_err}')
         except Exception as err:
             print(f'Other error occurred: {err}')
 
-        return json_response
+        return json_data
+
+
+"""
+# get engine url by engine name
+
+    This method generates engine url using engine name and access-token
+    :input api url, request type, authentication header and access-token
+    :returns engine url
+
+    def get_engine_url_by_name(self, engine_name_url, engine_name, header):
+        engine_url = ""  # base case
+        try:
+             Request:
+                curl --request GET 'https://api.app.firebolt.io/core/v1/account/engines?filter.name_contains=YOUR_ENGINE_NAME' \  
+                --header 'Authorization: Bearer YOUR_ACCESS_TOKEN_VALUE'
+
+            query_engine_response = requests.get(
+                    url=engine_name_url, headers=header)
+            query_engine_response.raise_for_status()
+            # access JSOn content
+
+
+            Response:
+            {
+              "page": {
+                ...
+              },
+              "edges": [
+                {
+                  ...
+                    "endpoint": "YOUR_ENGINE_URL",
+                  ...
+                  }
+                }
+              ]
+            }
+
+            json_data = json.loads(query_engine_response.text)
+            edges = json_data['edges']
+            engine_url = edges["endpoint"]
+
+        except HTTPError as http_err:
+            print(f'HTTP error occurred: {http_err}')
+        except Exception as err:
+            print(f'Other error occurred: {err}')
+
+        return engine_url
+"""

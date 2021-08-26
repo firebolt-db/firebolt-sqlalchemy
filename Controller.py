@@ -1,16 +1,18 @@
-import ApiConnectorService
+from sqlalchemy_adapter.ApiConnectorService import ApiConnectorService
 
 """
 Utility class to interlink modules of Sqlalchemy Adapter
 To be merged with AlchemyConnector
 """
 
+
 class Controller:
 
-    def __init__(self, user_email, password, db_name):
+    def __init__(self, user_email, password, db_name, query):
         self._user_email = user_email
         self._password = password
         self._db_name = db_name
+        self._query = query
         self._token = 0
         self._engine_url = ""
 
@@ -18,50 +20,40 @@ class Controller:
     Method to call ApiConnectorService in order to fire respective Firebolt APIs 
     and retrieve data required for the dialect
     """
+
     def get_connection_details(self):
+        api_service = ApiConnectorService()
         token_url = "https://api.app.firebolt.io/auth/v1/login"
-        token_request_type = "POST"
-        token_header = "Content-Type: application/json;charset=UTF-8"
+        token_header = {"Content-Type": "application/json;charset=UTF-8"}
         refresh_url = "https://api.app.firebolt.io/auth/v1/refresh"
 
         # get access token
-        token_json = ApiConnectorService.get_access_token(token_url, token_request_type, token_header, self._user_email, self._password)
+        token_api_response = api_service.get_access_token
+        token_json = token_api_response(token_url, token_header,
+                                        {'username': self._user_email, 'password': self._password})
         access_token = token_json["access_token"]
         refresh_token = token_json["refresh_token"]
-        if access_token != 0:
-            self._token = access_token
-        else:  # flag check for token validity
-            self._token = ApiConnectorService.get_access_token_via_refresh(refresh_url, token_request_type, token_header,
-                                                                  refresh_token)
 
-        query_engine_url = 'https://api.app.firebolt.io/core/v1/account/' \
-                           'engines:getURLByDatabaseName?database_name='+self._db_name
-        engine_request_type = 'GET'
-        engine_header = "Authorization: Bearer "+self._token
+        if access_token == "":
+            refresh_api_response = api_service.get_access_token_via_refresh
+            self._token = refresh_api_response(refresh_url, token_header, {'refresh_token': refresh_token})
+        else:  # flag check for token validity
+            self._token = access_token
+
+        print(self._token)
+        header = {'Authorization': "Bearer " + self._token}
+        query_engine_url = 'https://api.app.firebolt.io/core/v1/account/engines:getURLByDatabaseName'
 
         # to get engine url using engine name, use below url
         # query_engine_url_name = "https://api.app.firebolt.io/core/v1/
         # account/engines?filter.name_contains=YOUR_ENGINE_NAME"
 
         # get engine url
-        self._engine_url = ApiConnectorService.get_engine_url_by_db(query_engine_url, engine_request_type, engine_header)
+        engine_api_response = api_service.get_engine_url_by_db
+        self._engine_url = engine_api_response(query_engine_url, self._db_name, header)
 
-        get_db_data_url = "https://"+self._engine_url+"/?database="+self._db_name
-        query_request_type = 'POST'
-        query_header = "Authorization: Bearer "+self._token
-
-        # get db metadata using firebolt api
-        db_response = ApiConnectorService.run_query(query_request_type, get_db_data_url, query_header)
+        print(self._engine_url)
+        # get db response using firebolt api
+        db_response = api_service.run_query("https://" + self._engine_url, self._db_name,
+                                            header, {"query": (None, self._query)})
         return db_response
-
-"""
-token_url = "https://api.app.firebolt.io/auth/v1/login"
-token_request_type = "POST"
-token_header = "Content-Type: application/json;charset=UTF-8"
-refresh_url = "https://api.app.firebolt.io/auth/v1/refresh"
-
-query_engine_url = 'https://api.app.firebolt.io/core/v1/account/engines:getURLByDatabaseName?database_name=YOUR_DATABASE_NAME'
-engine_request_type = 'GET'
-engine_header = "Authorization: Bearer "
-query_engine_url_name = 'https://api.app.firebolt.io/core/v1/account/engines?filter.name_contains=YOUR_ENGINE_NAME'
-"""
