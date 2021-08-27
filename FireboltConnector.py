@@ -15,6 +15,9 @@ from collections import namedtuple, OrderedDict
 from urllib import parse
 
 import requests
+from sqlalchemy_adapter.Controller import get_connection
+from sqlalchemy_adapter.ApiConnectorService import ApiConnectorService
+
 
 from sqlalchemy_adapter import Exceptions
 
@@ -26,17 +29,22 @@ class Type(object):
 
 
 def connect(
-        host="localhost",
-        port=8082,
-        path="/firebolt/v2/sql/",
-        scheme="http",
-        user=None,
-        password=None,
-        context=None,
-        header=False,
-        ssl_verify_cert=True,
-        ssl_client_cert=None,
-        proxies=None,
+        # host="localhost",
+        # port=8082,
+        # path="/firebolt/v2/sql/",
+        # scheme="http",
+        # user=None,
+        # password=None,
+        # context=None,
+        # header=False,
+        # ssl_verify_cert=True,
+        # ssl_client_cert=None,
+        # proxies=None,
+
+        user_email,
+        password,
+        db_name
+
 ):  # noqa: E125
     """
     Constructor for creating a connection to the database.
@@ -45,21 +53,22 @@ def connect(
         >>> curs = conn.cursor()
 
     """
-    context = context or {}
+    # context = context or {}
 
-    return Connection(
-        host,
-        port,
-        path,
-        scheme,
-        user,
-        password,
-        context,
-        header,
-        ssl_verify_cert,
-        ssl_client_cert,
-        proxies,
-    )
+    # return Connection(
+    #     host,
+    #     port,
+    #     path,
+    #     scheme,
+    #     user,
+    #     password,
+    #     context,
+    #     header,
+    #     ssl_verify_cert,
+    #     ssl_client_cert,
+    #     proxies,
+    # )
+    return Connection(user_email,password,db_name)
 
 
 def check_closed(f):
@@ -128,31 +137,44 @@ def get_type(value):
 class Connection(object):
     """Connection to a Firebolt database."""
 
-    def __init__(
-            self,
-            host="localhost",
-            port=8082,
-            path="/firebolt/v2/sql/",
-            scheme="http",
-            user=None,
-            password=None,
-            context=None,
-            header=False,
-            ssl_verify_cert=True,
-            ssl_client_cert=None,
-            proxies=None,
-    ):
-        netloc = "{host}:{port}".format(host=host, port=port)
-        self.url = parse.urlunparse((scheme, netloc, path, None, None, None))
-        self.context = context or {}
-        self.closed = False
+    # def __init__(
+    #         self,
+    #         host="localhost",
+    #         port=8082,
+    #         path="/firebolt/v2/sql/",
+    #         scheme="http",
+    #         user=None,
+    #         password=None,
+    #         context=None,
+    #         header=False,
+    #         ssl_verify_cert=True,
+    #         ssl_client_cert=None,
+    #         proxies=None,
+    # ):
+    #     netloc = "{host}:{port}".format(host=host, port=port)
+    #     self.url = parse.urlunparse((scheme, netloc, path, None, None, None))
+    #     self.context = context or {}
+    #     self.closed = False
+    #     self.cursors = []
+    #     self.header = header
+    #     self.user = user
+    #     self.password = password
+    #     self.ssl_verify_cert = ssl_verify_cert
+    #     self.ssl_client_cert = ssl_client_cert
+    #     self.proxies = proxies
+
+    def __init__(self, user_email, password, db_name):
+        self._user_email = user_email
+        self._password = password
+        self._db_name = db_name
+
+        connection_details = get_connection(user_email, password, db_name)
+        # print(connection_details[0])
+        # print(connection_details[1])
+        self._access_token = connection_details[0]
+        self._engine_url = connection_details[1]
         self.cursors = []
-        self.header = header
-        self.user = user
-        self.password = password
-        self.ssl_verify_cert = ssl_verify_cert
-        self.ssl_client_cert = ssl_client_cert
-        self.proxies = proxies
+        self.closed = False
 
     @check_closed
     def close(self):
@@ -176,16 +198,12 @@ class Connection(object):
     @check_closed
     def cursor(self):
         """Return a new Cursor Object using the connection."""
-
         cursor = Cursor(
-            self.url,
-            self.user,
-            self.password,
-            self.context,
-            self.header,
-            self.ssl_verify_cert,
-            self.ssl_client_cert,
-            self.proxies,
+            self._user_email,
+            self._password,
+            self._db_name,
+            self._access_token,
+            self._engine_url
         )
 
         self.cursors.append(cursor)
@@ -207,25 +225,33 @@ class Connection(object):
 class Cursor(object):
     """Connection cursor."""
 
-    def __init__(
-            self,
-            url,
-            user=None,
-            password=None,
-            context=None,
-            header=False,
-            ssl_verify_cert=True,
-            proxies=None,
-            ssl_client_cert=None,
-    ):
-        self.url = url
-        self.context = context or {}
-        self.header = header
-        self.user = user
-        self.password = password
-        self.ssl_verify_cert = ssl_verify_cert
-        self.ssl_client_cert = ssl_client_cert
-        self.proxies = proxies
+    # def __init__(
+    #         self,
+    #         url,
+    #         user=None,
+    #         password=None,
+    #         context=None,
+    #         header=False,
+    #         ssl_verify_cert=True,
+    #         proxies=None,
+    #         ssl_client_cert=None,
+    # ):
+    def __init__(self, user_email, password, db_name, access_token, engine_url):
+        self._user_email = user_email
+        self._password = password
+        self._db_name = db_name
+        self._access_token = access_token
+        self._engine_url = engine_url
+        self.closed = False
+
+        # self.url = url
+        # self.context = context or {}
+        # self.header = header
+        # self.user = user
+        # self.password = password
+        # self.ssl_verify_cert = ssl_verify_cert
+        # self.ssl_client_cert = ssl_client_cert
+        # self.proxies = proxies
 
         # This read/write attribute specifies the number of rows to fetch at a
         # time with .fetchmany(). It defaults to 1 meaning to fetch a single
@@ -255,23 +281,30 @@ class Cursor(object):
         """Close the cursor."""
         self.closed = True
 
+    # @check_closed
+    # def execute(self, operation, parameters=None):
     @check_closed
-    def execute(self, operation, parameters=None):
-        query = apply_parameters(operation, parameters)
-        results = self._stream_query(query)
+    def execute(self,query):
+        # query = apply_parameters(operation, parameters)
+        # results = self._stream_query(query)
+
+        api_service = ApiConnectorService()
+        header = {'Authorization': "Bearer " + self._access_token}
+        results = api_service.run_query("https://" + self._engine_url, self._db_name,
+                                        header, {"query": (None, query)})
 
         # `_stream_query` returns a generator that produces the rows; we need to
         # consume the first row so that `description` is properly set, so let's
         # consume it and insert it back if it is not the header.
-        try:
-            first_row = next(results)
-            self._results = (
-                results if self.header else itertools.chain([first_row], results)
-            )
-        except StopIteration:
-            self._results = iter([])
+        # try:
+        #     first_row = next(results)
+        #     self._results = (
+        #         results if self.header else itertools.chain([first_row], results)
+        #     )
+        # except StopIteration:
+        #     self._results = iter([])
 
-        return self
+        return results
 
     @check_closed
     def executemany(self, operation, seq_of_parameters=None):
