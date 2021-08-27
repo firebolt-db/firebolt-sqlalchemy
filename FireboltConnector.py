@@ -16,7 +16,7 @@ from urllib import parse
 
 import requests
 
-from sqlalchemy_adapter import exceptions
+from sqlalchemy_adapter import Exceptions
 
 
 class Type(object):
@@ -67,7 +67,7 @@ def check_closed(f):
 
     def g(self, *args, **kwargs):
         if self.closed:
-            raise exceptions.Error(
+            raise Exceptions.Error(
                 "{klass} already closed".format(klass=self.__class__.__name__)
             )
         return f(self, *args, **kwargs)
@@ -80,7 +80,7 @@ def check_result(f):
 
     def g(self, *args, **kwargs):
         if self._results is None:
-            raise exceptions.Error("Called before `execute`")
+            raise Exceptions.Error("Called before `execute`")
         return f(self, *args, **kwargs)
 
     return g
@@ -122,7 +122,7 @@ def get_type(value):
     elif isinstance(value, (int, float)):
         return Type.NUMBER
 
-    raise exceptions.Error("Value of unknown type: {value}".format(value=value))
+    raise Exceptions.Error("Value of unknown type: {value}".format(value=value))
 
 
 class Connection(object):
@@ -161,7 +161,7 @@ class Connection(object):
         for cursor in self.cursors:
             try:
                 cursor.close()
-            except exceptions.Error:
+            except Exceptions.Error:
                 pass  # already closed
 
     @check_closed
@@ -275,7 +275,7 @@ class Cursor(object):
 
     @check_closed
     def executemany(self, operation, seq_of_parameters=None):
-        raise exceptions.NotSupportedError(
+        raise Exceptions.NotSupportedError(
             "`executemany` is not supported, use `execute` instead"
         )
 
@@ -371,7 +371,7 @@ class Cursor(object):
                     "errorMessage": r.text,
                 }
             msg = "{error} ({errorClass}): {errorMessage}".format(**payload)
-            raise exceptions.ProgrammingError(msg)
+            raise Exceptions.ProgrammingError(msg)
 
         # Firebolt will stream the data in chunks of 8k bytes, splitting the JSON
         # between them; setting `chunk_size` to `None` makes it use the server
