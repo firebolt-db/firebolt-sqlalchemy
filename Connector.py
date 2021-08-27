@@ -16,6 +16,8 @@ from urllib import parse
 
 import requests
 
+from sqlalchemy_adapter import exceptions
+
 
 class Type(object):
     STRING = 1
