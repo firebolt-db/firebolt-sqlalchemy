@@ -15,9 +15,9 @@ from collections import namedtuple, OrderedDict
 from urllib import parse
 
 import requests
-from sqlalchemy_adapter.FireboltApiService import FireboltApiService
+from sqlalchemy_adapter.firebolt_api_service import FireboltApiService
 
-from sqlalchemy_adapter import Exceptions
+from sqlalchemy_adapter import exceptions
 
 
 class Type(object):
@@ -75,7 +75,7 @@ def check_closed(f):
 
     def g(self, *args, **kwargs):
         if self.closed:
-            raise Exceptions.Error(
+            raise exceptions.Error(
                 "{klass} already closed".format(klass=self.__class__.__name__)
             )
         return f(self, *args, **kwargs)
@@ -88,7 +88,7 @@ def check_result(f):
 
     def g(self, *args, **kwargs):
         if self._results is None:
-            raise Exceptions.Error("Called before `execute`")
+            raise exceptions.Error("Called before `execute`")
         return f(self, *args, **kwargs)
 
     return g
@@ -130,7 +130,7 @@ def get_type(value):
     elif isinstance(value, (int, float)):
         return Type.NUMBER
 
-    raise Exceptions.Error("Value of unknown type: {value}".format(value=value))
+    raise exceptions.Error("Value of unknown type: {value}".format(value=value))
 
 
 class Connection(object):
@@ -182,7 +182,7 @@ class Connection(object):
         for cursor in self.cursors:
             try:
                 cursor.close()
-            except Exceptions.Error:
+            except exceptions.Error:
                 pass  # already closed
 
     @check_closed
@@ -306,7 +306,7 @@ class Cursor(object):
 
     @check_closed
     def executemany(self, operation, seq_of_parameters=None):
-        raise Exceptions.NotSupportedError(
+        raise exceptions.NotSupportedError(
             "`executemany` is not supported, use `execute` instead"
         )
 
@@ -402,7 +402,7 @@ class Cursor(object):
                     "errorMessage": r.text,
                 }
             msg = "{error} ({errorClass}): {errorMessage}".format(**payload)
-            raise Exceptions.ProgrammingError(msg)
+            raise exceptions.ProgrammingError(msg)
 
         # Firebolt will stream the data in chunks of 8k bytes, splitting the JSON
         # between them; setting `chunk_size` to `None` makes it use the server

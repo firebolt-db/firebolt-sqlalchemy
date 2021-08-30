@@ -3,7 +3,7 @@ import json
 import requests
 from requests.exceptions import HTTPError
 
-from sqlalchemy_adapter import Constants
+from sqlalchemy_adapter import constants
 
 
 class FireboltApiService:
@@ -11,19 +11,19 @@ class FireboltApiService:
     @staticmethod
     def get_connection(user_email, password, db_name):
         # get access token
-        token_json = FireboltApiService.get_access_token(Constants.token_url, Constants.token_header,
+        token_json = FireboltApiService.get_access_token(constants.token_url, constants.token_header,
                                                          {'username': user_email, 'password': password})
         access_token = token_json["access_token"]
         refresh_token = token_json["refresh_token"]
 
         if access_token == "":   # flag check for token expiry
-            access_token = FireboltApiService.get_access_token_via_refresh(Constants.refresh_url, Constants.token_header,
+            access_token = FireboltApiService.get_access_token_via_refresh(constants.refresh_url, constants.token_header,
                                                                            {'refresh_token': refresh_token})
 
         header = {'Authorization': "Bearer " + access_token}
 
         # get engine url
-        engine_url = FireboltApiService.get_engine_url_by_db(Constants.query_engine_url, db_name, header)
+        engine_url = FireboltApiService.get_engine_url_by_db(constants.query_engine_url, db_name, header)
 
         # get db response using firebolt api
         # db_response = FireboltApiService.run_query("https://" + engine_url, db_name,
