@@ -56,7 +56,7 @@ class Controller:
         # get db response using firebolt api
         db_response = api_service.run_query("https://" + self._engine_url, self._db_name,
                                             header, {"query": (None, self._query)})
-        return
+        return db_response
 
 def get_connection(user_email, password, db_name):
     api_service = ApiConnectorService()
