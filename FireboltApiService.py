@@ -9,7 +9,7 @@ from sqlalchemy_adapter import Constants
 class FireboltApiService:
 
     @staticmethod
-    def get_connection(user_email, password, db_name, query):
+    def get_connection(user_email, password, db_name):
         # get access token
         token_json = FireboltApiService.get_access_token(Constants.token_url, Constants.token_header,
                                                          {'username': user_email, 'password': password})
@@ -26,9 +26,10 @@ class FireboltApiService:
         engine_url = FireboltApiService.get_engine_url_by_db(Constants.query_engine_url, db_name, header)
 
         # get db response using firebolt api
-        db_response = FireboltApiService.run_query("https://" + engine_url, db_name,
-                                                   header, {"query": (None, query)})
-        return db_response
+        # db_response = FireboltApiService.run_query("https://" + engine_url, db_name,
+        #                                            header, {"query": (None, query)})
+        # return db_response
+        return access_token, engine_url
 
     # retrieve authentication token
     """
@@ -155,6 +156,7 @@ class FireboltApiService:
     :returns access-token
     """
 
+    @staticmethod
     def run_query(query_url, db_name, header, query_file):
         json_data = {}  # base case
         try:

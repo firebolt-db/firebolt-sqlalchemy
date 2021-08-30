@@ -15,9 +15,7 @@ from collections import namedtuple, OrderedDict
 from urllib import parse
 
 import requests
-from sqlalchemy_adapter.Controller import get_connection
-from sqlalchemy_adapter.ApiConnectorService import ApiConnectorService
-
+from sqlalchemy_adapter.FireboltApiService import FireboltApiService
 
 from sqlalchemy_adapter import Exceptions
 
@@ -49,8 +47,9 @@ def connect(
     """
     Constructor for creating a connection to the database.
 
-        >>> conn = connect('localhost', 8082)
-        >>> curs = conn.cursor()
+        >>> connection = connect('user_email','password','db_name')
+        >>> cursor = connection.cursor()
+        >>> cursor.execute('select * from table_name')
 
     """
     # context = context or {}
@@ -168,7 +167,7 @@ class Connection(object):
         self._password = password
         self._db_name = db_name
 
-        connection_details = get_connection(user_email, password, db_name)
+        connection_details = FireboltApiService.get_connection(user_email, password, db_name)
         # print(connection_details[0])
         # print(connection_details[1])
         self._access_token = connection_details[0]
@@ -211,9 +210,9 @@ class Connection(object):
         return cursor
 
     @check_closed
-    def execute(self, operation, parameters=None):
+    def execute(self, query):
         cursor = self.cursor()
-        return cursor.execute(operation, parameters)
+        return cursor.execute(query)
 
     def __enter__(self):
         return self.cursor()
@@ -288,9 +287,8 @@ class Cursor(object):
         # query = apply_parameters(operation, parameters)
         # results = self._stream_query(query)
 
-        api_service = ApiConnectorService()
         header = {'Authorization': "Bearer " + self._access_token}
-        results = api_service.run_query("https://" + self._engine_url, self._db_name,
+        results = FireboltApiService.run_query("https://" + self._engine_url, self._db_name,
                                         header, {"query": (None, query)})
 
         # `_stream_query` returns a generator that produces the rows; we need to
