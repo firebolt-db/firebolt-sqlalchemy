@@ -1,4 +1,4 @@
-from sqlalchemy_adapter.ApiConnectorService import ApiConnectorService
+from sqlalchemy_adapter.api_connector_service import ApiConnectorService
 
 """
 Utility class to interlink modules of Sqlalchemy Adapter
