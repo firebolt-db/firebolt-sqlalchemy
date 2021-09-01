@@ -11,48 +11,48 @@ class FireboltApiService:
     @staticmethod
     def get_connection(user_email, password, db_name):
         # get access token
-        token_json = FireboltApiService.get_access_token(constants.token_url, constants.token_header,
-                                                         {'username': user_email, 'password': password})
-        access_token = token_json["access_token"]
-        refresh_token = token_json["refresh_token"]
+        token_json = FireboltApiService.get_access_token({'username': user_email, 'password': password})
+        engine_url = ""
+        if type(token_json) == dict:  # case when http error is not raised
+            access_token = token_json["access_token"]
+            refresh_token = token_json["refresh_token"]
+            header = {'Authorization': "Bearer " + access_token}
 
-        if access_token == "":   # flag check for token expiry
-            access_token = FireboltApiService.get_access_token_via_refresh(constants.refresh_url, constants.token_header,
-                                                                           {'refresh_token': refresh_token})
+            # get engine url
+            engine_url = FireboltApiService.get_engine_url_by_db(db_name, header)
+            if type(engine_url) != str:  # case when http error is raised
+                if engine_url.response.status_code == 401:  # check for access token expiry
+                    access_token = FireboltApiService.get_access_token_via_refresh({'refresh_token': refresh_token})
+                    if type(access_token) == str:
+                        header = {'Authorization': "Bearer " + access_token}
+                        engine_url = FireboltApiService.get_engine_url_by_db(db_name, header)
 
-        header = {'Authorization': "Bearer " + access_token}
-
-        # get engine url
-        engine_url = FireboltApiService.get_engine_url_by_db(constants.query_engine_url, db_name, header)
+            token_json = access_token
 
         # get db response using firebolt api
         # db_response = FireboltApiService.run_query("https://" + engine_url, db_name,
         #                                            header, {"query": (None, query)})
         # return db_response
-        return access_token, engine_url
+        return token_json, engine_url
 
     # retrieve authentication token
     """
     This method uses the user email and the password to fire the API to generate access-token.
-    :input token url, request type of API and authentication header
+    :input dictionary containing user-email and password
     :returns access-token
     """
 
-    def get_access_token(token_url, header, data):
-        json_data = {
-            "access_token": "",
-            "expires_in": 86400,
-            "refresh_token": "",
-            "scope": "offline_access",
-            "token_type": "Bearer"
-        }  # base case
+    @staticmethod
+    def get_access_token(data):
+        json_data = {}  # base case
         try:
 
             """
                General format of request:
               curl --request POST 'https://api.app.firebolt.io/auth/v1/login' --header 'Content-Type: application/json;charset=UTF-8' --data-binary '{"username":"raghavs@sigmoidanalytics.com","password":"Sharma%1"}'
             """
-            token_response = requests.post(url=token_url, data=json.dumps(data), headers=header)
+            token_response = requests.post(url=constants.token_url, data=json.dumps(data),
+                                           headers=constants.token_header)
             token_response.raise_for_status()
 
             """
@@ -70,9 +70,9 @@ class FireboltApiService:
             json_data = json.loads(token_response.text)
 
         except HTTPError as http_err:
-            print(f'HTTP error occurred: {http_err}')
+            return http_err
         except Exception as err:
-            print(f'Other error occurred: {err}')
+            return err
 
         return json_data
 
@@ -84,7 +84,8 @@ class FireboltApiService:
     :returns new access-token
     """
 
-    def get_access_token_via_refresh(refresh_url, header, data):
+    @staticmethod
+    def get_access_token_via_refresh(data):
         refresh_access_token = ""
         try:
             """
@@ -93,7 +94,8 @@ class FireboltApiService:
                 --header 'Content-Type: application/json;charset=UTF-8' \  
                 --data-binary '{"refresh_token":"YOUR_REFRESH_TOKEN_VALUE"}'
                 """
-            token_response = requests.post(url=refresh_url, data=json.dumps(data), headers=header)
+            token_response = requests.post(url=constants.refresh_url, data=json.dumps(data),
+                                           headers=constants.token_header)
             token_response.raise_for_status()
 
             """
@@ -110,9 +112,9 @@ class FireboltApiService:
             refresh_access_token = json_data["access_token"]
 
         except HTTPError as http_err:
-            print(f'HTTP error occurred: {http_err}')
+            return http_err
         except Exception as err:
-            print(f'Other error occurred: {err}')
+            return err
 
         return refresh_access_token
 
@@ -123,7 +125,8 @@ class FireboltApiService:
     :returns engine url
     """
 
-    def get_engine_url_by_db(engine_db_url, db_name, header):
+    @staticmethod
+    def get_engine_url_by_db(db_name, header):
         engine_url = ""  # base case
         try:
             """
@@ -131,7 +134,8 @@ class FireboltApiService:
             curl --request GET 'https://api.app.firebolt.io/core/v1/account/engines:getURLByDatabaseName?database_name=YOUR_DATABASE_NAME' \  
             --header 'Authorization: Bearer YOUR_ACCESS_TOKEN_VALUE'
             """
-            query_engine_response = requests.get(engine_db_url, params={'database_name': db_name}, headers=header)
+            query_engine_response = requests.get(constants.query_engine_url, params={'database_name': db_name},
+                                                 headers=header)
             query_engine_response.raise_for_status()
 
             """
@@ -142,9 +146,9 @@ class FireboltApiService:
             engine_url = json_data["engine_url"]
 
         except HTTPError as http_err:
-            print(f'HTTP error occurred: {http_err}')
+            return http_err
         except Exception as err:
-            print(f'Other error occurred: {err}')
+            return err
 
         return engine_url
 
@@ -180,12 +184,11 @@ class FireboltApiService:
             json_response = query_response.json()
             json_data = json.loads(query_response.text)
 
-            print("Entire JSON response")
-            print(json_response)
-
         except HTTPError as http_err:
             print(f'HTTP error occurred: {http_err}')
+            return http_err
         except Exception as err:
             print(f'Other error occurred: {err}')
+            return err
 
         return json_data

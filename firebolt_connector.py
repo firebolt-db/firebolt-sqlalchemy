@@ -19,7 +19,6 @@ from sqlalchemy_adapter.firebolt_api_service import FireboltApiService
 
 from sqlalchemy_adapter import exceptions
 
-
 class Type(object):
     STRING = 1
     NUMBER = 2
@@ -289,7 +288,7 @@ class Cursor(object):
 
         header = {'Authorization': "Bearer " + self._access_token}
         results = FireboltApiService.run_query("https://" + self._engine_url, self._db_name,
-                                        header, {"query": (None, query)})
+                                               header, {"query": (None, query)})
 
         # `_stream_query` returns a generator that produces the rows; we need to
         # consume the first row so that `description` is properly set, so let's
