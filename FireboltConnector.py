@@ -363,6 +363,7 @@ class Cursor(object):
 
     next = __next__
 
+    #TODO Use stream query to retrieve huge amounts of data
     def _stream_query(self, query):
         """
         Stream rows from a query.
