@@ -33,7 +33,7 @@ class FireboltApiService:
         # db_response = FireboltApiService.run_query("https://" + engine_url, db_name,
         #                                            header, {"query": (None, query)})
         # return db_response
-        return token_json, engine_url
+        return token_json, engine_url, refresh_token
 
     # retrieve authentication token
     """

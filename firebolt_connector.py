@@ -167,10 +167,9 @@ class Connection(object):
         self._db_name = db_name
 
         connection_details = FireboltApiService.get_connection(user_email, password, db_name)
-        # print(connection_details[0])
-        # print(connection_details[1])
         self._access_token = connection_details[0]
         self._engine_url = connection_details[1]
+        self._refresh_token = connection_details[2]
         self.cursors = []
         self.closed = False
 
@@ -201,7 +200,8 @@ class Connection(object):
             self._password,
             self._db_name,
             self._access_token,
-            self._engine_url
+            self._engine_url,
+            self._refresh_token
         )
 
         self.cursors.append(cursor)
@@ -234,12 +234,13 @@ class Cursor(object):
     #         proxies=None,
     #         ssl_client_cert=None,
     # ):
-    def __init__(self, user_email, password, db_name, access_token, engine_url):
+    def __init__(self, user_email, password, db_name, access_token, engine_url, refresh_token):
         self._user_email = user_email
         self._password = password
         self._db_name = db_name
         self._access_token = access_token
         self._engine_url = engine_url
+        self._refresh_token = refresh_token
         self.closed = False
 
         # self.url = url
@@ -289,6 +290,10 @@ class Cursor(object):
         header = {'Authorization': "Bearer " + self._access_token}
         results = FireboltApiService.run_query("https://" + self._engine_url, self._db_name,
                                                header, {"query": (None, query)})
+        if results.response.status_code == 401:  # check for access token expiry
+            self._access_token = FireboltApiService.get_access_token_via_refresh({'refresh_token': self._refresh_token})
+            if type(self._access_token) == str:
+                self.execute(query)
 
         # `_stream_query` returns a generator that produces the rows; we need to
         # consume the first row so that `description` is properly set, so let's
