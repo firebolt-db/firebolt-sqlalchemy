@@ -7,18 +7,17 @@
 # Built as per Python DB API Specification - PEP 249
 # Responsible for connection to Database and providing database cursor for query execution
 # Connector is imported and used by Dialect to get connection
-# TODO: Under Development
 
 import itertools
 import json
 from collections import namedtuple, OrderedDict
 from requests.exceptions import HTTPError
-from urllib import parse
 
 import requests
 from sqlalchemy_adapter.firebolt_api_service import FireboltApiService
 
 from sqlalchemy_adapter import exceptions
+
 
 class Type(object):
     STRING = 1
@@ -26,24 +25,7 @@ class Type(object):
     BOOLEAN = 3
 
 
-def connect(
-        # host="localhost",
-        # port=8082,
-        # path="/firebolt/v2/sql/",
-        # scheme="http",
-        # user=None,
-        # password=None,
-        # context=None,
-        # header=False,
-        # ssl_verify_cert=True,
-        # ssl_client_cert=None,
-        # proxies=None,
-
-        user_email,
-        password,
-        db_name
-
-):  # noqa: E125
+def connect(user_email, password, db_name):
     """
     Constructor for creating a connection to the database.
 
@@ -52,22 +34,7 @@ def connect(
         >>> cursor.execute('select * from table_name')
 
     """
-    # context = context or {}
-
-    # return Connection(
-    #     host,
-    #     port,
-    #     path,
-    #     scheme,
-    #     user,
-    #     password,
-    #     context,
-    #     header,
-    #     ssl_verify_cert,
-    #     ssl_client_cert,
-    #     proxies,
-    # )
-    return Connection(user_email,password,db_name)
+    return Connection(user_email, password, db_name)
 
 
 def check_closed(f):
@@ -136,32 +103,6 @@ def get_type(value):
 class Connection(object):
     """Connection to a Firebolt database."""
 
-    # def __init__(
-    #         self,
-    #         host="localhost",
-    #         port=8082,
-    #         path="/firebolt/v2/sql/",
-    #         scheme="http",
-    #         user=None,
-    #         password=None,
-    #         context=None,
-    #         header=False,
-    #         ssl_verify_cert=True,
-    #         ssl_client_cert=None,
-    #         proxies=None,
-    # ):
-    #     netloc = "{host}:{port}".format(host=host, port=port)
-    #     self.url = parse.urlunparse((scheme, netloc, path, None, None, None))
-    #     self.context = context or {}
-    #     self.closed = False
-    #     self.cursors = []
-    #     self.header = header
-    #     self.user = user
-    #     self.password = password
-    #     self.ssl_verify_cert = ssl_verify_cert
-    #     self.ssl_client_cert = ssl_client_cert
-    #     self.proxies = proxies
-
     def __init__(self, user_email, password, db_name):
         self._user_email = user_email
         self._password = password
@@ -169,7 +110,7 @@ class Connection(object):
 
         connection_details = FireboltApiService.get_connection(user_email, password, db_name)
         self._access_token = connection_details[0]
-        # add checks for engine_url and refresh_token
+        # TODO add checks for engine_url and refresh_token
         self._engine_url = connection_details[1]
         self._refresh_token = connection_details[2]
         self.cursors = []
@@ -198,8 +139,6 @@ class Connection(object):
     def cursor(self):
         """Return a new Cursor Object using the connection."""
         cursor = Cursor(
-            self._user_email,
-            self._password,
             self._db_name,
             self._access_token,
             self._engine_url,
@@ -225,34 +164,13 @@ class Connection(object):
 class Cursor(object):
     """Connection cursor."""
 
-    # def __init__(
-    #         self,
-    #         url,
-    #         user=None,
-    #         password=None,
-    #         context=None,
-    #         header=False,
-    #         ssl_verify_cert=True,
-    #         proxies=None,
-    #         ssl_client_cert=None,
-    # ):
-    def __init__(self, user_email, password, db_name, access_token, engine_url, refresh_token):
-        self._user_email = user_email
-        self._password = password
+    def __init__(self, db_name, access_token, engine_url, refresh_token):
+
         self._db_name = db_name
         self._access_token = access_token
         self._engine_url = engine_url
         self._refresh_token = refresh_token
         self.closed = False
-
-        # self.url = url
-        # self.context = context or {}
-        # self.header = header
-        # self.user = user
-        # self.password = password
-        # self.ssl_verify_cert = ssl_verify_cert
-        # self.ssl_client_cert = ssl_client_cert
-        # self.proxies = proxies
 
         # This read/write attribute specifies the number of rows to fetch at a
         # time with .fetchmany(). It defaults to 1 meaning to fetch a single
@@ -288,15 +206,6 @@ class Cursor(object):
     def execute(self, query):
         # query = apply_parameters(operation, parameters)
         # results = self._stream_query(query)
-
-        header = {'Authorization': "Bearer " + self._access_token}
-        results = FireboltApiService.run_query("https://" + self._engine_url, self._db_name,
-                                               header, {"query": (None, query)})
-        if type(results) == HTTPError and results.response.status_code == 401:  # check for access token expiry
-            self._access_token = FireboltApiService.get_access_token_via_refresh({'refresh_token': self._refresh_token})
-            if type(self._access_token) == str:
-                self.execute(query)
-
         # `_stream_query` returns a generator that produces the rows; we need to
         # consume the first row so that `description` is properly set, so let's
         # consume it and insert it back if it is not the header.
@@ -307,6 +216,14 @@ class Cursor(object):
         #     )
         # except StopIteration:
         #     self._results = iter([])
+
+        header = {'Authorization': "Bearer " + self._access_token}
+        results = FireboltApiService.run_query("https://" + self._engine_url, self._db_name,
+                                               header, {"query": (None, query)})
+        if type(results) == HTTPError and results.response.status_code == 401:  # check for access token expiry
+            self._access_token = FireboltApiService.get_access_token_via_refresh({'refresh_token': self._refresh_token})
+            if type(self._access_token) == str:
+                results = self.execute(query)
 
         return results
 
@@ -369,7 +286,7 @@ class Cursor(object):
 
     next = __next__
 
-    #TODO Use stream query to retrieve huge amounts of data
+    # TODO Use stream query to retrieve huge amounts of data
     def _stream_query(self, query):
         """
         Stream rows from a query.

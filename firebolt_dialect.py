@@ -54,9 +54,9 @@ FireboltDialect defines the behavior of Firebolt database and DB-API combination
 It is responsible for metadata definition and firing queries for receiving Database schema and table information.
 """
 
-# TODO: Test dialect and queries on getting Firebolt Database access
-# TODO: check dialect attribute values
 
+
+# TODO: check dialect attribute values
 
 class FireboltDialect(default.DefaultDialect):
     name = "firebolt"
@@ -84,7 +84,7 @@ class FireboltDialect(default.DefaultDialect):
     @classmethod
     def dbapi(cls):
         try:
-            import sql_alchemy_adapter.connector as connector  # TODO: Connector under development
+            import sqlalchemy_adapter.firebolt_connector as connector
         except:
             import connector
         return connector
@@ -213,6 +213,7 @@ class FireboltHTTPSDialect(FireboltDialect):
 
 def get_is_nullable(column_is_nullable):
     return column_is_nullable.lower() == "yes"
+
 
 # TODO check if this method is needed
 def get_default(firebolt_column_default):

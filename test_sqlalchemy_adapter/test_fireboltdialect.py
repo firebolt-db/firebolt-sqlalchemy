@@ -17,12 +17,13 @@ class TestFireboltDialect:
 
     def test_get_schema_names(self):
         # result = fireboltDialect.get_schema_names()
-
+        None
 
     def test_has_table(self):
-
+        None
 
     def test_get_table_names(self):
-
+        None
 
     def get_columns(self):
+        None
