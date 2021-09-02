@@ -1,4 +1,4 @@
-from sqlalchemy_adapter import FireboltConnector
+from sqlalchemy_adapter import firebolt_connector
 
 
 class TestFireboltConnector:

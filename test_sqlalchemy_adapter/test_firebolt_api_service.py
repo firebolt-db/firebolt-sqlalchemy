@@ -1,9 +1,9 @@
 from sqlalchemy_adapter.firebolt_api_service import FireboltApiService
-from sqlalchemy_adapter import constants
+from sqlalchemy_adapter.test_sqlalchemy_adapter import constants
 from requests.exceptions import HTTPError
 
-access_token = FireboltApiService.get_access_token({'username': 'aapurva@sigmoidanalytics.com',
-                                                    'password': 'Apurva111'})
+access_token = FireboltApiService.get_access_token({'username': constants.username,
+                                                    'password': constants.password})
 header = {'Authorization': "Bearer " + access_token["access_token"]}
 engine_url = FireboltApiService.get_engine_url_by_db(constants.db_name, header)
 query_url = "https://" + engine_url
@@ -11,6 +11,21 @@ query_file = {"query": (None, constants.query)}
 
 
 class TestFireboltApiService:
+
+    def test_get_connection_success(self):
+        response = FireboltApiService.get_connection(constants.username, constants.password,  constants.db_name)
+        if type(response) == HTTPError:
+            assert response.response.status_code == 503
+        else:
+            assert response != ""
+
+    def test_get_connection_invalid_credentials(self):
+        assert FireboltApiService.get_connection('username', 'password',  constants.db_name)[0] \
+                   .response.status_code == 403
+
+    def test_get_connection_invalid_schema_name(self):
+        assert FireboltApiService.get_connection(constants.username, constants.password, 'db_name')[1] \
+                   .response.status_code == 404
 
     def test_get_access_token_success(self):
         assert access_token["access_token"] != ""
