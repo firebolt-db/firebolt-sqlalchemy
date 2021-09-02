@@ -12,6 +12,7 @@
 import itertools
 import json
 from collections import namedtuple, OrderedDict
+from requests.exceptions import HTTPError
 from urllib import parse
 
 import requests
@@ -168,6 +169,7 @@ class Connection(object):
 
         connection_details = FireboltApiService.get_connection(user_email, password, db_name)
         self._access_token = connection_details[0]
+        # add checks for engine_url and refresh_token
         self._engine_url = connection_details[1]
         self._refresh_token = connection_details[2]
         self.cursors = []
@@ -283,14 +285,14 @@ class Cursor(object):
     # @check_closed
     # def execute(self, operation, parameters=None):
     @check_closed
-    def execute(self,query):
+    def execute(self, query):
         # query = apply_parameters(operation, parameters)
         # results = self._stream_query(query)
 
         header = {'Authorization': "Bearer " + self._access_token}
         results = FireboltApiService.run_query("https://" + self._engine_url, self._db_name,
                                                header, {"query": (None, query)})
-        if results.response.status_code == 401:  # check for access token expiry
+        if type(results) == HTTPError and results.response.status_code == 401:  # check for access token expiry
             self._access_token = FireboltApiService.get_access_token_via_refresh({'refresh_token': self._refresh_token})
             if type(self._access_token) == str:
                 self.execute(query)

@@ -5,5 +5,3 @@ query_engine_url = 'https://api.app.firebolt.io/core/v1/account/engines:getURLBy
 engine_id_url = "https://api.app.firebolt.io/core/v1/account/engines:getIdbyName"
 engine_start_url = 'https://api.app.firebolt.io/core/v1/account/engines/'
 default_engine_name = 'sigmoid-alchemy-analytics'
-db_name = 'Sigmoid_Alchemy'
-query = 'select * from joining_details'
