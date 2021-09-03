@@ -17,10 +17,9 @@ class FireboltApiService:
         if type(token_json) == dict:  # case when http error is not raised
             access_token = token_json["access_token"]
             refresh_token = token_json["refresh_token"]
-            header = {'Authorization': "Bearer " + access_token}
 
             # get engine url
-            engine_url = FireboltApiService.get_engine_url_by_db(db_name, header)
+            engine_url = FireboltApiService.get_engine_url_by_db(db_name, access_token)
             # if type(engine_url) != str:  # case when http error is raised
             #     if type(engine_url) == HTTPError and \
             #             engine_url.response.status_code == 401:  # check for access token expiry
@@ -128,7 +127,7 @@ class FireboltApiService:
     """
 
     @staticmethod
-    def get_engine_url_by_db(db_name, header):
+    def get_engine_url_by_db(db_name, access_token):
         engine_url = ""  # base case
         try:
             """
@@ -136,6 +135,7 @@ class FireboltApiService:
             curl --request GET 'https://api.app.firebolt.io/core/v1/account/engines:getURLByDatabaseName?database_name=YOUR_DATABASE_NAME' \  
             --header 'Authorization: Bearer YOUR_ACCESS_TOKEN_VALUE'
             """
+            header = {'Authorization': "Bearer " + access_token}
             query_engine_response = requests.get(constants.query_engine_url, params={'database_name': db_name},
                                                  headers=header)
             query_engine_response.raise_for_status()

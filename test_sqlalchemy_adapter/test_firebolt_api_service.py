@@ -4,11 +4,7 @@ from requests.exceptions import HTTPError
 
 access_token = FireboltApiService.get_access_token({'username': constants.username,
                                                     'password': constants.password})
-header = {'Authorization': "Bearer " + access_token["access_token"]}
-engine_url = FireboltApiService.get_engine_url_by_db(constants.db_name, header)
-query_url = "https://" + engine_url
-query_file = {"query": (None, constants.query)}
-
+engine_url = FireboltApiService.get_engine_url_by_db(constants.db_name, access_token["access_token"])
 
 class TestFireboltApiService:
 
@@ -45,14 +41,14 @@ class TestFireboltApiService:
         assert engine_url != ""
 
     def test_get_engine_url_by_db_invalid_schema(self):
-        assert FireboltApiService.get_engine_url_by_db('db_name', header) \
+        assert FireboltApiService.get_engine_url_by_db('db_name', access_token["access_token"]) \
                    .response.status_code == 404
 
     def test_get_engine_url_by_db_invalid_header(self):
         assert FireboltApiService.get_engine_url_by_db(constants.db_name, 'header') != ""
 
     def test_run_query_success(self):
-        response = FireboltApiService.run_query(access_token["access_token"], engine_url, constants.db_name, query_file)
+        response = FireboltApiService.run_query(access_token["access_token"], engine_url, constants.db_name, constants.query)
         if type(response) == HTTPError:
             assert response.response.status_code == 503
         else:
@@ -60,10 +56,10 @@ class TestFireboltApiService:
 
     def test_run_query_invalid_url(self):
         assert FireboltApiService.run_query(access_token["access_token"], "",
-                                            constants.db_name, query_file) != {}
+                                            constants.db_name, constants.query) != {}
 
     def test_run_query_invalid_schema(self):
-        response = FireboltApiService.run_query(access_token["access_token"], engine_url, 'db_name', query_file)
+        response = FireboltApiService.run_query(access_token["access_token"], engine_url, 'db_name', constants.query)
         print(response)
         code = response.response.status_code
         if code == 503:
@@ -72,11 +68,11 @@ class TestFireboltApiService:
         assert code == 403
 
     def test_run_query_invalid_header(self):
-        assert FireboltApiService.run_query('header', engine_url, constants.db_name, query_file) != {}
+        assert FireboltApiService.run_query('header', engine_url, constants.db_name, constants.query) != {}
 
     def test_run_query_invalid_query(self):
         response = FireboltApiService.run_query(access_token["access_token"], engine_url, constants.db_name,
-                                                {"query": (None, 'query')})
+                                                'query')
         print(response)
         code = response.response.status_code
         if code == 503:
