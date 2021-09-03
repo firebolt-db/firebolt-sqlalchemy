@@ -163,7 +163,7 @@ class FireboltApiService:
     """
 
     @staticmethod
-    def run_query(query_url, db_name, header, query_file):
+    def run_query(access_token, engine_url, db_name, query):
         json_data = {}  # base case
         try:
 
@@ -174,17 +174,17 @@ class FireboltApiService:
             --header 'Authorization: Bearer YOUR_ACCESS_TOKEN_VALUE' \
             --data-binary @-
             """
-            query_response = requests.post(url=query_url, params={'database': db_name}, headers=header,
-                                           files=query_file)
-            query_response.raise_for_status()
-
-            """
-            Response:
-            yet to receive firebolt access to test on local
-            """
-
-            json_response = query_response.json()
-            json_data = json.loads(query_response.text)
+            if type(access_token) == str:
+                header = {'Authorization': "Bearer " + access_token}
+                if type(engine_url) == str:
+                    query_response = requests.post(url="https://" + engine_url, params={'database': db_name},
+                                                   headers=header, files={"query": (None, query)})
+                    query_response.raise_for_status()
+                    json_data = json.loads(query_response.text)
+                else:
+                    json_data = {"message": "Engine url is invalid", "attribute": engine_url}
+            else:
+                json_data = {"message": "Access token is invalid", "attribute": access_token}
 
         except HTTPError as http_err:
             print(f'HTTP error occurred: {http_err}')

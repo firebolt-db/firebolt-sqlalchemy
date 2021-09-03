@@ -52,18 +52,19 @@ class TestFireboltApiService:
         assert FireboltApiService.get_engine_url_by_db(constants.db_name, 'header') != ""
 
     def test_run_query_success(self):
-        response = FireboltApiService.run_query("https://" + engine_url, constants.db_name, header, query_file)
+        response = FireboltApiService.run_query(access_token["access_token"], engine_url, constants.db_name, query_file)
         if type(response) == HTTPError:
             assert response.response.status_code == 503
         else:
             assert response != ""
 
     def test_run_query_invalid_url(self):
-        assert FireboltApiService.run_query('https://' + "",
-                                            constants.db_name, header, query_file) != {}
+        assert FireboltApiService.run_query(access_token["access_token"], "",
+                                            constants.db_name, query_file) != {}
 
     def test_run_query_invalid_schema(self):
-        response = FireboltApiService.run_query("https://" + engine_url, 'db_name', header, query_file)
+        response = FireboltApiService.run_query(access_token["access_token"], engine_url, 'db_name', query_file)
+        print(response)
         code = response.response.status_code
         if code == 503:
             assert code == 503
@@ -71,11 +72,12 @@ class TestFireboltApiService:
         assert code == 403
 
     def test_run_query_invalid_header(self):
-        assert FireboltApiService.run_query("https://" + engine_url, constants.db_name, 'header', query_file) != {}
+        assert FireboltApiService.run_query('header', engine_url, constants.db_name, query_file) != {}
 
     def test_run_query_invalid_query(self):
-        response = FireboltApiService.run_query("https://" + engine_url, constants.db_name, header,
+        response = FireboltApiService.run_query(access_token["access_token"], engine_url, constants.db_name,
                                                 {"query": (None, 'query')})
+        print(response)
         code = response.response.status_code
         if code == 503:
             assert code == 503
