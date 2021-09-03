@@ -174,6 +174,9 @@ class FireboltApiService:
             --header 'Authorization: Bearer YOUR_ACCESS_TOKEN_VALUE' \
             --data-binary @-
             """
+
+            # Code to return response as JSON
+            """
             if type(access_token) == str:
                 header = {'Authorization': "Bearer " + access_token}
                 if type(engine_url) == str:
@@ -185,6 +188,13 @@ class FireboltApiService:
                     json_data = {"message": "Engine url is invalid", "attribute": engine_url}
             else:
                 json_data = {"message": "Access token is invalid", "attribute": access_token}
+                
+            """
+
+            # Code to return response as requests.Response
+            header = {'Authorization': "Bearer " + access_token}
+            query_response = requests.post(url="https://" + engine_url, params={'database': db_name},
+                                           headers=header, files={"query": (None, query)})
 
         except HTTPError as http_err:
             print(f'HTTP error occurred: {http_err}')
@@ -193,4 +203,5 @@ class FireboltApiService:
             print(f'Other error occurred: {err}')
             return err
 
-        return json_data
+        # return json_data
+        return query_response

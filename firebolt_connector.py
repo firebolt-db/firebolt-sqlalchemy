@@ -185,6 +185,7 @@ class Cursor(object):
 
         # this is set to an iterator after a successfull query
         self._results = None
+        self.header = False
 
     @property
     @check_result
@@ -201,30 +202,30 @@ class Cursor(object):
         """Close the cursor."""
         self.closed = True
 
-    # @check_closed
-    # def execute(self, operation, parameters=None):
     @check_closed
     def execute(self, query):
+    # def execute(self, operation, parameters=None):
         # query = apply_parameters(operation, parameters)
-        # results = self._stream_query(query)
-        # `_stream_query` returns a generator that produces the rows; we need to
-        # consume the first row so that `description` is properly set, so let's
-        # consume it and insert it back if it is not the header.
-        # try:
-        #     first_row = next(results)
-        #     self._results = (
-        #         results if self.header else itertools.chain([first_row], results)
-        #     )
-        # except StopIteration:
-        #     self._results = iter([])
+        results = self._stream_query(query)
 
-        results = FireboltApiService.run_query(self._access_token, self._engine_url, self._db_name, query)
-        if type(results) == HTTPError and results.response.status_code == 401:  # check for access token expiry
-            self._access_token = FireboltApiService.get_access_token_via_refresh({'refresh_token': self._refresh_token})
-            if type(self._access_token) == str:
-                results = self.execute(query)
+        """
+        `_stream_query` returns a generator that produces the rows; we need to
+        consume the first row so that `description` is properly set, so let's
+        consume it and insert it back if it is not the header.
+        """
+        try:
+            first_row = next(results)
+            self._results = (
+                results if self.header else itertools.chain([first_row], results)
+            )
+        except StopIteration:
+            self._results = iter([])
+        return self
 
-        return results
+        """
+        self._stream_query(query)
+        return self
+        """
 
     @check_closed
     def executemany(self, operation, seq_of_parameters=None):
@@ -295,23 +296,8 @@ class Cursor(object):
         """
         self.description = None
 
-        headers = {"Content-Type": "application/json"}
+        r = FireboltApiService.run_query(self._access_token, self._engine_url, self._db_name, query)
 
-        payload = {"query": query, "context": self.context, "header": self.header}
-
-        auth = (
-            requests.auth.HTTPBasicAuth(self.user, self.password) if self.user else None
-        )
-        r = requests.post(
-            self.url,
-            stream=True,
-            headers=headers,
-            json=payload,
-            auth=auth,
-            verify=self.ssl_verify_cert,
-            cert=self.ssl_client_cert,
-            proxies=self.proxies,
-        )
         if r.encoding is None:
             r.encoding = "utf-8"
         # raise any error messages
@@ -327,17 +313,16 @@ class Cursor(object):
             msg = "{error} ({errorClass}): {errorMessage}".format(**payload)
             raise exceptions.ProgrammingError(msg)
 
-        # Firebolt will stream the data in chunks of 8k bytes, splitting the JSON
-        # between them; setting `chunk_size` to `None` makes it use the server
-        # size
+        # Setting `chunk_size` to `None` makes it use the server size
         chunks = r.iter_content(chunk_size=None, decode_unicode=True)
         Row = None
         for row in rows_from_chunks(chunks):
-            # update description
-            if self.description is None:
-                self.description = (
-                    list(row.items()) if self.header else get_description_from_row(row)
-                )
+            # TODO Check if row description has to be returned
+            # # update description
+            # if self.description is None:
+            #     self.description = (
+            #         list(row.items()) if self.header else get_description_from_row(row)
+            #     )
 
             # return row in namedtuple
             if Row is None:
@@ -354,7 +339,10 @@ def rows_from_chunks(chunks):
     yielding them as soon as possible.
     """
     body = ""
+    count = 1
     for chunk in chunks:
+        print("Chunk:",count) #Code for testing response being processed in
+        count=count+1
         if chunk:
             body = "".join((body, chunk))
 
@@ -387,29 +375,3 @@ def rows_from_chunks(chunks):
         ):
             yield row
 
-
-def apply_parameters(operation, parameters):
-    if not parameters:
-        return operation
-
-    escaped_parameters = {key: escape(value) for key, value in parameters.items()}
-    return operation % escaped_parameters
-
-
-def escape(value):
-    """
-    Escape the parameter value.
-
-    Note that bool is a subclass of int so order of statements matter.
-    """
-
-    if value == "*":
-        return value
-    elif isinstance(value, str):
-        return "'{}'".format(value.replace("'", "''"))
-    elif isinstance(value, bool):
-        return "TRUE" if value else "FALSE"
-    elif isinstance(value, (int, float)):
-        return value
-    elif isinstance(value, (list, tuple)):
-        return ", ".join(escape(element) for element in value)
