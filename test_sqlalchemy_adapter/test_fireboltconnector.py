@@ -8,24 +8,24 @@ class Testfirebolt_connector:
         password = "Apurva111"
         db_name = "Sigmoid_Alchemy"
         connection = firebolt_connector.connect(user_email, password, db_name)
-        assert connection._access_token
-        assert connection._engine_url
+        assert connection.access_token
+        assert connection.engine_url
 
     def test_connect_invalid_credentials(self):
         user_email = "aapurva@sigmoidanalytics.com"
         password = "wrongpassword"
         db_name = "Sigmoid_Alchemy"
         connection = firebolt_connector.connect(user_email, password, db_name)
-        assert not connection._access_token
-        assert not connection._engine_url
+        assert not connection.access_token
+        assert not connection.engine_url
 
     def test_connect_invalid_database(self):
         user_email = "aapurva@sigmoidanalytics.com"
         password = "Apurva111"
         db_name = "wrongdatabase"
         connection = firebolt_connector.connect(user_email, password, db_name)
-        assert not connection._access_token
-        assert not connection._engine_url
+        assert not connection.access_token
+        assert not connection.engine_url
 
     def test_get_type(self):
         value_1 = "String Value"

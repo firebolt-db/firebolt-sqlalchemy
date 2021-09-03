@@ -39,3 +39,7 @@ class DataError(DatabaseError):
 
 class NotSupportedError(CompileError):
     pass
+
+
+class InvalidCredentialsError(DatabaseError):
+    pass

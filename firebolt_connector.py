@@ -25,16 +25,20 @@ class Type(object):
     BOOLEAN = 3
 
 
+# @check_valid_connection
 def connect(user_email, password, db_name):
     """
     Constructor for creating a connection to the database.
 
         >>> connection = connect('user_email','password','db_name')
         >>> cursor = connection.cursor()
-        >>> cursor.execute('select * from table_name')
+        >>> response = cursor.execute('select * from <table_name>').fetchall()
 
     """
-    return Connection(user_email, password, db_name)
+    connection = Connection(user_email, password, db_name)
+    # if connection.engine_url == "":
+    #     connection.errors.append(connection.access_token)
+    return connection
 
 
 def check_closed(f):
@@ -59,6 +63,17 @@ def check_result(f):
         return f(self, *args, **kwargs)
 
     return g
+
+
+# def check_valid_connection(f):
+#     """Decorator that checks if connection has been created successfully."""
+#
+#     def g(self, *args, **kwargs):
+#         if type(self.access_token) != dict or type(self.engine_url) == "":
+#             raise exceptions.Error("Invalid connection parameters")
+#         return f(self, *args, **kwargs)
+#
+#     return g
 
 
 def get_description_from_row(row):
@@ -109,11 +124,11 @@ class Connection(object):
         self._db_name = db_name
 
         connection_details = FireboltApiService.get_connection(user_email, password, db_name)
-        # TODO add checks for access token, engine_url and refresh_token
-
-        self._access_token = connection_details[0]
-        self._engine_url = connection_details[1]
-        self._refresh_token = connection_details[2]
+        if connection_details[1] == "":
+            raise exceptions.InvalidCredentialsError("Invalid credentials or Database name")
+        self.access_token = connection_details[0]
+        self.engine_url = connection_details[1]
+        self.refresh_token = connection_details[2]
         self.cursors = []
         self.closed = False
 
@@ -141,9 +156,9 @@ class Connection(object):
         """Return a new Cursor Object using the connection."""
         cursor = Cursor(
             self._db_name,
-            self._access_token,
-            self._engine_url,
-            self._refresh_token
+            self.access_token,
+            self.engine_url,
+            self.refresh_token
         )
 
         self.cursors.append(cursor)
@@ -204,7 +219,7 @@ class Cursor(object):
 
     @check_closed
     def execute(self, query):
-    # def execute(self, operation, parameters=None):
+        # def execute(self, operation, parameters=None):
         # query = apply_parameters(operation, parameters)
         results = self._stream_query(query)
 
@@ -221,11 +236,6 @@ class Cursor(object):
         except StopIteration:
             self._results = iter([])
         return self
-
-        """
-        self._stream_query(query)
-        return self
-        """
 
     @check_closed
     def executemany(self, operation, seq_of_parameters=None):
@@ -286,7 +296,6 @@ class Cursor(object):
 
     next = __next__
 
-    # TODO Use stream query to retrieve huge amounts of data
     def _stream_query(self, query):
         """
         Stream rows from a query.
@@ -317,7 +326,7 @@ class Cursor(object):
         chunks = r.iter_content(chunk_size=None, decode_unicode=True)
         Row = None
         for row in rows_from_chunks(chunks):
-            # TODO Check if row description has to be returned
+            # TODO Check if row description has to be set
             # # update description
             # if self.description is None:
             #     self.description = (
@@ -330,6 +339,7 @@ class Cursor(object):
             yield Row(*row.values())
 
 
+# TODO Modify code to get rows from chunks
 def rows_from_chunks(chunks):
     """
     A generator that yields rows from JSON chunks.
@@ -341,8 +351,8 @@ def rows_from_chunks(chunks):
     body = ""
     count = 1
     for chunk in chunks:
-        print("Chunk:",count) #Code for testing response being processed in
-        count=count+1
+        print("Chunk:", count)  # Code for testing response being processed in
+        count = count + 1
         if chunk:
             body = "".join((body, chunk))
 
@@ -374,4 +384,3 @@ def rows_from_chunks(chunks):
                 "[{rows}]".format(rows=rows), object_pairs_hook=OrderedDict
         ):
             yield row
-

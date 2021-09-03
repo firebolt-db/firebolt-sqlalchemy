@@ -3,8 +3,7 @@ import json
 from sqlalchemy import types
 from sqlalchemy.engine import default
 from sqlalchemy.sql import compiler
-
-RESERVED_SCHEMAS = ["INFORMATION_SCHEMA"]
+import sqlalchemy_adapter
 
 # Firebolt data types compatibility with sqlalchemy.sql.types
 type_map = {
@@ -55,7 +54,6 @@ It is responsible for metadata definition and firing queries for receiving Datab
 """
 
 
-
 # TODO: check dialect attribute values
 
 class FireboltDialect(default.DefaultDialect):
@@ -83,11 +81,7 @@ class FireboltDialect(default.DefaultDialect):
 
     @classmethod
     def dbapi(cls):
-        try:
-            import sqlalchemy_adapter.firebolt_connector as connector
-        except:
-            import connector
-        return connector
+        return sqlalchemy_adapter
 
     # Build DB-API compatible connection arguments.
     def create_connect_args(self, url):
@@ -104,14 +98,10 @@ class FireboltDialect(default.DefaultDialect):
         return ([], kwargs)
 
     def get_schema_names(self, connection, **kwargs):
-        # TODO: Need to test the below query in firebolt
         result = connection.execute(
             "SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.DATABASES"
         )
 
-        # return [
-        #     row.SCHEMA_NAME for row in result #if row.SCHEMA_NAME not in RESERVED_SCHEMAS
-        # ]
         return result
 
     def has_table(self, connection, table_name, schema=None):
@@ -134,7 +124,6 @@ class FireboltDialect(default.DefaultDialect):
             )
 
         result = connection.execute(query)
-        # return [row.TABLE_NAME for row in result]
         return result
 
     def get_view_names(self, connection, schema=None, **kwargs):
@@ -171,7 +160,6 @@ class FireboltDialect(default.DefaultDialect):
             }
             for row in result
         ]
-        # return result
 
     def get_pk_constraint(self, connection, table_name, schema=None, **kwargs):
         return {"constrained_columns": [], "name": None}

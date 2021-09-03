@@ -1,21 +1,29 @@
 # Temporary file to share manual testing code
+# This is a temporary test file to test end to end function of adapter
+# To use this file, copy this file to a folder outside sqlalchemy_adapter
+# Comment out the type of test you want to run
 
 from sqlalchemy_adapter.firebolt_connector import connect
-from sqlalchemy_adapter.firebolt_api_service import FireboltApiService
+from sqlalchemy_adapter.firebolt_dialect import FireboltDialect
 
-query = 'select * from joining_details'
-connection = connect('aapurva@sigmoidanalytics.com','Apurva111','Sigmoid_Alchemy')
-cursor = connection.cursor()
-cursor.execute('select * from joining_details')
+connection = connect('aapurva@sigmoidanalytics.com', 'Apurva111', 'Sigmoid_Alchemy')
 
-"""
-'aapurva@sigmoidanalytics.com','Apurva111'
-'username', 'password'
+# Test for end to end
+# query = 'select * from lineitem limit 10'
+# cursor = connection.cursor()
+# response = cursor.execute(query)
+# # print(response.fetchmany(3))
+# # print(response.fetchone())
+# print(response.fetchall())
 
- https://sigmoid-alchemy-analytics.sigmoidanalytics.us-east-1.app.firebolt.io
- 
- {'access_token': 'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6Ik5VUkVOME14UmpsRU5FVXdRVFl5UVVORk56RTBRa1EwT1RZd056WXdSa1ExT0RJME1EQXlRZyJ9.eyJodHRwczovL0ZpcmVib2x0LmlvL3JvbGVzIjpbIkFDQ09VTlRfQURNSU4iXSwiaHR0cHM6Ly9GaXJlYm9sdC5pby9hY2NvdW50X25hbWUiOiJOL0EiLCJodHRwczovL2ZpcmVib2x0LmlvL2p3dC9jbGFpbXMiOnsicHJpbmNpcGFsIjoiL3VzZXJzLzM5Nzk4MjYzLWVjYWEtNGU0OS1hMTZjLWQ2MzE0ZjZkYzJmMyIsImRlZmF1bHRfYWNjb3VudF9pZCI6IjJjZWQ0ZGFiLTBhN2EtNGE2YS04Mzc4LTBhNTcxODEwNjhiMSJ9LCJpc3MiOiJodHRwczovL2FwcC1maXJlYm9sdC1pby5hdXRoMC5jb20vIiwic3ViIjoiYXV0aDB8NjEyNjBmNzkyZTc5NGYwMDcwNWQxYTVkIiwiYXVkIjoiaHR0cHM6Ly9hcGkuYXBwLmZpcmVib2x0LmlvLyIsImlhdCI6MTYzMDUwMDM3NiwiZXhwIjoxNjMwNTg2Nzc2LCJhenAiOiJoVWdYVkR2ZDRIaVBXRmM2U1kyTzhYcVg1UzF4WXdzSCIsInNjb3BlIjoib2ZmbGluZV9hY2Nlc3MiLCJndHkiOiJwYXNzd29yZCJ9.GuJ2R8TCN6vEtXneENbUeOpUcPan6LKOAxK3YTknPivrX-tLW5VYaV511M_fKyLdPTNoxc-oQMcM4eebRewYo0oXJTh4wH-LAYBlEvfc-ySZ_-_KjXlRt3vx4rk0p6TOWXxpmqYq_ppWBvIJ3qE3hizWeSlQeHHIOPx3Ol3KZlvuq9owghMLIdunHY5Bui1_3epr6vPAuOegpPMjyTlwaDfCls0L5Iegz5hPS-lIu8jAaaH9HNyf5O2pYB37gsjwQiwmAlSgUg3N0b5xZ8lONDTo3EfWWQZHRp1xiUjoyAe1rEiwticVv3AQRMzUWWPJJnvdrDuHgvoehKC55OI86Q', 'refresh_token': '13bkZQUcS2lsvHHw4LxTBBxPshS01m2GQrhrRflG8oyrz', 'scope': 'offline_access', 'expires_in': 86400, 'token_type': 'Bearer'}
-eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6Ik5VUkVOME14UmpsRU5FVXdRVFl5UVVORk56RTBRa1EwT1RZd056WXdSa1ExT0RJME1EQXlRZyJ9.eyJodHRwczovL0ZpcmVib2x0LmlvL3JvbGVzIjpbIkFDQ09VTlRfQURNSU4iXSwiaHR0cHM6Ly9GaXJlYm9sdC5pby9hY2NvdW50X25hbWUiOiJOL0EiLCJodHRwczovL2ZpcmVib2x0LmlvL2p3dC9jbGFpbXMiOnsicHJpbmNpcGFsIjoiL3VzZXJzLzM5Nzk4MjYzLWVjYWEtNGU0OS1hMTZjLWQ2MzE0ZjZkYzJmMyIsImRlZmF1bHRfYWNjb3VudF9pZCI6IjJjZWQ0ZGFiLTBhN2EtNGE2YS04Mzc4LTBhNTcxODEwNjhiMSJ9LCJpc3MiOiJodHRwczovL2FwcC1maXJlYm9sdC1pby5hdXRoMC5jb20vIiwic3ViIjoiYXV0aDB8NjEyNjBmNzkyZTc5NGYwMDcwNWQxYTVkIiwiYXVkIjoiaHR0cHM6Ly9hcGkuYXBwLmZpcmVib2x0LmlvLyIsImlhdCI6MTYzMDUwMDUxNiwiZXhwIjoxNjMwNTg2OTE2LCJhenAiOiJoVWdYVkR2ZDRIaVBXRmM2U1kyTzhYcVg1UzF4WXdzSCIsInNjb3BlIjoib2ZmbGluZV9hY2Nlc3MiLCJndHkiOlsicmVmcmVzaF90b2tlbiIsInBhc3N3b3JkIl19.Ut5TxEBh43tgCurKaXU5i_r6dkMa2x2V317NJztOpKYo161FXXde0CLH7Y4GZPU5jha8kI_OYH-j2V1azkooM4Cd_sruaR2FhXbsBj8t93dA9Q_OWr9yxrD05UO_BQ1NEGaMz9rtgGPr5m7hoRIlEgRBydjd_-mU3n-mz0XYV3dbDXTMBCSjllqOc-Hpz9ZmrihaNklokzX9xPi8FDC5rvKnWQXN07H4bnqAUuFBCNisM4848Zv8_abg4iKp52s2JRMe49j27OwiSA3ghI3BX7kzB5g6ZTHgXwYzHk6plVJl44OXzY7m5jqBUEs8bZe6aQg_Qi62ED0XIcebKZZYyA
+# Test for dialect
+dialect = FireboltDialect()
 
- 
-"""
+schemas = dialect.get_schema_names(connection).fetchall()
+print("Schema Names")
+print(schemas)
+
+tables = dialect.get_table_names(connection,"Sigmoid_Alchemy").fetchall()
+print("Table names")
+print(tables)
+
