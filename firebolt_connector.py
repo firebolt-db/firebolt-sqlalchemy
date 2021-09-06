@@ -308,21 +308,6 @@ class Cursor(object):
 
         r = FireboltApiService.run_query(self._access_token, self._refresh_token, self._engine_url, self._db_name, query)
 
-        # if r.encoding is None:
-        #     r.encoding = "utf-8"
-        # raise any error messages
-        # if r.status_code != 200:
-        #     try:
-        #         payload = r.json()
-        #     except Exception:
-        #         payload = {
-        #             "error": "Unknown error",
-        #             "errorClass": "Unknown",
-        #             "errorMessage": r.response.text,
-        #         }
-        #     msg = "{error} ({errorClass}): {errorMessage}".format(**payload)
-        #     raise exceptions.ProgrammingError(msg)
-
         # Setting `chunk_size` to `None` makes it use the server size
         chunks = r.iter_content(chunk_size=None, decode_unicode=True)
         Row = None
@@ -340,7 +325,6 @@ class Cursor(object):
             yield Row(*row.values())
 
 
-# TODO Modify code to get rows from chunks
 def rows_from_chunks(chunks):
     """
     A generator that yields rows from JSON chunks.
@@ -351,35 +335,34 @@ def rows_from_chunks(chunks):
     """
     body = ""
     count = 1
+    squareBrackets = 0
+    dataStartpos = 0
+    dataEndPos = 0
+    inString = False
     for chunk in chunks:
         print("Chunk:", count)  # Code for testing response being processed in
         count = count + 1
+
         if chunk:
             body = "".join((body, chunk))
-
-        # find last complete row
-        boundary = 0
-        brackets = 0
-        in_string = False
         for i, char in enumerate(body):
             if char == '"':
-                if not in_string:
-                    in_string = True
-                elif body[i - 1] != "\\":
-                    in_string = False
+                if not inString:
+                    inString = True
+                else:
+                    inString = False
 
-            if in_string:
-                continue
+            if not inString:
+                if char == '[':
+                    squareBrackets +=1
+                    if squareBrackets == 2:
+                        dataStartpos = i+1
+                if char == ']' and squareBrackets == 2:
+                    dataEndPos = i
+                    break
 
-            if char == "{":
-                brackets += 1
-            elif char == "}":
-                brackets -= 1
-                if brackets == 0 and i > boundary:
-                    boundary = i + 1
-
-        rows = body[:boundary].lstrip("[,")
-        body = body[boundary:]
+        rows = body[dataStartpos:dataEndPos].lstrip().rstrip()
+        print(rows)
 
         for row in json.loads(
                 "[{rows}]".format(rows=rows), object_pairs_hook=OrderedDict
