@@ -124,8 +124,9 @@ class Connection(object):
         self._db_name = db_name
 
         connection_details = FireboltApiService.get_connection(user_email, password, db_name)
-        if connection_details[1] == "":
-            raise exceptions.InvalidCredentialsError("Invalid credentials or Database name")
+
+        # if connection_details[1] == "":
+        #     raise exceptions.InvalidCredentialsError("Invalid credentials or Database name")
         self.access_token = connection_details[0]
         self.engine_url = connection_details[1]
         self.refresh_token = connection_details[2]
@@ -305,22 +306,22 @@ class Cursor(object):
         """
         self.description = None
 
-        r = FireboltApiService.run_query(self._access_token, self._engine_url, self._db_name, query)
+        r = FireboltApiService.run_query(self._access_token, self._refresh_token, self._engine_url, self._db_name, query)
 
-        if r.encoding is None:
-            r.encoding = "utf-8"
+        # if r.encoding is None:
+        #     r.encoding = "utf-8"
         # raise any error messages
-        if r.status_code != 200:
-            try:
-                payload = r.json()
-            except Exception:
-                payload = {
-                    "error": "Unknown error",
-                    "errorClass": "Unknown",
-                    "errorMessage": r.text,
-                }
-            msg = "{error} ({errorClass}): {errorMessage}".format(**payload)
-            raise exceptions.ProgrammingError(msg)
+        # if r.status_code != 200:
+        #     try:
+        #         payload = r.json()
+        #     except Exception:
+        #         payload = {
+        #             "error": "Unknown error",
+        #             "errorClass": "Unknown",
+        #             "errorMessage": r.response.text,
+        #         }
+        #     msg = "{error} ({errorClass}): {errorMessage}".format(**payload)
+        #     raise exceptions.ProgrammingError(msg)
 
         # Setting `chunk_size` to `None` makes it use the server size
         chunks = r.iter_content(chunk_size=None, decode_unicode=True)

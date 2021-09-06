@@ -43,3 +43,7 @@ class NotSupportedError(CompileError):
 
 class InvalidCredentialsError(DatabaseError):
     pass
+
+
+class SchemaNotFoundError(DatabaseError):
+    pass
