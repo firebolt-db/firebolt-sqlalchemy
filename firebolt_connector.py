@@ -334,14 +334,14 @@ def rows_from_chunks(chunks):
     yielding them as soon as possible.
     """
     body = ""
-    count = 1
+    # count = 1
     squareBrackets = 0
     dataStartpos = 0
     dataEndPos = 0
     inString = False
     for chunk in chunks:
-        print("Chunk:", count)  # Code for testing response being processed in
-        count = count + 1
+        # print("Chunk:", count)  # Code for testing response being processed in
+        # count = count + 1
 
         if chunk:
             body = "".join((body, chunk))
@@ -362,7 +362,7 @@ def rows_from_chunks(chunks):
                     break
 
         rows = body[dataStartpos:dataEndPos].lstrip().rstrip()
-        print(rows)
+        # print(rows)
 
         for row in json.loads(
                 "[{rows}]".format(rows=rows), object_pairs_hook=OrderedDict
