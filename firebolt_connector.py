@@ -11,11 +11,8 @@
 import itertools
 import json
 from collections import namedtuple, OrderedDict
-from requests.exceptions import HTTPError
 
-import requests
 from sqlalchemy_adapter.firebolt_api_service import FireboltApiService
-
 from sqlalchemy_adapter import exceptions
 
 
@@ -25,7 +22,6 @@ class Type(object):
     BOOLEAN = 3
 
 
-# @check_valid_connection
 def connect(user_email, password, db_name):
     """
     Constructor for creating a connection to the database.
@@ -36,8 +32,6 @@ def connect(user_email, password, db_name):
 
     """
     connection = Connection(user_email, password, db_name)
-    # if connection.engine_url == "":
-    #     connection.errors.append(connection.access_token)
     return connection
 
 
@@ -63,17 +57,6 @@ def check_result(f):
         return f(self, *args, **kwargs)
 
     return g
-
-
-# def check_valid_connection(f):
-#     """Decorator that checks if connection has been created successfully."""
-#
-#     def g(self, *args, **kwargs):
-#         if type(self.access_token) != dict or type(self.engine_url) == "":
-#             raise exceptions.Error("Invalid connection parameters")
-#         return f(self, *args, **kwargs)
-#
-#     return g
 
 
 def get_description_from_row(row):
