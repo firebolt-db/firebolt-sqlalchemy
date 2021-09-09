@@ -7,14 +7,13 @@
 # Built as per Python DB API Specification - PEP 249
 # Responsible for connection to Database and providing database cursor for query execution
 # Connector is imported and used by Dialect to get connection
-# TODO: Under Development
 
 import itertools
 import json
 from collections import namedtuple, OrderedDict
-from urllib import parse
 
-import requests
+from sqlalchemy_adapter.firebolt_api_service import FireboltApiService
+from sqlalchemy_adapter import exceptions
 
 
 class Type(object):
@@ -23,41 +22,17 @@ class Type(object):
     BOOLEAN = 3
 
 
-def connect(
-        host="localhost",
-        port=8082,
-        path="/firebolt/v2/sql/",
-        scheme="http",
-        user=None,
-        password=None,
-        context=None,
-        header=False,
-        ssl_verify_cert=True,
-        ssl_client_cert=None,
-        proxies=None,
-):  # noqa: E125
+def connect(user_email, password, db_name):
     """
     Constructor for creating a connection to the database.
 
-        >>> conn = connect('localhost', 8082)
-        >>> curs = conn.cursor()
+        >>> connection = connect('user_email','password','db_name')
+        >>> cursor = connection.cursor()
+        >>> response = cursor.execute('select * from <table_name>').fetchall()
 
     """
-    context = context or {}
-
-    return Connection(
-        host,
-        port,
-        path,
-        scheme,
-        user,
-        password,
-        context,
-        header,
-        ssl_verify_cert,
-        ssl_client_cert,
-        proxies,
-    )
+    connection = Connection(user_email, password, db_name)
+    return connection
 
 
 def check_closed(f):
@@ -126,31 +101,20 @@ def get_type(value):
 class Connection(object):
     """Connection to a Firebolt database."""
 
-    def __init__(
-            self,
-            host="localhost",
-            port=8082,
-            path="/firebolt/v2/sql/",
-            scheme="http",
-            user=None,
-            password=None,
-            context=None,
-            header=False,
-            ssl_verify_cert=True,
-            ssl_client_cert=None,
-            proxies=None,
-    ):
-        netloc = "{host}:{port}".format(host=host, port=port)
-        self.url = parse.urlunparse((scheme, netloc, path, None, None, None))
-        self.context = context or {}
-        self.closed = False
+    def __init__(self, user_email, password, db_name):
+        self._user_email = user_email
+        self._password = password
+        self._db_name = db_name
+
+        connection_details = FireboltApiService.get_connection(user_email, password, db_name)
+
+        # if connection_details[1] == "":
+        #     raise exceptions.InvalidCredentialsError("Invalid credentials or Database name")
+        self.access_token = connection_details[0]
+        self.engine_url = connection_details[1]
+        self.refresh_token = connection_details[2]
         self.cursors = []
-        self.header = header
-        self.user = user
-        self.password = password
-        self.ssl_verify_cert = ssl_verify_cert
-        self.ssl_client_cert = ssl_client_cert
-        self.proxies = proxies
+        self.closed = False
 
     @check_closed
     def close(self):
@@ -174,16 +138,11 @@ class Connection(object):
     @check_closed
     def cursor(self):
         """Return a new Cursor Object using the connection."""
-
         cursor = Cursor(
-            self.url,
-            self.user,
-            self.password,
-            self.context,
-            self.header,
-            self.ssl_verify_cert,
-            self.ssl_client_cert,
-            self.proxies,
+            self._db_name,
+            self.access_token,
+            self.engine_url,
+            self.refresh_token
         )
 
         self.cursors.append(cursor)
@@ -191,9 +150,9 @@ class Connection(object):
         return cursor
 
     @check_closed
-    def execute(self, operation, parameters=None):
+    def execute(self, query):
         cursor = self.cursor()
-        return cursor.execute(operation, parameters)
+        return cursor.execute(query)
 
     def __enter__(self):
         return self.cursor()
@@ -205,25 +164,13 @@ class Connection(object):
 class Cursor(object):
     """Connection cursor."""
 
-    def __init__(
-            self,
-            url,
-            user=None,
-            password=None,
-            context=None,
-            header=False,
-            ssl_verify_cert=True,
-            proxies=None,
-            ssl_client_cert=None,
-    ):
-        self.url = url
-        self.context = context or {}
-        self.header = header
-        self.user = user
-        self.password = password
-        self.ssl_verify_cert = ssl_verify_cert
-        self.ssl_client_cert = ssl_client_cert
-        self.proxies = proxies
+    def __init__(self, db_name, access_token, engine_url, refresh_token):
+
+        self._db_name = db_name
+        self._access_token = access_token
+        self._engine_url = engine_url
+        self._refresh_token = refresh_token
+        self.closed = False
 
         # This read/write attribute specifies the number of rows to fetch at a
         # time with .fetchmany(). It defaults to 1 meaning to fetch a single
@@ -237,6 +184,7 @@ class Cursor(object):
 
         # this is set to an iterator after a successfull query
         self._results = None
+        self.header = False
 
     @property
     @check_result
@@ -254,13 +202,16 @@ class Cursor(object):
         self.closed = True
 
     @check_closed
-    def execute(self, operation, parameters=None):
-        query = apply_parameters(operation, parameters)
+    def execute(self, query):
+        # def execute(self, operation, parameters=None):
+        # query = apply_parameters(operation, parameters)
         results = self._stream_query(query)
 
-        # `_stream_query` returns a generator that produces the rows; we need to
-        # consume the first row so that `description` is properly set, so let's
-        # consume it and insert it back if it is not the header.
+        """
+        `_stream_query` returns a generator that produces the rows; we need to
+        consume the first row so that `description` is properly set, so let's
+        consume it and insert it back if it is not the header.
+        """
         try:
             first_row = next(results)
             self._results = (
@@ -268,7 +219,6 @@ class Cursor(object):
             )
         except StopIteration:
             self._results = iter([])
-
         return self
 
     @check_closed
@@ -339,49 +289,18 @@ class Cursor(object):
         """
         self.description = None
 
-        headers = {"Content-Type": "application/json"}
+        r = FireboltApiService.run_query(self._access_token, self._refresh_token, self._engine_url, self._db_name, query)
 
-        payload = {"query": query, "context": self.context, "header": self.header}
-
-        auth = (
-            requests.auth.HTTPBasicAuth(self.user, self.password) if self.user else None
-        )
-        r = requests.post(
-            self.url,
-            stream=True,
-            headers=headers,
-            json=payload,
-            auth=auth,
-            verify=self.ssl_verify_cert,
-            cert=self.ssl_client_cert,
-            proxies=self.proxies,
-        )
-        if r.encoding is None:
-            r.encoding = "utf-8"
-        # raise any error messages
-        if r.status_code != 200:
-            try:
-                payload = r.json()
-            except Exception:
-                payload = {
-                    "error": "Unknown error",
-                    "errorClass": "Unknown",
-                    "errorMessage": r.text,
-                }
-            msg = "{error} ({errorClass}): {errorMessage}".format(**payload)
-            raise exceptions.ProgrammingError(msg)
-
-        # Firebolt will stream the data in chunks of 8k bytes, splitting the JSON
-        # between them; setting `chunk_size` to `None` makes it use the server
-        # size
+        # Setting `chunk_size` to `None` makes it use the server size
         chunks = r.iter_content(chunk_size=None, decode_unicode=True)
         Row = None
         for row in rows_from_chunks(chunks):
-            # update description
-            if self.description is None:
-                self.description = (
-                    list(row.items()) if self.header else get_description_from_row(row)
-                )
+            # TODO Check if row description has to be set
+            # # update description
+            # if self.description is None:
+            #     self.description = (
+            #         list(row.items()) if self.header else get_description_from_row(row)
+            #     )
 
             # return row in namedtuple
             if Row is None:
@@ -398,62 +317,37 @@ def rows_from_chunks(chunks):
     yielding them as soon as possible.
     """
     body = ""
+    # count = 1
+    squareBrackets = 0
+    dataStartpos = 0
+    dataEndPos = 0
+    inString = False
     for chunk in chunks:
+        # print("Chunk:", count)  # Code for testing response being processed in
+        # count = count + 1
+
         if chunk:
             body = "".join((body, chunk))
-
-        # find last complete row
-        boundary = 0
-        brackets = 0
-        in_string = False
         for i, char in enumerate(body):
             if char == '"':
-                if not in_string:
-                    in_string = True
-                elif body[i - 1] != "\\":
-                    in_string = False
+                if not inString:
+                    inString = True
+                else:
+                    inString = False
 
-            if in_string:
-                continue
+            if not inString:
+                if char == '[':
+                    squareBrackets +=1
+                    if squareBrackets == 2:
+                        dataStartpos = i+1
+                if char == ']' and squareBrackets == 2:
+                    dataEndPos = i
+                    break
 
-            if char == "{":
-                brackets += 1
-            elif char == "}":
-                brackets -= 1
-                if brackets == 0 and i > boundary:
-                    boundary = i + 1
-
-        rows = body[:boundary].lstrip("[,")
-        body = body[boundary:]
+        rows = body[dataStartpos:dataEndPos].lstrip().rstrip()
+        # print(rows)
 
         for row in json.loads(
                 "[{rows}]".format(rows=rows), object_pairs_hook=OrderedDict
         ):
             yield row
-
-
-def apply_parameters(operation, parameters):
-    if not parameters:
-        return operation
-
-    escaped_parameters = {key: escape(value) for key, value in parameters.items()}
-    return operation % escaped_parameters
-
-
-def escape(value):
-    """
-    Escape the parameter value.
-
-    Note that bool is a subclass of int so order of statements matter.
-    """
-
-    if value == "*":
-        return value
-    elif isinstance(value, str):
-        return "'{}'".format(value.replace("'", "''"))
-    elif isinstance(value, bool):
-        return "TRUE" if value else "FALSE"
-    elif isinstance(value, (int, float)):
-        return value
-    elif isinstance(value, (list, tuple)):
-        return ", ".join(escape(element) for element in value)

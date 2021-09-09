@@ -1,11 +1,13 @@
+import json
+
 from sqlalchemy import types
 from sqlalchemy.engine import default
 from sqlalchemy.sql import compiler
-
-RESERVED_SCHEMAS = ["INFORMATION_SCHEMA"]
+import sqlalchemy_adapter
 
 # Firebolt data types compatibility with sqlalchemy.sql.types
 type_map = {
+    "char": types.String,
     "text": types.String,
     "varchar": types.String,
     "string": types.String,
@@ -51,9 +53,8 @@ FireboltDialect defines the behavior of Firebolt database and DB-API combination
 It is responsible for metadata definition and firing queries for receiving Database schema and table information.
 """
 
-# TODO: Test dialect and queries on getting Firebolt Database access
-# TODO: check dialect attribute values
 
+# TODO: check dialect attribute values
 
 class FireboltDialect(default.DefaultDialect):
     name = "firebolt"
@@ -80,11 +81,7 @@ class FireboltDialect(default.DefaultDialect):
 
     @classmethod
     def dbapi(cls):
-        try:
-            import sql_alchemy_adapter.connector as connector  # TODO: Connector under development
-        except:
-            import connector
-        return connector
+        return sqlalchemy_adapter
 
     # Build DB-API compatible connection arguments.
     def create_connect_args(self, url):
@@ -101,14 +98,11 @@ class FireboltDialect(default.DefaultDialect):
         return ([], kwargs)
 
     def get_schema_names(self, connection, **kwargs):
-        # TODO: Need to test the below query in firebolt
         result = connection.execute(
             "SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.DATABASES"
         )
 
-        return [
-            row.SCHEMA_NAME for row in result if row.SCHEMA_NAME not in RESERVED_SCHEMAS
-        ]
+        return result
 
     def has_table(self, connection, table_name, schema=None):
         query = """
@@ -130,7 +124,7 @@ class FireboltDialect(default.DefaultDialect):
             )
 
         result = connection.execute(query)
-        return [row.TABLE_NAME for row in result]
+        return result
 
     def get_view_names(self, connection, schema=None, **kwargs):
         return []
@@ -143,8 +137,7 @@ class FireboltDialect(default.DefaultDialect):
         query = """
             SELECT COLUMN_NAME,
                    DATA_TYPE,
-                   IS_NULLABLE,
-                   COLUMN_DEFAULT
+                   IS_NULLABLE
               FROM INFORMATION_SCHEMA.COLUMNS
              WHERE TABLE_NAME = '{table_name}'
         """.format(
@@ -156,13 +149,14 @@ class FireboltDialect(default.DefaultDialect):
             )
 
         result = connection.execute(query)
-
+        # y = json.loads(result)
+        result = result["data"]
         return [
             {
-                "name": row.COLUMN_NAME,
-                "type": type_map[row.DATA_TYPE.lower()],
-                "nullable": get_is_nullable(row.IS_NULLABLE),
-                "default": get_default(row.COLUMN_DEFAULT),
+                "name": row['column_name'],
+                "type": type_map[row['data_type'].lower()],
+                "nullable": get_is_nullable(row['is_nullable'])
+                # "default": get_default(row.COLUMN_DEFAULT),
             }
             for row in result
         ]
@@ -205,10 +199,11 @@ class FireboltHTTPSDialect(FireboltDialect):
     scheme = "https"
 
 
-def get_is_nullable(firebolt_is_nullable):
-    return firebolt_is_nullable.lower() == "yes"
+def get_is_nullable(column_is_nullable):
+    return column_is_nullable.lower() == "yes"
 
 
+# TODO check if this method is needed
 def get_default(firebolt_column_default):
     # currently unused, returns ''
     return str(firebolt_column_default) if firebolt_column_default != "" else None
