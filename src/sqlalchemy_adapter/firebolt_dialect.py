@@ -1,9 +1,7 @@
-import json
-
 from sqlalchemy import types
 from sqlalchemy.engine import default
 from sqlalchemy.sql import compiler
-import sqlalchemy_adapter
+from src import sqlalchemy_adapter
 
 # Firebolt data types compatibility with sqlalchemy.sql.types
 type_map = {
