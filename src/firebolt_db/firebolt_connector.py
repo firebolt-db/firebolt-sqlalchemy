@@ -22,7 +22,7 @@ class Type(object):
     BOOLEAN = 3
 
 
-def connect(user_email, password, db_name):
+def connect(*args, **kwargs):
     """
     Constructor for creating a connection to the database.
 
@@ -31,7 +31,7 @@ def connect(user_email, password, db_name):
         >>> response = cursor.execute('select * from <table_name>').fetchall()
 
     """
-    connection = Connection(user_email, password, db_name)
+    connection = Connection(*args, **kwargs)
     return connection
 
 
@@ -101,12 +101,16 @@ def get_type(value):
 class Connection(object):
     """Connection to a Firebolt database."""
 
-    def __init__(self, user_email, password, db_name):
-        self._user_email = user_email
+    def __init__(self,
+                 username,
+                 password,
+                 db_name
+                 ):
+        self._username = username
         self._password = password
         self._db_name = db_name
 
-        connection_details = FireboltApiService.get_connection(user_email, password, db_name)
+        connection_details = FireboltApiService.get_connection(username, password, db_name)
 
         # if connection_details[1] == "":
         #     raise exceptions.InvalidCredentialsError("Invalid credentials or Database name")
