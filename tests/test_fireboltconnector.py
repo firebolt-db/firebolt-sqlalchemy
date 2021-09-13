@@ -2,8 +2,8 @@ import itertools
 
 import pytest
 
-from src.sqlalchemy_adapter import firebolt_connector
-from src.sqlalchemy_adapter import exceptions
+from src.firebolt_db import firebolt_connector
+from src.firebolt_db import exceptions
 
 
 @pytest.fixture

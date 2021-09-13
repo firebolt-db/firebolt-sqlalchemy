@@ -3,8 +3,8 @@ import json
 import requests
 from requests.exceptions import HTTPError
 
-from src.sqlalchemy_adapter import exceptions
-from src.sqlalchemy_adapter import constants
+from src.firebolt_db import exceptions
+from src.firebolt_db import constants
 
 
 class FireboltApiService:

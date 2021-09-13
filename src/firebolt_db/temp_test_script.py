@@ -1,10 +1,10 @@
 # Temporary file to share manual testing code
 # This is a temporary test file to test end to end function of adapter
-# To use this file, copy this file to a folder outside sqlalchemy_adapter
+# To use this file, copy this file to a folder outside firebolt_db
 # Comment out the type of test you want to run
 
-from sqlalchemy_adapter.firebolt_connector import connect
-from sqlalchemy_adapter.firebolt_dialect import FireboltDialect
+from src.firebolt_db.firebolt_connector import connect
+from src.firebolt_db.firebolt_dialect import FireboltDialect
 
 connection = connect('aapurva@sigmoidanalytics.com', 'Apurva111', 'Sigmoid_Alchemy')
 
