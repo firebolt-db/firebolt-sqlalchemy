@@ -12,8 +12,8 @@ import itertools
 import json
 from collections import namedtuple, OrderedDict
 
-from sqlalchemy_adapter.firebolt_api_service import FireboltApiService
-from sqlalchemy_adapter import exceptions
+from src.sqlalchemy_adapter.firebolt_api_service import FireboltApiService
+from src.sqlalchemy_adapter import exceptions
 
 
 class Type(object):
