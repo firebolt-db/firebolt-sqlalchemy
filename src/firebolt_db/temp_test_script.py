@@ -3,8 +3,8 @@
 # To use this file, copy this file to a folder outside firebolt_db
 # Comment out the type of test you want to run
 
-from src.firebolt_db.firebolt_connector import connect
-from src.firebolt_db.firebolt_dialect import FireboltDialect
+from firebolt_db.firebolt_connector import connect
+from firebolt_db.firebolt_dialect import FireboltDialect
 
 connection = connect('aapurva@sigmoidanalytics.com', 'Apurva111', 'Sigmoid_Alchemy')
 

@@ -2,8 +2,8 @@ import itertools
 
 import pytest
 
-from src.firebolt_db import firebolt_connector
-from src.firebolt_db import exceptions
+from firebolt_db import firebolt_connector
+from firebolt_db import exceptions
 
 
 @pytest.fixture
