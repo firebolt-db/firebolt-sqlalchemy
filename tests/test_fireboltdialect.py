@@ -1,4 +1,4 @@
-from src.sqlalchemy_adapter import firebolt_dialect, firebolt_connector
+from src.firebolt_db import firebolt_dialect, firebolt_connector
 
 
 class ConnectionDetails():

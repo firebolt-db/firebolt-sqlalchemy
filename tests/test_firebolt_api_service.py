@@ -1,7 +1,7 @@
-from src.sqlalchemy_adapter.firebolt_api_service import FireboltApiService
+from src.firebolt_db.firebolt_api_service import FireboltApiService
 from tests import constants
 from requests.exceptions import HTTPError
-from src.sqlalchemy_adapter import exceptions
+from src.firebolt_db import exceptions
 import pytest
 
 access_token = FireboltApiService.get_access_token({'username': constants.username,

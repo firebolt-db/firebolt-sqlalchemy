@@ -1,7 +1,7 @@
 from sqlalchemy import types
 from sqlalchemy.engine import default
 from sqlalchemy.sql import compiler
-from src import sqlalchemy_adapter
+from src import firebolt_db
 
 # Firebolt data types compatibility with sqlalchemy.sql.types
 type_map = {
@@ -79,7 +79,7 @@ class FireboltDialect(default.DefaultDialect):
 
     @classmethod
     def dbapi(cls):
-        return sqlalchemy_adapter
+        return firebolt_db
 
     # Build DB-API compatible connection arguments.
     def create_connect_args(self, url):

@@ -21,7 +21,7 @@ setuptools.setup(
     ],
     entry_points={
         "sqlalchemy.dialects": [
-            "firebolt = sqlalchemy_adapter.firebolt_dialect:FireboltDialect"
+            "firebolt = firebolt_db.firebolt_dialect:FireboltDialect"
         ],
     },
     classifiers=[
