@@ -35,7 +35,7 @@ class FireboltApiService:
 
             """
                General format of request:
-              curl --request POST 'https://api.app.firebolt.io/auth/v1/login' --header 'Content-Type: application/json;charset=UTF-8' --data-binary '{"username":"raghavs@sigmoidanalytics.com","password":"Sharma%1"}'
+              curl --request POST 'https://api.app.firebolt.io/auth/v1/login' --header 'Content-Type: application/json;charset=UTF-8' --data-binary '{"username":"username","password":"password"}'
             """
             token_response = requests.post(url=constants.token_url, data=json.dumps(data),
                                            headers=constants.token_header)
@@ -186,7 +186,6 @@ class FireboltApiService:
 
             """
             Request:
-            echo "SELECT * FROM lineitem LIMIT 1000" | curl
             --request POST 'https://YOUR_ENGINE_ENDPOINT/?database=YOUR_DATABASE_NAME' \
             --header 'Authorization: Bearer YOUR_ACCESS_TOKEN_VALUE' \
             --data-binary @-
