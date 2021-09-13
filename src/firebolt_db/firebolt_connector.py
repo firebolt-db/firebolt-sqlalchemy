@@ -15,6 +15,15 @@ from collections import namedtuple, OrderedDict
 from firebolt_db.firebolt_api_service import FireboltApiService
 from firebolt_db import exceptions
 
+paramstyle = 'pyformat'
+
+
+class Error(Exception):
+    """Exception that is the base class of all other error exceptions.
+    You can use this to catch all errors with one single except statement.
+    """
+    pass
+
 
 class Type(object):
     STRING = 1
@@ -22,7 +31,7 @@ class Type(object):
     BOOLEAN = 3
 
 
-def connect(user_email, password, db_name):
+def connect(*args, **kwargs):
     """
     Constructor for creating a connection to the database.
 
@@ -31,8 +40,7 @@ def connect(user_email, password, db_name):
         >>> response = cursor.execute('select * from <table_name>').fetchall()
 
     """
-    connection = Connection(user_email, password, db_name)
-    return connection
+    return Connection(*args, **kwargs)
 
 
 def check_closed(f):
@@ -101,15 +109,19 @@ def get_type(value):
 class Connection(object):
     """Connection to a Firebolt database."""
 
-    def __init__(self, user_email, password, db_name):
-        self._user_email = user_email
+    def __init__(self,
+                 host,
+                 port,
+                 username,
+                 password,
+                 db_name,
+                 ):
+        self._host = host
+        self._post = port
+        self._username = username
         self._password = password
         self._db_name = db_name
-
-        connection_details = FireboltApiService.get_connection(user_email, password, db_name)
-
-        # if connection_details[1] == "":
-        #     raise exceptions.InvalidCredentialsError("Invalid credentials or Database name")
+        connection_details = FireboltApiService.get_connection(username, password, db_name)
         self.access_token = connection_details[0]
         self.engine_url = connection_details[1]
         self.refresh_token = connection_details[2]
@@ -289,7 +301,11 @@ class Cursor(object):
         """
         self.description = None
 
-        r = FireboltApiService.run_query(self._access_token, self._refresh_token, self._engine_url, self._db_name, query)
+        r = FireboltApiService.run_query(self._access_token,
+                                         self._refresh_token,
+                                         self._engine_url,
+                                         self._db_name,
+                                         query)
 
         # Setting `chunk_size` to `None` makes it use the server size
         chunks = r.iter_content(chunk_size=None, decode_unicode=True)
@@ -337,9 +353,9 @@ def rows_from_chunks(chunks):
 
             if not inString:
                 if char == '[':
-                    squareBrackets +=1
+                    squareBrackets += 1
                     if squareBrackets == 2:
-                        dataStartpos = i+1
+                        dataStartpos = i + 1
                 if char == ']' and squareBrackets == 2:
                     dataEndPos = i
                     break
