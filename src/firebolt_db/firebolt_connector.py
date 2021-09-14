@@ -122,6 +122,7 @@ class Connection(object):
         self._password = password
         self._db_name = db_name
         connection_details = FireboltApiService.get_connection(username, password, db_name)
+
         self.access_token = connection_details[0]
         self.engine_url = connection_details[1]
         self.refresh_token = connection_details[2]

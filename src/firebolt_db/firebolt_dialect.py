@@ -77,7 +77,6 @@ class FireboltDialect(default.DefaultDialect):
 
     @classmethod
     def dbapi(cls):
-        from firebolt_db import firebolt_connector
         return firebolt_connector
 
     # Build DB-API compatible connection arguments.
@@ -89,9 +88,6 @@ class FireboltDialect(default.DefaultDialect):
             "username": url.username or None,
             "password": url.password or None,
             "db_name": url.database,
-            # "scheme": self.scheme,
-            # "context": self.context,
-            # "header": url.query.get("header") == "true",
         }
         return ([], kwargs)
 
