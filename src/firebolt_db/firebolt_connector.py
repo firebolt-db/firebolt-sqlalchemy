@@ -33,7 +33,7 @@ def connect(*args, **kwargs):
     """
     Constructor for creating a connection to the database.
 
-        >>> connection = connect('user_email','password','db_name')
+        >>> connection = connect('localhost',8123,'aapurva@sigmoidanalytics.com', 'Apurva111', 'Sigmoid_Alchemy')
         >>> cursor = connection.cursor()
         >>> response = cursor.execute('select * from <table_name>').fetchall()
 
@@ -113,7 +113,7 @@ class Connection(object):
                  username,
                  password,
                  db_name,
-                 scheme="http",
+                 # scheme="http",
                  context=None,
                  header=False,
                  ssl_verify_cert=False,

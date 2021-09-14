@@ -56,8 +56,7 @@ It is responsible for metadata definition and firing queries for receiving Datab
 
 class FireboltDialect(default.DefaultDialect):
     name = "firebolt"
-    scheme = "http"
-    driver = "rest"
+    driver = "firebolt"
     user = None
     password = None
     preparer = FireboltIdentifierPreparer
@@ -73,9 +72,9 @@ class FireboltDialect(default.DefaultDialect):
     description_encoding = None
     supports_native_boolean = True
 
-    def __init__(self, context=None, *args, **kwargs):
-        super(FireboltDialect, self).__init__(*args, **kwargs)
-        self.context = context or {}
+    # def __init__(self, context=None, *args, **kwargs):
+    #     super(FireboltDialect, self).__init__(*args, **kwargs)
+    #     self.context = context or {}
 
     @classmethod
     def dbapi(cls):
@@ -90,7 +89,7 @@ class FireboltDialect(default.DefaultDialect):
             "username": url.username or None,
             "password": url.password or None,
             "db_name": url.database,
-            "scheme": self.scheme,
+            # "scheme": self.scheme,
             "context": self.context,
             "header": False,  # url.query.get("header") == "true",
         }
