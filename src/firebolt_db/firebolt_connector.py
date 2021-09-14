@@ -15,8 +15,6 @@ from collections import namedtuple, OrderedDict
 from firebolt_db.firebolt_api_service import FireboltApiService
 from firebolt_db import exceptions
 
-paramstyle = 'pyformat'
-
 
 class Error(Exception):
     """Exception that is the base class of all other error exceptions.
@@ -115,6 +113,12 @@ class Connection(object):
                  username,
                  password,
                  db_name,
+                 scheme="http",
+                 context=None,
+                 header=False,
+                 ssl_verify_cert=False,
+                 ssl_client_cert=None,
+                 proxies=None,
                  ):
         self._host = host
         self._post = port
@@ -128,6 +132,13 @@ class Connection(object):
         self.refresh_token = connection_details[2]
         self.cursors = []
         self.closed = False
+
+        self.ssl_verify_cert = ssl_verify_cert
+        self.ssl_client_cert = ssl_client_cert
+        self.proxies = proxies
+        self.context = context or {}
+        self.header = header
+
 
     @check_closed
     def close(self):

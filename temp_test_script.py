@@ -6,7 +6,7 @@
 from firebolt_db.firebolt_connector import connect
 from firebolt_db.firebolt_dialect import FireboltDialect
 
-connection = connect('aapurva@sigmoidanalytics.com', 'Apurva111', 'Sigmoid_Alchemy')
+connection = connect('localhost',8123,'aapurva@sigmoidanalytics.com', 'Apurva111', 'Sigmoid_Alchemy')
 
 # Test for end to end
 # query = 'select * from lineitem limit 10'
