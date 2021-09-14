@@ -18,8 +18,8 @@ connection = connect('localhost',8123,'aapurva@sigmoidanalytics.com', 'Apurva111
 
 # Test for dialect
 dialect = FireboltDialect()
-
-schemas = dialect.get_schema_names(connection).fetchall()
+#
+schemas = dialect.get_schema_names(connection)
 print("Schema Names")
 print(schemas)
 
