@@ -56,8 +56,7 @@ It is responsible for metadata definition and firing queries for receiving Datab
 
 class FireboltDialect(default.DefaultDialect):
     name = "firebolt"
-    scheme = "http"
-    driver = "rest"
+    driver = "firebolt"
     user = None
     password = None
     preparer = FireboltIdentifierPreparer
