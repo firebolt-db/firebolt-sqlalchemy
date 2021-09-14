@@ -89,7 +89,7 @@ class FireboltDialect(default.DefaultDialect):
             "username": url.username or None,
             "password": url.password or None,
             "db_name": url.database,
-            "scheme": self.scheme,
+            # "scheme": self.scheme,
             "context": self.context,
             "header": False,  # url.query.get("header") == "true",
         }

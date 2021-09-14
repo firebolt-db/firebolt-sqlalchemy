@@ -113,7 +113,7 @@ class Connection(object):
                  username,
                  password,
                  db_name,
-                 scheme="http",
+                 # scheme="http",
                  context=None,
                  header=False,
                  ssl_verify_cert=False,
