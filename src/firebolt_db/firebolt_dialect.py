@@ -99,13 +99,10 @@ class FireboltDialect(default.DefaultDialect):
         result = connection.execute(
             "SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.DATABASES"
         )
-        # print("hey")
-        # print(type(result))
-        # return [row for row in result]
-        # return result.next().schema_name
-        return [
-            row.schema_name for row in result
-        ]
+        return result
+        # return [
+        #     row.schema_name for row in result
+        # ]
 
     def has_table(self, connection, table_name, schema=None):
         query = """
@@ -127,8 +124,8 @@ class FireboltDialect(default.DefaultDialect):
             )
 
         result = connection.execute(query)
-        # return result
-        return [row.table_name for row in result]
+        return result
+        # return [row.table_name for row in result]
 
     def get_view_names(self, connection, schema=None, **kwargs):
         return []
