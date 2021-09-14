@@ -72,9 +72,9 @@ class FireboltDialect(default.DefaultDialect):
     description_encoding = None
     supports_native_boolean = True
 
-    # def __init__(self, context=None, *args, **kwargs):
-    #     super(FireboltDialect, self).__init__(*args, **kwargs)
-    #     self.context = context or {}
+    def __init__(self, context=None, *args, **kwargs):
+        super(FireboltDialect, self).__init__(*args, **kwargs)
+        self.context = context or {}
 
     @classmethod
     def dbapi(cls):
@@ -90,7 +90,7 @@ class FireboltDialect(default.DefaultDialect):
             "password": url.password or None,
             "db_name": url.database,
             # "scheme": self.scheme,
-            # "context": self.context,
+            "context": self.context,
             "header": False,  # url.query.get("header") == "true",
         }
         return ([], kwargs)

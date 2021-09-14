@@ -33,5 +33,5 @@ __all__ = [
 
 apilevel = "2.0"
 # Threads may share the module and connections
-threadsafety = 1
+threadsafety = 0
 paramstyle = "pyformat"
