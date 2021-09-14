@@ -114,7 +114,7 @@ class Connection(object):
                  password,
                  db_name,
                  # scheme="http",
-                 context=None,
+                 # context=None,
                  header=False,
                  ssl_verify_cert=False,
                  ssl_client_cert=None,
@@ -136,7 +136,7 @@ class Connection(object):
         self.ssl_verify_cert = ssl_verify_cert
         self.ssl_client_cert = ssl_client_cert
         self.proxies = proxies
-        self.context = context or {}
+        # self.context = context or {}
         self.header = header
 
 
