@@ -32,7 +32,6 @@ class FireboltIdentifierPreparer(compiler.IdentifierPreparer):
     reserved_words = UniversalSet()
 
 
-# TODO: Check if SQLCompiler is fine or any other compiler like postgres needs to be inherited
 class FireboltCompiler(compiler.SQLCompiler):
     pass
 
@@ -78,7 +77,6 @@ class FireboltDialect(default.DefaultDialect):
 
     @classmethod
     def dbapi(cls):
-        from src.firebolt_db import firebolt_connector
         return firebolt_connector
 
     # Build DB-API compatible connection arguments.
@@ -90,9 +88,6 @@ class FireboltDialect(default.DefaultDialect):
             "username": url.username or None,
             "password": url.password or None,
             "db_name": url.database,
-            "scheme": self.scheme,
-            "context": self.context,
-            "header": url.query.get("header") == "true",
         }
         return ([], kwargs)
 
@@ -191,11 +186,7 @@ class FireboltDialect(default.DefaultDialect):
         return True
 
 
-FireboltHTTPDialect = FireboltDialect
-
-
-class FireboltHTTPSDialect(FireboltDialect):
-    scheme = "https"
+dialect = FireboltDialect
 
 
 def get_is_nullable(column_is_nullable):
