@@ -3,6 +3,8 @@ from sqlalchemy.engine import default
 from sqlalchemy.sql import compiler
 
 # Firebolt data types compatibility with sqlalchemy.sql.types
+import firebolt_db
+
 type_map = {
     "char": types.String,
     "text": types.String,
@@ -77,7 +79,7 @@ class FireboltDialect(default.DefaultDialect):
 
     @classmethod
     def dbapi(cls):
-        return firebolt_connector
+        return firebolt_db
 
     # Build DB-API compatible connection arguments.
     #URL format : firebolt://username:password@host:port/db_name
@@ -88,6 +90,9 @@ class FireboltDialect(default.DefaultDialect):
             "username": url.username or None,
             "password": url.password or None,
             "db_name": url.database,
+            "scheme": self.scheme,
+            "context": self.context,
+            "header": False,  # url.query.get("header") == "true",
         }
         return ([], kwargs)
 
