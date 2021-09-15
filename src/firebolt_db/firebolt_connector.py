@@ -185,6 +185,8 @@ class Connection(object):
     def execute(self, operation, parameters=None):
         cursor = self.cursor()
         cursor.execute(operation, parameters)
+        print("***Inside connection.execute()***")
+        print(cursor._results)
         return cursor
 
     def __enter__(self):
@@ -308,8 +310,10 @@ class Cursor(object):
         or `None` when no more data is available.
         """
         try:
-            result_list = list(self._results)
-            return result_list[0]
+            res = self.next()
+            print("***Inside fetchone***")
+            print(res)
+            return res
         except StopIteration:
             return None
 
