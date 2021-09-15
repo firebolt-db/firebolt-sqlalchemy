@@ -147,11 +147,6 @@ class FireboltDialect(default.DefaultDialect):
         result = con.cursor().execute("SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.DATABASES")
         print("Type after execute")
         print(type(result))
-
-        database_name = list(result._results)
-        print("Database name")
-        print(database_name)
-        result._results = iter(database_name)
         # print(result.returns_rows)
         # print(result.rowcount)
         # return result
@@ -181,9 +176,10 @@ class FireboltDialect(default.DefaultDialect):
                 query=query, schema=schema
             )
 
-        result = connection.execute(query)
-        return result
-        # return [row.table_name for row in result]
+        con = connection.raw_connection()
+        result = con.cursor().execute(query)
+        # return result
+        return [row.table_name for row in result]
 
     def get_view_names(self, connection, schema=None, **kwargs):
         return []
@@ -207,9 +203,9 @@ class FireboltDialect(default.DefaultDialect):
                 query=query, schema=schema
             )
 
-        result = connection.execute(query)
-        # y = json.loads(result)
-        result = result["data"]
+        con = connection.raw_connection()
+        result = con.cursor().execute(query)
+
         return [
             {
                 "name": row['column_name'],
