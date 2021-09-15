@@ -147,8 +147,7 @@ class FireboltDialect(default.DefaultDialect):
         print("Type after execute")
         print(type(result))
         print(result.returns_rows)
-        # print(result.returns_rows)
-        # print(result.rowcount)
+        print(result.rowcount)
         # return result
         return [
             row for row in result

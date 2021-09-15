@@ -293,10 +293,13 @@ class Cursor(object):
         consume it and insert it back if it is not the header.
         """
         try:
-            first_row = next(results)
-            self._results = (
-                results if self.header else itertools.chain([first_row], results)
-            )
+            # first_row = next(results)
+            # self._results = (
+            #     results if self.header else itertools.chain([first_row], results)
+            # )
+            self._results = itertools.chain(results)
+            print("Type of results in cursor execute")
+            print(type(self._results))
         except StopIteration:
             self._results = iter([])
         print("***Exiting cursor execute()***")
