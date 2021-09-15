@@ -184,7 +184,8 @@ class Connection(object):
     @check_closed
     def execute(self, operation, parameters=None):
         cursor = self.cursor()
-        return cursor.execute(operation, parameters)
+        cursor.execute(operation, parameters)
+        return cursor
 
     def __enter__(self):
         return self.cursor()
@@ -292,7 +293,6 @@ class Cursor(object):
             )
         except StopIteration:
             self._results = iter([])
-        return self
 
     @check_closed
     def executemany(self, operation, seq_of_parameters=None):
@@ -308,7 +308,8 @@ class Cursor(object):
         or `None` when no more data is available.
         """
         try:
-            return self.next()
+            result_list = list(self._results)
+            return result_list[0]
         except StopIteration:
             return None
 
