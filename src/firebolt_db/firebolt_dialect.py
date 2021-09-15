@@ -130,17 +130,15 @@ class FireboltDialect(default.DefaultDialect):
             "SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.DATABASES"
         )
         print("***Inside get_schema_names***")
-        print("***cursor type")
+        print("***cursor type***")
         print(type(result))
-        print("***result data")
+        print("***result data***")
         print(result)
-        print("***fetchone data")
-
-        temp = list(result._results)
-        print(temp)
-        result._results = iter(temp)
-
-        print("***Exiting get schema")
+        print("***result.rowcount***")
+        print(result.rowcount)
+        print("***result.all()***")
+        print(result.all())
+        print("***exiting schema names***")
         return result
         # return [
         #     row.schema_name for row in result

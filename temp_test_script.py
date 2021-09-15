@@ -3,10 +3,10 @@
 # To use this file, copy this file to a folder outside firebolt_db
 # Comment out the type of test you want to run
 
-from firebolt_db.firebolt_connector import connect
-from firebolt_db.firebolt_dialect import FireboltDialect
+# from firebolt_db.firebolt_connector import connect
+# from firebolt_db.firebolt_dialect import FireboltDialect
 
-connection = connect('localhost',8123,'aapurva@sigmoidanalytics.com', 'Apurva111', 'Sigmoid_Alchemy')
+# connection = connect('localhost',8123,'aapurva@sigmoidanalytics.com', 'Apurva111', 'Sigmoid_Alchemy')
 
 # Test for end to end
 # query = 'select * from lineitem limit 10'
@@ -17,13 +17,13 @@ connection = connect('localhost',8123,'aapurva@sigmoidanalytics.com', 'Apurva111
 # print(response.fetchall())
 
 # Test for dialect
-dialect = FireboltDialect()
-#
-schemas = dialect.get_schema_names(connection)
-print("Schema Names")
-print(schemas)
+# dialect = FireboltDialect()
 
-tables = dialect.get_table_names(connection,"Sigmoid_Alchemy").fetchall()
-print("Table names")
-print(tables)
+# schemas = dialect.get_schema_names(connection)
+# print("Schema Names")
+# print(schemas.fetchone())
+
+# tables = dialect.get_table_names(connection,"Sigmoid_Alchemy").fetchall()
+# print("Table names")
+# print(tables)
 
