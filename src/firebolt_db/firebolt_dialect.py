@@ -139,9 +139,12 @@ class FireboltDialect(default.DefaultDialect):
         # print(result.rowcount)
         # print("***exiting schema names***")
         # return result
-        connection.execute("SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.DATABASES")
+        print("Type Before execute")
         print(type(connection))
-        return connection
+        connection.execute("SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.DATABASES")
+        print("Type after execute")
+        print(type(connection))
+        return connection.all()
         # return [
         #     row.schema_name for row in result
         # ]
