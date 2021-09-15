@@ -300,6 +300,7 @@ class Cursor(object):
         except StopIteration:
             self._results = iter([])
         print("***Exiting cursor execute()***")
+        return self
 
     @check_closed
     def executemany(self, operation, seq_of_parameters=None):
