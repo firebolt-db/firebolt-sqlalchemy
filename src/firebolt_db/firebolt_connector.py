@@ -187,6 +187,8 @@ class Connection(object):
         cursor.execute(operation, parameters)
         print("***Inside connection.execute()***")
         print(cursor._results)
+        print(type(cursor))
+        print("***Exiting connection.execute()***")
         return cursor
 
     def __enter__(self):
@@ -280,6 +282,7 @@ class Cursor(object):
     @check_closed
     def execute(self, operation, parameters=None):
         # def execute(self, operation, parameters=None):
+        print("***Inside cursor.execute()***")
         query = apply_parameters(operation, parameters)
         results = self._stream_query(query)
 
@@ -313,6 +316,8 @@ class Cursor(object):
             res = self.next()
             print("***Inside fetchone***")
             print(res)
+            print(type(res))
+            print("***Exiting fetchone***")
             return res
         except StopIteration:
             return None
