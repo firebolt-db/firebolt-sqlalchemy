@@ -154,13 +154,13 @@ class FireboltDialect(default.DefaultDialect):
         result._results = iter(database_name)
         # print(result.returns_rows)
         # print(result.rowcount)
-        return result
+        # return result
         # return [
         #     row for row in result
         # ]
-        # return [
-        #     row.schema_name for row in result
-        # ]
+        return [
+            row.schema_name for row in result
+        ]
 
     def has_table(self, connection, table_name, schema=None):
         query = """
