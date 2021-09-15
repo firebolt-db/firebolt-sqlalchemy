@@ -278,7 +278,8 @@ class Cursor(object):
     @check_closed
     def close(self):
         """Close the cursor."""
-        self.closed = True
+        # self.closed = True
+        pass
 
     @check_closed
     def execute(self, operation, parameters=None):
