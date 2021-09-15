@@ -183,10 +183,11 @@ class Connection(object):
 
     @check_closed
     def execute(self, operation, parameters=None):
+        print("***Inside connection.execute()***")
         cursor = self.cursor()
         cursor.execute(operation, parameters)
-        print("***Inside connection.execute()***")
-        print(cursor._results)
+        print("***Cursor type***")
+        # print(cursor._results)
         print(type(cursor))
         print("***Exiting connection.execute()***")
         return cursor
@@ -282,7 +283,7 @@ class Cursor(object):
     @check_closed
     def execute(self, operation, parameters=None):
         # def execute(self, operation, parameters=None):
-        print("***Inside cursor.execute()***")
+        print("***Inside cursor inside execute()***")
         query = apply_parameters(operation, parameters)
         results = self._stream_query(query)
 
@@ -298,6 +299,7 @@ class Cursor(object):
             )
         except StopIteration:
             self._results = iter([])
+        print("***Exiting cursor execute()***")
 
     @check_closed
     def executemany(self, operation, seq_of_parameters=None):

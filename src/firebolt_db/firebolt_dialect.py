@@ -126,18 +126,17 @@ class FireboltDialect(default.DefaultDialect):
         return ([], kwargs)
 
     def get_schema_names(self, connection, **kwargs):
+        print("***Inside get_schema_names***")
         result = connection.execute(
             "SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.DATABASES"
         )
-        print("***Inside get_schema_names***")
+
         print("***cursor type***")
         print(type(result))
         print("***result data***")
         print(result)
         print("***result.rowcount***")
         print(result.rowcount)
-        print("***result.all()***")
-        print(result.all())
         print("***exiting schema names***")
         return result
         # return [
