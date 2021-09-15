@@ -147,6 +147,11 @@ class FireboltDialect(default.DefaultDialect):
         result = con.cursor().execute("SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.DATABASES")
         print("Type after execute")
         print(type(result))
+
+        database_name = list(result._results)
+        print("Database name")
+        print(database_name)
+        result._results = iter(database_name)
         # print(result.returns_rows)
         # print(result.rowcount)
         return result
