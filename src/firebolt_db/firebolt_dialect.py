@@ -140,7 +140,8 @@ class FireboltDialect(default.DefaultDialect):
         # print("***exiting schema names***")
         # return result
         connection.execute("SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.DATABASES")
-        return [row.schema_name for row in connection]
+        print(type(connection))
+        return connection
         # return [
         #     row.schema_name for row in result
         # ]
