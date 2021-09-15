@@ -141,10 +141,10 @@ class FireboltDialect(default.DefaultDialect):
         # return result
         print("Type Before execute")
         print(type(connection))
-        connection.execute("SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.DATABASES")
+        result = connection.execute("SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.DATABASES")
         print("Type after execute")
-        print(type(connection))
-        return connection.all()
+        print(type(result))
+        return result.all()
         # return [
         #     row.schema_name for row in result
         # ]
