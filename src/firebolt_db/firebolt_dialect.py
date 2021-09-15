@@ -152,7 +152,7 @@ class FireboltDialect(default.DefaultDialect):
         return result
         # return [
         #     row for row in result
-        ]
+        # ]
         # return [
         #     row.schema_name for row in result
         # ]
