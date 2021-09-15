@@ -127,9 +127,9 @@ class FireboltDialect(default.DefaultDialect):
 
     def get_schema_names(self, connection, **kwargs):
         print("***Inside get_schema_names***")
-        result = connection.execute(
-            "SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.DATABASES"
-        )
+        # result = connection.execute(
+        #     "SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.DATABASES"
+        # )
 
         # print("***cursor type***")
         # print(type(result))
@@ -139,9 +139,11 @@ class FireboltDialect(default.DefaultDialect):
         # print(result.rowcount)
         # print("***exiting schema names***")
         # return result
-        return [
-            row.schema_name for row in result
-        ]
+        connection.execute("SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.DATABASES")
+        return [row.schema_name for row in connection]
+        # return [
+        #     row.schema_name for row in result
+        # ]
 
     def has_table(self, connection, table_name, schema=None):
         query = """

@@ -181,16 +181,16 @@ class Connection(object):
 
         return cursor
 
-    @check_closed
-    def execute(self, operation, parameters=None):
-        print("***Inside connection.execute()***")
-        cursor = self.cursor()
-        cursor.execute(operation, parameters)
-        print("***Cursor type***")
-        # print(cursor._results)
-        print(type(cursor))
-        print("***Exiting connection.execute()***")
-        return cursor
+    # @check_closed
+    # def execute(self, operation, parameters=None):
+    #     print("***Inside connection.execute()***")
+    #     cursor = self.cursor()
+    #     cursor.execute(operation, parameters)
+    #     print("***Cursor type***")
+    #     # print(cursor._results)
+    #     print(type(cursor))
+    #     print("***Exiting connection.execute()***")
+    #     return cursor
 
     def __enter__(self):
         return self.cursor()
