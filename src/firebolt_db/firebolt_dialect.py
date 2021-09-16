@@ -39,11 +39,41 @@ class FireboltCompiler(compiler.SQLCompiler):
 
 
 class FireboltTypeCompiler(compiler.GenericTypeCompiler):
-    def visit_DOUBLEPRECISION(self, type_, **kwargs):
-        return "FLOAT"
+    def visit_REAL(self, type_, **kwargs):
+        return "DOUBLE"
 
-    def visit_ARRAY(self, type, **kwargs):
-        return "Array(%s)" % type
+    def visit_NUMERIC(self, type_, **kwargs):
+        return "LONG"
+
+    visit_DECIMAL = visit_NUMERIC
+    visit_INTEGER = visit_NUMERIC
+    visit_SMALLINT = visit_NUMERIC
+    visit_BIGINT = visit_NUMERIC
+    visit_BOOLEAN = visit_NUMERIC
+    visit_TIMESTAMP = visit_NUMERIC
+    visit_DATE = visit_NUMERIC
+
+    def visit_CHAR(self, type_, **kwargs):
+        return "STRING"
+
+    visit_NCHAR = visit_CHAR
+    visit_VARCHAR = visit_CHAR
+    visit_NVARCHAR = visit_CHAR
+    visit_TEXT = visit_CHAR
+
+    def visit_DATETIME(self, type_, **kwargs):
+        return "LONG"
+
+    def visit_TIME(self, type_, **kwargs):
+        return "LONG"
+
+    def visit_BLOB(self, type_, **kwargs):
+        return "COMPLEX"
+
+    visit_CLOB = visit_BLOB
+    visit_NCLOB = visit_BLOB
+    visit_VARBINARY = visit_BLOB
+    visit_BINARY = visit_BLOB
 
 
 """
