@@ -1,27 +1,35 @@
-from sqlalchemy import types
+import sqlalchemy.types as sqltypes
 from sqlalchemy.engine import default
 from sqlalchemy.sql import compiler
+from sqlalchemy.types import (
+    CHAR, DATE, DATETIME, INTEGER, SMALLINT, BIGINT, DECIMAL, TIME,
+    TIMESTAMP, VARCHAR, BINARY, BOOLEAN, FLOAT, REAL)
 
 import firebolt_db
 
+
+class ARRAY(sqltypes.TypeEngine):
+    __visit_name__ = 'ARRAY'
+
+
 # Firebolt data types compatibility with sqlalchemy.sql.types
 type_map = {
-    "char": types.String,
-    "text": types.String,
-    "varchar": types.String,
-    "string": types.String,
-    "float": types.Float,
-    "double": types.Float,
-    "double precision": types.Float,
-    "boolean": types.Boolean,
-    "int": types.BigInteger,
-    "integer": types.BigInteger,
-    "bigint": types.BigInteger,
-    "long": types.BigInteger,
-    "timestamp": types.TIMESTAMP,
-    "datetime": types.TIMESTAMP,
-    "date": types.DATE,
-    "array": types.ARRAY,
+    "char": CHAR,
+    "text": VARCHAR,
+    "varchar": VARCHAR,
+    "string": VARCHAR,
+    "float": FLOAT,
+    "double": FLOAT,
+    "double precision": FLOAT,
+    "boolean": BOOLEAN,
+    "int": INTEGER,
+    "integer": INTEGER,
+    "bigint": BIGINT,
+    "long": BIGINT,
+    "timestamp": TIMESTAMP,
+    "datetime": DATETIME,
+    "date": DATE,
+    "array": ARRAY,
 }
 
 
@@ -111,7 +119,7 @@ class FireboltDialect(default.DefaultDialect):
         return firebolt_db
 
     # Build DB-API compatible connection arguments.
-    #URL format : firebolt://username:password@host:port/db_name
+    # URL format : firebolt://username:password@host:port/db_name
     def create_connect_args(self, url):
         kwargs = {
             "host": url.host or None,
