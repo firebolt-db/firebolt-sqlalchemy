@@ -166,7 +166,15 @@ class Connection(object):
             self._db_name,
             self.access_token,
             self.engine_url,
-            self.refresh_token
+            self.refresh_token,
+            # self.url,
+            self._username,
+            self._password,
+            self.context,
+            self.header,
+            self.ssl_verify_cert,
+            self.ssl_client_cert,
+            self.proxies,
         )
 
         self.cursors.append(cursor)
@@ -188,13 +196,33 @@ class Connection(object):
 class Cursor(object):
     """Connection cursor."""
 
-    def __init__(self, db_name, access_token, engine_url, refresh_token):
-
-        self._db_name = db_name
-        self._access_token = access_token
-        self._engine_url = engine_url
-        self._refresh_token = refresh_token
-        self.closed = False
+    def __init__(
+            self,
+            db_name,
+            access_token,
+            engine_url,
+            refresh_token,
+            # url,
+            user=None,
+            password=None,
+            context=None,
+            header=False,
+            ssl_verify_cert=True,
+            proxies=None,
+            ssl_client_cert=None,
+    ):
+        # self.url = url
+        self.context = context or {}
+        self.header = header
+        self.user = user
+        self.password = password
+        self.ssl_verify_cert = ssl_verify_cert
+        self.ssl_client_cert = ssl_client_cert
+        self.proxies = proxies
+        self.db_name = db_name
+        self.access_token = access_token
+        self.engine_url = engine_url
+        self.refresh_token = refresh_token
 
         # This read/write attribute specifies the number of rows to fetch at a
         # time with .fetchmany(). It defaults to 1 meaning to fetch a single
@@ -208,7 +236,28 @@ class Cursor(object):
 
         # this is set to an iterator after a successfull query
         self._results = None
-        self.header = False
+
+    # def __init__(self, db_name, access_token, engine_url, refresh_token):
+    #
+    #     self._db_name = db_name
+    #     self._access_token = access_token
+    #     self._engine_url = engine_url
+    #     self._refresh_token = refresh_token
+    #     self.closed = False
+    #
+    #     # This read/write attribute specifies the number of rows to fetch at a
+    #     # time with .fetchmany(). It defaults to 1 meaning to fetch a single
+    #     # row at a time.
+    #     self.arraysize = 1
+    #
+    #     self.closed = False
+    #
+    #     # this is updated only after a query
+    #     self.description = None
+    #
+    #     # this is set to an iterator after a successfull query
+    #     self._results = None
+    #     self.header = False
 
     @property
     @check_result
@@ -229,6 +278,7 @@ class Cursor(object):
     @check_closed
     def execute(self, operation, parameters=None):
         # def execute(self, operation, parameters=None):
+        print("***Inside cursor inside execute()***")
         query = apply_parameters(operation, parameters)
         results = self._stream_query(query)
 
@@ -244,6 +294,7 @@ class Cursor(object):
             )
         except StopIteration:
             self._results = iter([])
+        print("***Exiting cursor execute()***")
         return self
 
     @check_closed
@@ -260,7 +311,12 @@ class Cursor(object):
         or `None` when no more data is available.
         """
         try:
-            return self.next()
+            res = self.next()
+            print("***Inside fetchone***")
+            print(res)
+            print(type(res))
+            print("***Exiting fetchone***")
+            return res
         except StopIteration:
             return None
 
@@ -314,10 +370,10 @@ class Cursor(object):
         """
         self.description = None
 
-        r = FireboltApiService.run_query(self._access_token,
-                                         self._refresh_token,
-                                         self._engine_url,
-                                         self._db_name,
+        r = FireboltApiService.run_query(self.access_token,
+                                         self.refresh_token,
+                                         self.engine_url,
+                                         self.db_name,
                                          query)
 
         # Setting `chunk_size` to `None` makes it use the server size
