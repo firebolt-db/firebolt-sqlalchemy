@@ -153,10 +153,10 @@ class FireboltDialect(default.DefaultDialect):
 
         return [
             {
-                "name": row['column_name'],
-                "type": type_map[row['data_type'].lower()],
-                "nullable": get_is_nullable(row['is_nullable'])
-                # "default": get_default(row.COLUMN_DEFAULT),
+                "name": row[0],
+                "type": type_map[row[1].lower()],
+                "nullable": get_is_nullable(row[2]),
+                "default": None,
             }
             for row in result
         ]
