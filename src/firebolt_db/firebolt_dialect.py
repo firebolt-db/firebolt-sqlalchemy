@@ -2,9 +2,9 @@ from sqlalchemy import types
 from sqlalchemy.engine import default
 from sqlalchemy.sql import compiler
 
-# Firebolt data types compatibility with sqlalchemy.sql.types
 import firebolt_db
 
+# Firebolt data types compatibility with sqlalchemy.sql.types
 type_map = {
     "char": types.String,
     "text": types.String,
@@ -72,9 +72,9 @@ class FireboltDialect(default.DefaultDialect):
     description_encoding = None
     supports_native_boolean = True
 
-    # def __init__(self, context=None, *args, **kwargs):
-    #     super(FireboltDialect, self).__init__(*args, **kwargs)
-    #     self.context = context or {}
+    def __init__(self, context=None, *args, **kwargs):
+        super(FireboltDialect, self).__init__(*args, **kwargs)
+        self.context = context or {}
 
     @classmethod
     def dbapi(cls):
@@ -90,17 +90,18 @@ class FireboltDialect(default.DefaultDialect):
             "password": url.password or None,
             "db_name": url.database,
             # "scheme": self.scheme,
-            # "context": self.context,
+            "context": self.context,
             "header": False,  # url.query.get("header") == "true",
         }
         return ([], kwargs)
 
     def get_schema_names(self, connection, **kwargs):
-        result = connection.execute(
-            "SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.DATABASES"
-        )
-
-        return result
+        con = connection.raw_connection()
+        query = "SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.DATABASES"
+        result = con.cursor().execute(query)
+        return [
+            row.schema_name for row in result
+        ]
 
     def has_table(self, connection, table_name, schema=None):
         query = """
@@ -121,8 +122,9 @@ class FireboltDialect(default.DefaultDialect):
                 query=query, schema=schema
             )
 
-        result = connection.execute(query)
-        return result
+        con = connection.raw_connection()
+        result = con.cursor().execute(query)
+        return [row.table_name for row in result]
 
     def get_view_names(self, connection, schema=None, **kwargs):
         return []
@@ -146,9 +148,9 @@ class FireboltDialect(default.DefaultDialect):
                 query=query, schema=schema
             )
 
-        result = connection.execute(query)
-        # y = json.loads(result)
-        result = result["data"]
+        con = connection.raw_connection()
+        result = con.cursor().execute(query)
+
         return [
             {
                 "name": row['column_name'],

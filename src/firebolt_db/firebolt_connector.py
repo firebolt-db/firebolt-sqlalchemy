@@ -114,7 +114,7 @@ class Connection(object):
                  password,
                  db_name,
                  # scheme="http",
-                 # context=None,
+                 context=None,
                  header=False,
                  ssl_verify_cert=False,
                  ssl_client_cert=None,
@@ -136,7 +136,7 @@ class Connection(object):
         self.ssl_verify_cert = ssl_verify_cert
         self.ssl_client_cert = ssl_client_cert
         self.proxies = proxies
-        # self.context = context or {}
+        self.context = context or {}
         self.header = header
 
 
@@ -173,10 +173,10 @@ class Connection(object):
 
         return cursor
 
-    @check_closed
-    def execute(self, operation, parameters=None):
-        cursor = self.cursor()
-        return cursor.execute(operation, parameters)
+    # @check_closed
+    # def execute(self, operation, parameters=None):
+    #     cursor = self.cursor()
+    #     return cursor.execute(operation, parameters)
 
     def __enter__(self):
         return self.cursor()
@@ -223,7 +223,8 @@ class Cursor(object):
     @check_closed
     def close(self):
         """Close the cursor."""
-        self.closed = True
+        # self.closed = True
+        pass
 
     @check_closed
     def execute(self, operation, parameters=None):
