@@ -134,9 +134,8 @@ class FireboltDialect(default.DefaultDialect):
         return ([], kwargs)
 
     def get_schema_names(self, connection, **kwargs):
-        con = connection.raw_connection()
         query = "SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.DATABASES"
-        result = con.cursor().execute(query)
+        result = connection.execute(query)
         return [
             row.schema_name for row in result
         ]
@@ -160,8 +159,7 @@ class FireboltDialect(default.DefaultDialect):
                 query=query, schema=schema
             )
 
-        con = connection.raw_connection()
-        result = con.cursor().execute(query)
+        result = connection.execute(query)
         return [row.table_name for row in result]
 
     def get_view_names(self, connection, schema=None, **kwargs):
@@ -186,8 +184,7 @@ class FireboltDialect(default.DefaultDialect):
                 query=query, schema=schema
             )
 
-        con = connection.raw_connection()
-        result = con.cursor().execute(query)
+        result = connection.execute(query)
 
         return [
             {

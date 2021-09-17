@@ -237,28 +237,6 @@ class Cursor(object):
         # this is set to an iterator after a successfull query
         self._results = None
 
-    # def __init__(self, db_name, access_token, engine_url, refresh_token):
-    #
-    #     self._db_name = db_name
-    #     self._access_token = access_token
-    #     self._engine_url = engine_url
-    #     self._refresh_token = refresh_token
-    #     self.closed = False
-    #
-    #     # This read/write attribute specifies the number of rows to fetch at a
-    #     # time with .fetchmany(). It defaults to 1 meaning to fetch a single
-    #     # row at a time.
-    #     self.arraysize = 1
-    #
-    #     self.closed = False
-    #
-    #     # this is updated only after a query
-    #     self.description = None
-    #
-    #     # this is set to an iterator after a successfull query
-    #     self._results = None
-    #     self.header = False
-
     @property
     @check_result
     @check_closed
@@ -277,8 +255,6 @@ class Cursor(object):
 
     @check_closed
     def execute(self, operation, parameters=None):
-        # def execute(self, operation, parameters=None):
-        print("***Inside cursor inside execute()***")
         query = apply_parameters(operation, parameters)
         results = self._stream_query(query)
 
@@ -294,7 +270,6 @@ class Cursor(object):
             )
         except StopIteration:
             self._results = iter([])
-        print("***Exiting cursor execute()***")
         return self
 
     @check_closed
@@ -312,10 +287,6 @@ class Cursor(object):
         """
         try:
             res = self.next()
-            print("***Inside fetchone***")
-            print(res)
-            print(type(res))
-            print("***Exiting fetchone***")
             return res
         except StopIteration:
             return None
@@ -382,10 +353,10 @@ class Cursor(object):
         for row in rows_from_chunks(chunks):
             # TODO Check if row description has to be set
             # # update description
-            # if self.description is None:
-            #     self.description = (
-            #         list(row.items()) if self.header else get_description_from_row(row)
-            #     )
+            if self.description is None:
+                self.description = (
+                    list(row.items()) if self.header else get_description_from_row(row)
+                )
 
             # return row in namedtuple
             if Row is None:
