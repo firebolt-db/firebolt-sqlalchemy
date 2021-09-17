@@ -78,6 +78,9 @@ class FireboltTypeCompiler(compiler.GenericTypeCompiler):
     def visit_BLOB(self, type_, **kwargs):
         return "COMPLEX"
 
+    def visit_ARRAY(self, type, **kw):
+        return "Array(%s)" % type
+
     visit_CLOB = visit_BLOB
     visit_NCLOB = visit_BLOB
     visit_VARBINARY = visit_BLOB
