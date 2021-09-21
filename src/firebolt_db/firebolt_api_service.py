@@ -213,12 +213,12 @@ class FireboltApiService:
                                                headers=header, files={"query": (None, query)})
             else:
                 payload = {
-                    "error": "Run Query API Exception",
+                    "error": "DB-API Exception",
                     "errorMessage": http_err.response.text,
                 }
         except Exception as err:
             payload = {
-                "error": "Run Query API Exception",
+                "error": "DB-API Exception",
                 "errorMessage": str(err),
             }
         if payload != {}:
