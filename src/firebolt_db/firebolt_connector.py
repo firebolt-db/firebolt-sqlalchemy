@@ -32,11 +32,6 @@ class Type(object):
 def connect(*args, **kwargs):
     """
     Constructor for creating a connection to the database.
-
-        >>> connection = connect('localhost',8123,'aapurva@sigmoidanalytics.com', 'Apurva111', 'Sigmoid_Alchemy')
-        >>> cursor = connection.cursor()
-        >>> response = cursor.execute('select * from <table_name>').fetchall()
-
     """
     return Connection(*args, **kwargs)
 
@@ -250,8 +245,7 @@ class Cursor(object):
     @check_closed
     def close(self):
         """Close the cursor."""
-        # self.closed = True
-        pass
+        self.closed = True
 
     @check_closed
     def execute(self, operation, parameters=None):
@@ -373,14 +367,11 @@ def rows_from_chunks(chunks):
     yielding them as soon as possible.
     """
     body = ""
-    # count = 1
     squareBrackets = 0
     dataStartpos = 0
     dataEndPos = 0
     inString = False
     for chunk in chunks:
-        # print("Chunk:", count)  # Code for testing response being processed in
-        # count = count + 1
 
         if chunk:
             body = "".join((body, chunk))

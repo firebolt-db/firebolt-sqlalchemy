@@ -180,7 +180,6 @@ class FireboltApiService:
 
     @staticmethod
     def run_query(access_token, refresh_token, engine_url, db_name, query):
-        print("***Inside run_query***")
         query_response = {}     # base-case
         payload = {}
         try:
@@ -195,8 +194,6 @@ class FireboltApiService:
             header = {'Authorization': "Bearer " + access_token}
             query_response = requests.post(url="https://" + engine_url, params={'database': db_name},
                                            headers=header, files={"query": (None, query)})
-            print("***Query Response***")
-            print(query_response.json())
             if type(query_response) == HTTPError and \
                     query_response.response.status_code == 401:  # check for access token expiry
                 access_token = FireboltApiService.get_access_token_via_refresh(refresh_token)
@@ -225,6 +222,4 @@ class FireboltApiService:
             msg = "{error} : {errorMessage}".format(**payload)
             raise exceptions.InternalError(msg)
 
-        # return json_data
-        print("***Exiting Response***")
         return query_response
