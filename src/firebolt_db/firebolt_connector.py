@@ -6,33 +6,34 @@
 
 # Built as per Python DB API Specification - PEP 249
 # Responsible for connection to Database and providing database cursor for query execution
-# Connector is imported and used by Dialect to get connection
 
 import itertools
 import json
 from collections import namedtuple, OrderedDict
 
-from sqlalchemy_adapter.firebolt_api_service import FireboltApiService
-from sqlalchemy_adapter import exceptions
+from firebolt_db.firebolt_api_service import FireboltApiService
+from firebolt_db import exceptions
+
+
+class Error(Exception):
+    """Exception that is the base class of all other error exceptions.
+    You can use this to catch all errors with one single except statement.
+    """
+    pass
 
 
 class Type(object):
     STRING = 1
     NUMBER = 2
     BOOLEAN = 3
+    ARRAY = 4
 
 
-def connect(user_email, password, db_name):
+def connect(*args, **kwargs):
     """
     Constructor for creating a connection to the database.
-
-        >>> connection = connect('user_email','password','db_name')
-        >>> cursor = connection.cursor()
-        >>> response = cursor.execute('select * from <table_name>').fetchall()
-
     """
-    connection = Connection(user_email, password, db_name)
-    return connection
+    return Connection(*args, **kwargs)
 
 
 def check_closed(f):
@@ -94,6 +95,8 @@ def get_type(value):
         return Type.BOOLEAN
     elif isinstance(value, (int, float)):
         return Type.NUMBER
+    elif isinstance(value, list):
+        return Type.ARRAY
 
     raise exceptions.Error("Value of unknown type: {value}".format(value=value))
 
@@ -101,20 +104,38 @@ def get_type(value):
 class Connection(object):
     """Connection to a Firebolt database."""
 
-    def __init__(self, user_email, password, db_name):
-        self._user_email = user_email
+    def __init__(self,
+                 host,
+                 port,
+                 username,
+                 password,
+                 db_name,
+                 # scheme="http",
+                 context=None,
+                 header=False,
+                 ssl_verify_cert=False,
+                 ssl_client_cert=None,
+                 proxies=None,
+                 ):
+        self._host = host
+        self._post = port
+        self._username = username
         self._password = password
         self._db_name = db_name
+        connection_details = FireboltApiService.get_connection(username, password, db_name)
 
-        connection_details = FireboltApiService.get_connection(user_email, password, db_name)
-
-        # if connection_details[1] == "":
-        #     raise exceptions.InvalidCredentialsError("Invalid credentials or Database name")
         self.access_token = connection_details[0]
         self.engine_url = connection_details[1]
         self.refresh_token = connection_details[2]
         self.cursors = []
         self.closed = False
+
+        self.ssl_verify_cert = ssl_verify_cert
+        self.ssl_client_cert = ssl_client_cert
+        self.proxies = proxies
+        self.context = context or {}
+        self.header = header
+
 
     @check_closed
     def close(self):
@@ -142,17 +163,25 @@ class Connection(object):
             self._db_name,
             self.access_token,
             self.engine_url,
-            self.refresh_token
+            self.refresh_token,
+            # self.url,
+            self._username,
+            self._password,
+            self.context,
+            self.header,
+            self.ssl_verify_cert,
+            self.ssl_client_cert,
+            self.proxies,
         )
 
         self.cursors.append(cursor)
 
         return cursor
 
-    @check_closed
-    def execute(self, query):
-        cursor = self.cursor()
-        return cursor.execute(query)
+    # @check_closed
+    # def execute(self, operation, parameters=None):
+    #     cursor = self.cursor()
+    #     return cursor.execute(operation, parameters)
 
     def __enter__(self):
         return self.cursor()
@@ -164,13 +193,33 @@ class Connection(object):
 class Cursor(object):
     """Connection cursor."""
 
-    def __init__(self, db_name, access_token, engine_url, refresh_token):
-
-        self._db_name = db_name
-        self._access_token = access_token
-        self._engine_url = engine_url
-        self._refresh_token = refresh_token
-        self.closed = False
+    def __init__(
+            self,
+            db_name,
+            access_token,
+            engine_url,
+            refresh_token,
+            # url,
+            user=None,
+            password=None,
+            context=None,
+            header=False,
+            ssl_verify_cert=True,
+            proxies=None,
+            ssl_client_cert=None,
+    ):
+        # self.url = url
+        self.context = context or {}
+        self.header = header
+        self.user = user
+        self.password = password
+        self.ssl_verify_cert = ssl_verify_cert
+        self.ssl_client_cert = ssl_client_cert
+        self.proxies = proxies
+        self.db_name = db_name
+        self.access_token = access_token
+        self.engine_url = engine_url
+        self.refresh_token = refresh_token
 
         # This read/write attribute specifies the number of rows to fetch at a
         # time with .fetchmany(). It defaults to 1 meaning to fetch a single
@@ -184,7 +233,6 @@ class Cursor(object):
 
         # this is set to an iterator after a successfull query
         self._results = None
-        self.header = False
 
     @property
     @check_result
@@ -202,9 +250,8 @@ class Cursor(object):
         self.closed = True
 
     @check_closed
-    def execute(self, query):
-        # def execute(self, operation, parameters=None):
-        # query = apply_parameters(operation, parameters)
+    def execute(self, operation, parameters=None):
+        query = apply_parameters(operation, parameters)
         results = self._stream_query(query)
 
         """
@@ -235,7 +282,8 @@ class Cursor(object):
         or `None` when no more data is available.
         """
         try:
-            return self.next()
+            res = self.next()
+            return res
         except StopIteration:
             return None
 
@@ -289,23 +337,59 @@ class Cursor(object):
         """
         self.description = None
 
-        r = FireboltApiService.run_query(self._access_token, self._refresh_token, self._engine_url, self._db_name, query)
+        r = FireboltApiService.run_query(self.access_token,
+                                         self.refresh_token,
+                                         self.engine_url,
+                                         self.db_name,
+                                         query)
 
         # Setting `chunk_size` to `None` makes it use the server size
-        chunks = r.iter_content(chunk_size=None, decode_unicode=True)
+        chunks = r.iter_content(chunk_size=4096, decode_unicode=True)
+
         Row = None
+        # for row in rows_from_lines(lines):
         for row in rows_from_chunks(chunks):
-            # TODO Check if row description has to be set
-            # # update description
-            # if self.description is None:
-            #     self.description = (
-            #         list(row.items()) if self.header else get_description_from_row(row)
-            #     )
+            # update description
+            if self.description is None:
+                self.description = (
+                    list(row.items()) if self.header else get_description_from_row(row)
+                )
 
             # return row in namedtuple
             if Row is None:
                 Row = namedtuple("Row", row.keys(), rename=True)
             yield Row(*row.values())
+
+
+def rows_from_lines(lines):
+    """
+    A generator that yields rows from JSON lines.
+
+    Firebolt will return the data in lines, but they are not aligned with the
+    JSON objects. This function will parse all complete rows from the lines,
+    yielding them as soon as possible.
+    """
+
+    data_started = False
+    body = ""
+    for line in lines:
+        line = line.lstrip().rstrip()
+        if data_started:
+            if line == '],':
+                body = "".join((body,line))
+                break
+            else:
+                body = "".join((body,line))
+
+        if not data_started and line == '"data":':
+            data_started = True
+
+    rows = body.lstrip('[').rstrip('],')
+
+    for row in json.loads(
+            "[{rows}]".format(rows=rows), object_pairs_hook=OrderedDict
+    ):
+        yield row
 
 
 def rows_from_chunks(chunks):
@@ -316,38 +400,70 @@ def rows_from_chunks(chunks):
     JSON objects. This function will parse all complete rows inside each chunk,
     yielding them as soon as possible.
     """
-    body = ""
-    # count = 1
-    squareBrackets = 0
-    dataStartpos = 0
-    dataEndPos = 0
-    inString = False
+    data_started = False
+    old_body = ""
     for chunk in chunks:
-        # print("Chunk:", count)  # Code for testing response being processed in
-        # count = count + 1
-
         if chunk:
-            body = "".join((body, chunk))
-        for i, char in enumerate(body):
-            if char == '"':
-                if not inString:
-                    inString = True
-                else:
-                    inString = False
+            chunk = "".join((old_body, chunk))
+            body = ""
+            lines = chunk.splitlines()
+            curly_started = False
+            new_data_row = ""
+            for line in lines:
+                line = line.lstrip().rstrip()
+                if data_started and line:
+                    if line == '],':
+                        data_started = False
+                        break
+                    else:
+                        if curly_started:
+                            if line == '}' or line == '},':
+                                curly_started = False
+                                body = "".join((body,new_data_row,line))
+                                new_data_row = ""
+                                old_body = ""
+                            else:
+                                new_data_row = "".join((new_data_row,line))
+                                old_body = new_data_row
 
-            if not inString:
-                if char == '[':
-                    squareBrackets +=1
-                    if squareBrackets == 2:
-                        dataStartpos = i+1
-                if char == ']' and squareBrackets == 2:
-                    dataEndPos = i
-                    break
+                        elif not curly_started and line[0] == '{':
+                            curly_started = True
+                            new_data_row = "".join((new_data_row,line))
+                            old_body = new_data_row
 
-        rows = body[dataStartpos:dataEndPos].lstrip().rstrip()
-        # print(rows)
+                elif not data_started and line == '"data":':
+                    data_started = True
 
-        for row in json.loads(
-                "[{rows}]".format(rows=rows), object_pairs_hook=OrderedDict
-        ):
-            yield row
+            rows = body.lstrip().rstrip(',')
+
+            for row in json.loads(
+                    "[{rows}]".format(rows=rows), object_pairs_hook=OrderedDict
+            ):
+                yield row
+
+
+def apply_parameters(operation, parameters):
+    if not parameters:
+        return operation
+
+    escaped_parameters = {key: escape(value) for key, value in parameters.items()}
+    return operation % escaped_parameters
+
+
+def escape(value):
+    """
+    Escape the parameter value.
+
+    Note that bool is a subclass of int so order of statements matter.
+    """
+
+    if value == "*":
+        return value
+    elif isinstance(value, str):
+        return "'{}'".format(value.replace("'", "''"))
+    elif isinstance(value, bool):
+        return "TRUE" if value else "FALSE"
+    elif isinstance(value, (int, float)):
+        return value
+    elif isinstance(value, (list, tuple)):
+        return ", ".join(escape(element) for element in value)

@@ -1,5 +1,5 @@
-from sqlalchemy_adapter import firebolt_connector
-from sqlalchemy_adapter import firebolt_dialect
+from firebolt_db import firebolt_dialect, firebolt_connector
+
 
 class ConnectionDetails():
     user_email = "aapurva@sigmoidanalytics.com"

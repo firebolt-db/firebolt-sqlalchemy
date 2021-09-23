@@ -3,13 +3,22 @@ import json
 import requests
 from requests.exceptions import HTTPError
 
-from sqlalchemy_adapter import constants, exceptions
+from firebolt_db import exceptions
+from firebolt_db import constants
+from firebolt_db.memoized import memoized
 
 
 class FireboltApiService:
 
     @staticmethod
+    @memoized
     def get_connection(user_email, password, db_name):
+        """
+        Retrieve Authorisation details for connection
+        This method internally calls methods to get access token, refresh token and engine URL.
+        :input user-email, password and database name
+        :returns access-token, engine-url and refresh-token
+        """
         # get access token
         token_json = FireboltApiService.get_access_token({'username': user_email, 'password': password})
         access_token = token_json["access_token"]
@@ -19,22 +28,22 @@ class FireboltApiService:
         engine_url = FireboltApiService.get_engine_url_by_db(db_name, access_token)
         return access_token, engine_url, refresh_token
 
-    # retrieve authentication token
-    """
-    This method uses the user email and the password to fire the API to generate access-token.
-    :input dictionary containing user-email and password
-    :returns access-token
-    """
 
     @staticmethod
     def get_access_token(data):
+        """
+        Retrieve authentication token
+        This method uses the user email and the password to fire the API to generate access-token.
+        :input dictionary containing user-email and password
+        :returns access-token
+        """
         json_data = {}  # base case
         payload = {}
         try:
 
             """
                General format of request:
-              curl --request POST 'https://api.app.firebolt.io/auth/v1/login' --header 'Content-Type: application/json;charset=UTF-8' --data-binary '{"username":"raghavs@sigmoidanalytics.com","password":"Sharma%1"}'
+              curl --request POST 'https://api.app.firebolt.io/auth/v1/login' --header 'Content-Type: application/json;charset=UTF-8' --data-binary '{"username":"username","password":"password"}'
             """
             token_response = requests.post(url=constants.token_url, data=json.dumps(data),
                                            headers=constants.token_header)
@@ -71,16 +80,15 @@ class FireboltApiService:
 
         return json_data
 
-    # refresh access token
-    """
-    In case the token expires or the API throws a 401 HTTP error, then this method generates a fresh token
-    :input refresh api url, request type, authentication header and 
-    the refresh token generated alongside the previous expired token
-    :returns new access-token
-    """
-
     @staticmethod
     def get_access_token_via_refresh(refresh_token):
+        """
+        Refresh access token
+        In case the token expires or the API throws a 401 HTTP error, then this method generates a fresh token
+        :input refresh api url, request type, authentication header and
+        the refresh token generated alongside the previous expired token
+        :returns new access-token
+        """
         refresh_access_token = ""
         payload = {}
         try:
@@ -124,15 +132,14 @@ class FireboltApiService:
 
         return refresh_access_token
 
-    # get engine url by db name
-    """
-    This method generates engine url using db name and access-token
-    :input api url, request type, authentication header and access-token
-    :returns engine url
-    """
-
     @staticmethod
     def get_engine_url_by_db(db_name, access_token):
+        """
+        Get engine url by db name
+        This method generates engine url using db name and access-token
+        :input api url, request type, authentication header and access-token
+        :returns engine url
+        """
         engine_url = ""  # base case
         payload = {}
         try:
@@ -169,23 +176,21 @@ class FireboltApiService:
 
         return engine_url
 
-    # run queries
-    """
-    This method is used to submit a query to run to a running engine. 
-    You can specify multiple queries separated by a semicolon (;)..
-    :input token url, request type of API and authentication header
-    :returns access-token
-    """
-
     @staticmethod
     def run_query(access_token, refresh_token, engine_url, db_name, query):
+        """
+        Run queries
+        This method is used to submit a query to run to a running engine.
+        You can specify multiple queries separated by a semicolon (;)..
+        :input token url, request type of API and authentication header
+        :returns access-token
+        """
         query_response = {}     # base-case
         payload = {}
         try:
 
             """
             Request:
-            echo "SELECT * FROM lineitem LIMIT 1000" | curl
             --request POST 'https://YOUR_ENGINE_ENDPOINT/?database=YOUR_DATABASE_NAME' \
             --header 'Authorization: Bearer YOUR_ACCESS_TOKEN_VALUE' \
             --data-binary @-
@@ -194,12 +199,6 @@ class FireboltApiService:
             header = {'Authorization': "Bearer " + access_token}
             query_response = requests.post(url="https://" + engine_url, params={'database': db_name},
                                            headers=header, files={"query": (None, query)})
-            if type(query_response) == HTTPError and \
-                    query_response.response.status_code == 401:  # check for access token expiry
-                access_token = FireboltApiService.get_access_token_via_refresh(refresh_token)
-                header = {'Authorization': "Bearer " + access_token}
-                query_response = requests.post(url="https://" + engine_url, params={'database': db_name},
-                                               headers=header, files={"query": (None, query)})
             query_response.raise_for_status()
 
         except HTTPError as http_err:
@@ -210,17 +209,16 @@ class FireboltApiService:
                                                headers=header, files={"query": (None, query)})
             else:
                 payload = {
-                    "error": "Run Query API Exception",
+                    "error": "DB-API Exception",
                     "errorMessage": http_err.response.text,
                 }
         except Exception as err:
             payload = {
-                "error": "Run Query API Exception",
+                "error": "DB-API Exception",
                 "errorMessage": str(err),
             }
         if payload != {}:
             msg = "{error} : {errorMessage}".format(**payload)
             raise exceptions.InternalError(msg)
 
-        # return json_data
         return query_response

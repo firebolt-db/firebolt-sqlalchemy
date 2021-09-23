@@ -1,7 +1,7 @@
-from sqlalchemy_adapter.firebolt_api_service import FireboltApiService
-from sqlalchemy_adapter.test_sqlalchemy_adapter import constants
+from firebolt_db.firebolt_api_service import FireboltApiService
+from tests import constants
 from requests.exceptions import HTTPError
-from sqlalchemy_adapter import exceptions
+from firebolt_db import exceptions
 import pytest
 
 access_token = FireboltApiService.get_access_token({'username': constants.username,
@@ -63,19 +63,19 @@ class TestFireboltApiService:
     def test_run_query_invalid_url(self):
         with pytest.raises(Exception) as e_info:
             response = FireboltApiService.run_query(access_token["access_token"], access_token["refresh_token"], "",
-                                            constants.db_name, constants.query) != {}
+                                                    constants.db_name, constants.query) != {}
 
     def test_run_query_invalid_schema(self):
         with pytest.raises(Exception) as e_info:
             response = FireboltApiService.run_query(access_token["access_token"], access_token["refresh_token"],
-                                                engine_url, 'db_name', constants.query)
+                                                    engine_url, 'db_name', constants.query)
 
     def test_run_query_invalid_header(self):
         with pytest.raises(Exception) as e_info:
             response = FireboltApiService.run_query('header', access_token["refresh_token"], engine_url, constants.db_name,
-                                            constants.query) != {}
+                                                    constants.query) != {}
 
     def test_run_query_invalid_query(self):
         with pytest.raises(Exception) as e_info:
             response = FireboltApiService.run_query(access_token["access_token"], access_token["refresh_token"],
-                                                engine_url, constants.db_name, 'query')
+                                                    engine_url, constants.db_name, 'query')
