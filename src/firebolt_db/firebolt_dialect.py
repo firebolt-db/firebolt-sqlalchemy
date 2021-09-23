@@ -2,8 +2,8 @@ import sqlalchemy.types as sqltypes
 from sqlalchemy.engine import default
 from sqlalchemy.sql import compiler
 from sqlalchemy.types import (
-    CHAR, DATE, DATETIME, INTEGER, SMALLINT, BIGINT, DECIMAL, TIME,
-    TIMESTAMP, VARCHAR, BINARY, BOOLEAN, FLOAT, REAL)
+    CHAR, DATE, DATETIME, INTEGER, BIGINT,
+    TIMESTAMP, VARCHAR, BOOLEAN, FLOAT)
 
 import firebolt_db
 

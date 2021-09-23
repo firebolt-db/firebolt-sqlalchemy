@@ -199,12 +199,6 @@ class FireboltApiService:
             header = {'Authorization': "Bearer " + access_token}
             query_response = requests.post(url="https://" + engine_url, params={'database': db_name},
                                            headers=header, files={"query": (None, query)})
-            if type(query_response) == HTTPError and \
-                    query_response.response.status_code == 401:  # check for access token expiry
-                access_token = FireboltApiService.get_access_token_via_refresh(refresh_token)
-                header = {'Authorization': "Bearer " + access_token}
-                query_response = requests.post(url="https://" + engine_url, params={'database': db_name},
-                                               headers=header, files={"query": (None, query)})
             query_response.raise_for_status()
 
         except HTTPError as http_err:
