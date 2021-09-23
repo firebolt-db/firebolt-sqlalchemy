@@ -52,15 +52,12 @@ class FireboltTypeCompiler(compiler.GenericTypeCompiler):
         return "Array(%s)" % type
 
 
-"""
-FireboltDialect defines the behavior of Firebolt database and DB-API combination.
-It is responsible for metadata definition and firing queries for receiving Database schema and table information.
-"""
-
-
-# TODO: check dialect attribute values
-
 class FireboltDialect(default.DefaultDialect):
+    """
+    FireboltDialect defines the behavior of Firebolt database and DB-API combination.
+    It is responsible for metadata definition and firing queries for receiving Database schema and table information.
+    """
+
     name = "firebolt"
     driver = "firebolt"
     user = None
@@ -137,7 +134,6 @@ class FireboltDialect(default.DefaultDialect):
         return {}
 
     def get_columns(self, connection, table_name, schema=None, **kwargs):
-        # TODO: Check alternative for column_default in below query
         query = """
             SELECT COLUMN_NAME,
                    DATA_TYPE,
@@ -200,9 +196,3 @@ dialect = FireboltDialect
 
 def get_is_nullable(column_is_nullable):
     return column_is_nullable.lower() == "yes"
-
-
-# TODO check if this method is needed
-def get_default(firebolt_column_default):
-    # currently unused, returns ''
-    return str(firebolt_column_default) if firebolt_column_default != "" else None
