@@ -5,11 +5,13 @@ from requests.exceptions import HTTPError
 
 from firebolt_db import exceptions
 from firebolt_db import constants
+from firebolt_db.memoized import memoized
 
 
 class FireboltApiService:
 
     @staticmethod
+    @memoized
     def get_connection(user_email, password, db_name):
         # get access token
         token_json = FireboltApiService.get_access_token({'username': user_email, 'password': password})
