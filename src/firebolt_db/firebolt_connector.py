@@ -6,7 +6,6 @@
 
 # Built as per Python DB API Specification - PEP 249
 # Responsible for connection to Database and providing database cursor for query execution
-# Connector is imported and used by Dialect to get connection
 
 import itertools
 import json
@@ -27,6 +26,7 @@ class Type(object):
     STRING = 1
     NUMBER = 2
     BOOLEAN = 3
+    ARRAY = 4
 
 
 def connect(*args, **kwargs):
@@ -95,6 +95,8 @@ def get_type(value):
         return Type.BOOLEAN
     elif isinstance(value, (int, float)):
         return Type.NUMBER
+    elif isinstance(value, list):
+        return Type.ARRAY
 
     raise exceptions.Error("Value of unknown type: {value}".format(value=value))
 
@@ -342,11 +344,12 @@ class Cursor(object):
                                          query)
 
         # Setting `chunk_size` to `None` makes it use the server size
-        chunks = r.iter_content(chunk_size=None, decode_unicode=True)
+        chunks = r.iter_content(chunk_size=4096, decode_unicode=True)
+
         Row = None
+        # for row in rows_from_lines(lines):
         for row in rows_from_chunks(chunks):
-            # TODO Check if row description has to be set
-            # # update description
+            # update description
             if self.description is None:
                 self.description = (
                     list(row.items()) if self.header else get_description_from_row(row)
@@ -358,6 +361,37 @@ class Cursor(object):
             yield Row(*row.values())
 
 
+def rows_from_lines(lines):
+    """
+    A generator that yields rows from JSON lines.
+
+    Firebolt will return the data in lines, but they are not aligned with the
+    JSON objects. This function will parse all complete rows from the lines,
+    yielding them as soon as possible.
+    """
+
+    data_started = False
+    body = ""
+    for line in lines:
+        line = line.lstrip().rstrip()
+        if data_started:
+            if line == '],':
+                body = "".join((body,line))
+                break
+            else:
+                body = "".join((body,line))
+
+        if not data_started and line == '"data":':
+            data_started = True
+
+    rows = body.lstrip('[').rstrip('],')
+
+    for row in json.loads(
+            "[{rows}]".format(rows=rows), object_pairs_hook=OrderedDict
+    ):
+        yield row
+
+
 def rows_from_chunks(chunks):
     """
     A generator that yields rows from JSON chunks.
@@ -366,38 +400,46 @@ def rows_from_chunks(chunks):
     JSON objects. This function will parse all complete rows inside each chunk,
     yielding them as soon as possible.
     """
-    body = ""
-    squareBrackets = 0
-    dataStartpos = 0
-    dataEndPos = 0
-    inString = False
+    data_started = False
+    old_body = ""
     for chunk in chunks:
-
         if chunk:
-            body = "".join((body, chunk))
-        for i, char in enumerate(body):
-            if char == '"':
-                if not inString:
-                    inString = True
-                else:
-                    inString = False
+            chunk = "".join((old_body, chunk))
+            body = ""
+            lines = chunk.splitlines()
+            curly_started = False
+            new_data_row = ""
+            for line in lines:
+                line = line.lstrip().rstrip()
+                if data_started and line:
+                    if line == '],':
+                        data_started = False
+                        break
+                    else:
+                        if curly_started:
+                            if line == '}' or line == '},':
+                                curly_started = False
+                                body = "".join((body,new_data_row,line))
+                                new_data_row = ""
+                                old_body = ""
+                            else:
+                                new_data_row = "".join((new_data_row,line))
+                                old_body = new_data_row
 
-            if not inString:
-                if char == '[':
-                    squareBrackets += 1
-                    if squareBrackets == 2:
-                        dataStartpos = i + 1
-                if char == ']' and squareBrackets == 2:
-                    dataEndPos = i
-                    break
+                        elif not curly_started and line[0] == '{':
+                            curly_started = True
+                            new_data_row = "".join((new_data_row,line))
+                            old_body = new_data_row
 
-        rows = body[dataStartpos:dataEndPos].lstrip().rstrip()
-        # print(rows)
+                elif not data_started and line == '"data":':
+                    data_started = True
 
-        for row in json.loads(
-                "[{rows}]".format(rows=rows), object_pairs_hook=OrderedDict
-        ):
-            yield row
+            rows = body.lstrip().rstrip(',')
+
+            for row in json.loads(
+                    "[{rows}]".format(rows=rows), object_pairs_hook=OrderedDict
+            ):
+                yield row
 
 
 def apply_parameters(operation, parameters):
