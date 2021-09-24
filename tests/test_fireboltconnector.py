@@ -8,7 +8,7 @@ from firebolt_db import exceptions
 
 @pytest.fixture
 def get_connection():
-    return firebolt_connector.connect('aapurva@sigmoidanalytics.com', 'Apurva111', 'Sigmoid_Alchemy')
+    return firebolt_connector.connect('localhost', 8123, 'aapurva@sigmoidanalytics.com', 'Apurva111', 'Sigmoid_Alchemy')
 
 
 class TestConnect:
@@ -17,7 +17,9 @@ class TestConnect:
         user_email = "aapurva@sigmoidanalytics.com"
         password = "Apurva111"
         db_name = "Sigmoid_Alchemy"
-        connection = firebolt_connector.connect(user_email, password, db_name)
+        host = "localhost"
+        port = "8123"
+        connection = firebolt_connector.connect(host, port, user_email, password, db_name)
         assert connection.access_token
         assert connection.engine_url
 
@@ -25,19 +27,23 @@ class TestConnect:
         user_email = "aapurva@sigmoidanalytics.com"
         password = "wrongpassword"
         db_name = "Sigmoid_Alchemy"
+        host = "localhost"
+        port = "8123"
         with pytest.raises(exceptions.InvalidCredentialsError):
-            firebolt_connector.connect(user_email, password, db_name)
+            firebolt_connector.connect(host, port, user_email, password, db_name)
 
     def test_connect_invalid_database(self):
         user_email = "aapurva@sigmoidanalytics.com"
         password = "Apurva111"
         db_name = "wrongdatabase"
+        host = "localhost"
+        port = "8123"
         with pytest.raises(exceptions.SchemaNotFoundError):
-            firebolt_connector.connect(user_email, password, db_name)
+            firebolt_connector.connect(host, port, user_email, password, db_name)
 
 
 def test_get_description_from_row_valid_rows():
-    row = {'id': 1, 'name': 'John', 'is_eligible': True}
+    row = {'id': 1, 'name': 'John', 'is_eligible': True, 'some_array': [2, 4]}
     result = firebolt_connector.get_description_from_row(row)
     assert result[0][0] == 'id'
     assert result[0][1] == firebolt_connector.Type.NUMBER
@@ -48,10 +54,13 @@ def test_get_description_from_row_valid_rows():
     assert result[2][0] == 'is_eligible'
     assert result[2][1] == firebolt_connector.Type.BOOLEAN
     assert not result[2][6]
+    assert result[3][0] == 'some_array'
+    assert result[3][1] == firebolt_connector.Type.ARRAY
+    assert not result[3][6]
 
 
 def test_get_description_from_row_invalid_rows():
-    row = {'id': []}
+    row = {'id': {}}
     with pytest.raises(Exception):
         firebolt_connector.get_description_from_row(row)
 
@@ -68,8 +77,13 @@ def test_get_type():
     assert firebolt_connector.get_type(value_2_2) == 2
     assert firebolt_connector.get_type(value_3_1) == 3
     assert firebolt_connector.get_type(value_3_2) == 3
+    assert firebolt_connector.get_type(value_4) == 4
+
+
+def test_get_type_invalid_type():
+    value = {}
     with pytest.raises(Exception):
-        firebolt_connector.get_type(value_4)
+        firebolt_connector.get_type(value)
 
 
 class TestConnection:
@@ -81,11 +95,11 @@ class TestConnection:
         assert len(connection.cursors) > 0
         assert type(cursor) == firebolt_connector.Cursor
 
-    def test_execute(self, get_connection):
-        connection = get_connection
-        query = "SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.DATABASES"
-        cursor = connection.execute(query)
-        assert type(cursor._results) == itertools.chain
+    # def test_execute(self, get_connection):
+    #     connection = get_connection
+    #     query = "SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.DATABASES"
+    #     cursor = connection.execute(query)
+    #     assert type(cursor._results) == itertools.chain
 
     def test_commit(self):
         pass
@@ -106,25 +120,54 @@ class TestCursor:
         cursor = connection.cursor().execute(query)
         assert cursor.rowcount == 10
 
+    def test_close(self, get_connection):
+        connection = get_connection
+        cursor = connection.cursor()
+        if not cursor.closed:
+            cursor.close()
+        assert cursor.closed
 
-    def test_close(self):
-        pass
+    def test_execute(self, get_connection):
+        query = 'select * from lineitem ' \
+                'where l_orderkey=3184321 and l_partkey=65945'
+        connection = get_connection
+        cursor = connection.cursor()
+        assert not cursor._results
+        cursor.execute(query)
+        assert cursor.rowcount == 1
 
-    def test_execute(self):
-        pass
+    def test_executemany(self, get_connection):
+        query = "select * from lineitem limit 10"
+        connection = get_connection
+        cursor = connection.cursor()
+        with pytest.raises(exceptions.NotSupportedError):
+            cursor.executemany(query)
 
-    def test_stream_query(self):
-        pass
+    def test_fetchone(self, get_connection):
+        query = "select * from lineitem limit 10"
+        connection = get_connection
+        cursor = connection.cursor()
+        assert not cursor._results
+        cursor.execute(query)
+        result = cursor.fetchone()
+        assert isinstance(result, tuple)
 
-    def test_fetchone(self):
-        pass
+    def test_fetchmany(self, get_connection):
+        query = "select * from lineitem limit 10"
+        connection = get_connection
+        cursor = connection.cursor()
+        assert not cursor._results
+        cursor.execute(query)
+        result = cursor.fetchmany(3)
+        assert isinstance(result, list)
+        assert len(result) == 3
 
-    def test_fetchmany(self):
-        pass
-
-    def test_fetchall(self):
-        pass
-
-
-def test_rows_from_chunks():
-    pass
+    def test_fetchall(self, get_connection):
+        query = "select * from lineitem limit 10"
+        connection = get_connection
+        cursor = connection.cursor()
+        assert not cursor._results
+        cursor.execute(query)
+        result = cursor.fetchall()
+        assert isinstance(result, list)
+        assert len(result) == 10
