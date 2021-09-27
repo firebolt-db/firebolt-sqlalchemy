@@ -12,7 +12,7 @@ class FireboltApiService:
 
     @staticmethod
     @memoized
-    def get_connection(user_email, password, db_name):
+    def get_connection(user_email, password, db_name, date):
         """
         Retrieve Authorisation details for connection
         This method internally calls methods to get access token, refresh token and engine URL.

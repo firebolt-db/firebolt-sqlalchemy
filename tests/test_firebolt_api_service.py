@@ -1,3 +1,5 @@
+from datetime import date
+
 from firebolt_db.firebolt_api_service import FireboltApiService
 from tests import constants
 from requests.exceptions import HTTPError
@@ -12,7 +14,8 @@ engine_url = FireboltApiService.get_engine_url_by_db(constants.db_name, access_t
 class TestFireboltApiService:
 
     def test_get_connection_success(self):
-        response = FireboltApiService.get_connection(constants.username, constants.password, constants.db_name)
+        response = FireboltApiService.get_connection(constants.username, constants.password,
+                                                     constants.db_name, date.today())
         if type(response) == HTTPError:
             assert response.response.status_code == 503
         else:
@@ -20,11 +23,11 @@ class TestFireboltApiService:
 
     def test_get_connection_invalid_credentials(self):
         with pytest.raises(Exception) as e_info:
-            response = FireboltApiService.get_connection('username', 'password', constants.db_name)[0]
+            response = FireboltApiService.get_connection('username', 'password', constants.db_name, date.today())[0]
 
     def test_get_connection_invalid_schema_name(self):
         with pytest.raises(Exception) as e_info:
-            response = FireboltApiService.get_connection(constants.username, constants.password, 'db_name')[1]
+            response = FireboltApiService.get_connection(constants.username, constants.password, 'db_name', date.today())[1]
 
     def test_get_access_token_success(self):
         assert access_token["access_token"] != ""
@@ -71,9 +74,13 @@ class TestFireboltApiService:
                                                     engine_url, 'db_name', constants.query)
 
     def test_run_query_invalid_header(self):
-        with pytest.raises(Exception) as e_info:
-            response = FireboltApiService.run_query('header', access_token["refresh_token"], engine_url, constants.db_name,
-                                                    constants.query) != {}
+        try:
+            response = FireboltApiService.run_query('header', access_token["refresh_token"],
+                                                    engine_url, constants.db_name,
+                                                    constants.query)
+            assert response != ""
+        except exceptions.InternalError as e_info:
+            assert e_info != ""
 
     def test_run_query_invalid_query(self):
         with pytest.raises(Exception) as e_info:

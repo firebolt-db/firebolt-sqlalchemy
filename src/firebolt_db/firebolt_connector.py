@@ -10,6 +10,7 @@
 import itertools
 import json
 from collections import namedtuple, OrderedDict
+from datetime import date
 
 from firebolt_db.firebolt_api_service import FireboltApiService
 from firebolt_db import exceptions
@@ -122,7 +123,7 @@ class Connection(object):
         self._username = username
         self._password = password
         self._db_name = db_name
-        connection_details = FireboltApiService.get_connection(username, password, db_name)
+        connection_details = FireboltApiService.get_connection(username, password, db_name, date.today())
 
         self.access_token = connection_details[0]
         self.engine_url = connection_details[1]
