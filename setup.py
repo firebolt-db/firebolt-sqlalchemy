@@ -11,9 +11,9 @@ setuptools.setup(
     description="Sqlalchemy adapter for Firebolt",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/raghavSharmaSigmoid/sqlalchemy_adapter",
+    url="https://github.com/raghavSharmaSigmoid/firebolt-sqlalchemy",
     project_urls={
-        "Bug Tracker": "https://github.com/raghavSharmaSigmoid/sqlalchemy_adapter",
+        "Bug Tracker": "https://github.com/raghavSharmaSigmoid/firebolt-sqlalchemy",
     },
     install_requires=[
         'sqlalchemy>=1.0.0',
