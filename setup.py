@@ -8,16 +8,21 @@ setuptools.setup(
     version="0.0.1",
     author="Raghav Sharma",
     author_email="raghavs@sigmoidanalytics.com",
-    description="Package for Sqlalchemy adapter for Firebolt-Superset integration",
+    description="Sqlalchemy adapter for Firebolt",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/raghavSharmaSigmoid/sqlalchemy_adapter",
+    url="https://github.com/raghavSharmaSigmoid/firebolt-sqlalchemy",
     project_urls={
-        "Bug Tracker": "https://github.com/raghavSharmaSigmoid/sqlalchemy_adapter",
+        "Bug Tracker": "https://github.com/raghavSharmaSigmoid/firebolt-sqlalchemy",
     },
     install_requires=[
         'sqlalchemy>=1.0.0',
         "requests"
+        "json"
+        "itertools"
+        "collections"
+        "datetime"
+        "functools"
     ],
     entry_points={
         "sqlalchemy.dialects": [
