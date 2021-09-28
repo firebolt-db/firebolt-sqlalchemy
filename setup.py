@@ -4,11 +4,11 @@ with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name="firebolt-sqlalchemy",
+    name="sqlalchemy_adapter",
     version="0.0.1",
     author="Raghav Sharma",
     author_email="raghavs@sigmoidanalytics.com",
-    description="Package for Sqlalchemy adapter for Firebolt-Superset integration",
+    description="Sqlalchemy adapter for Firebolt",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/raghavSharmaSigmoid/sqlalchemy_adapter",

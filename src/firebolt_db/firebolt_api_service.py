@@ -202,13 +202,7 @@ class FireboltApiService:
             query_response.raise_for_status()
 
         except HTTPError as http_err:
-            if http_err.response.status_code == 401:
-                access_token = FireboltApiService.get_access_token_via_refresh(refresh_token)
-                header = {'Authorization': "Bearer " + access_token}
-                query_response = requests.post(url="https://" + engine_url, params={'database': db_name},
-                                               headers=header, files={"query": (None, query)})
-            else:
-                payload = {
+            payload = {
                     "error": "DB-API Exception",
                     "errorMessage": http_err.response.text,
                 }

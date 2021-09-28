@@ -8,6 +8,13 @@ from firebolt_db.firebolt_dialect import FireboltDialect
 
 # connection = connect('localhost',8123,'aapurva@sigmoidanalytics.com', 'Apurva111', 'Sigmoid_Alchemy')
 
+# if http_err.response.status_code == 401:
+            #     access_token = FireboltApiService.get_access_token_via_refresh(refresh_token)
+            #     header = {'Authorization': "Bearer " + access_token}
+            #     query_response = requests.post(url="https://" + engine_url, params={'database': db_name},
+            #                                    headers=header, files={"query": (None, query)})
+            # else:
+
 # Test for end to end
 # query = 'select * from lineitem limit 10'
 # cursor = connection.cursor()
