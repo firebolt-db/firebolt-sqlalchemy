@@ -5,22 +5,21 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
     name="firebolt-sqlalchemy",
-    version="1.0.1",
+    version="0.0.2",
     author="Raghav Sharma",
     author_email="raghavs@sigmoidanalytics.com",
     description="Sqlalchemy adapter for Firebolt",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/raghavSharmaSigmoid/firebolt-sqlalchemy",
-    download_url="https://github.com/raghavSharmaSigmoid/firebolt-sqlalchemy/archive/refs/tags/1.0.1.tar.gz",
+    download_url="https://github.com/raghavSharmaSigmoid/firebolt-sqlalchemy/archive/refs/tags/0.0.2.tar.gz",
     project_urls={
         "Bug Tracker": "https://github.com/raghavSharmaSigmoid/firebolt-sqlalchemy",
     },
     install_requires=[
         'sqlalchemy>=1.0.0',
         "requests",
-        "datetime",
-        "functools"
+        "datetime"
     ],
     entry_points={
         "sqlalchemy.dialects": [
