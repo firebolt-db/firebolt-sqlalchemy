@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
     name="firebolt-sqlalchemy",
-    version="0.0.1",
+    version="v0.0.1",
     author="Raghav Sharma",
     author_email="raghavs@sigmoidanalytics.com",
     description="Sqlalchemy adapter for Firebolt",
