@@ -18,11 +18,11 @@ setuptools.setup(
     },
     install_requires=[
         'sqlalchemy>=1.0.0',
-        "requests"
-        "json"
-        "itertools"
-        "collections"
-        "datetime"
+        "requests",
+        "json",
+        "itertools",
+        "collections",
+        "datetime",
         "functools"
     ],
     entry_points={
