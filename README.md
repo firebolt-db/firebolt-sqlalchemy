@@ -37,6 +37,35 @@ Here's a connection string example of Superset connecting to a Firebolt database
 firebolt://email@domain:password@host/sample_database
 ```
 
+
+# DB API
+
+```python
+from firebolt_db.firebolt_connector import connect
+
+connection = connect('localhost',8123,'email@domain', 'password', 'db_name')
+query = 'select * from table limit 10'
+cursor = connection.cursor()
+
+response = cursor.execute(query)
+print(response.fetchmany(3))
+```
+
+# SQLAlchemy
+
+```python
+from sqlalchemy import create_engine
+from firebolt_db.firebolt_dialect import FireboltDialect
+
+engine = create_engine("firebolt://email@domain:password@host/sample_database")
+
+dialect = FireboltDialect()
+schemas = dialect.get_schema_names(engine)
+
+connection = engine.connect()
+schemas = dialect.get_schema_names(connection)
+```
+
 ## Components in the Adapter:
 1. Firebolt Connector: This file is used to establish a connection to the Firebolt database from 3rd party applications. It provides a ‘connect’ method which accepts parameters like database name, username, password etc. from the connecting application to identify the database and authenticate the user credentials. It returns a database connection which is used to execute queries on the database.
 2. API Service: The API Service is responsible for calling Firebolt REST APIs to establish connection with the database and fire SQL queries on it. It provides methods to get access token as per user credentials, get the specific engine URL and execute/run SQL queries. Executing queries need access token and engine URL as per the Firebolt REST API specifications.
