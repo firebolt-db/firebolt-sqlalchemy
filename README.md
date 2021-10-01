@@ -44,7 +44,7 @@ firebolt://email@domain:password@host/sample_database
 from firebolt_db.firebolt_connector import connect
 
 connection = connect('localhost',8123,'email@domain', 'password', 'db_name')
-query = 'select * from table limit 10'
+query = 'select * from sample_table limit 10'
 cursor = connection.cursor()
 
 response = cursor.execute(query)
@@ -56,7 +56,9 @@ print(response.fetchmany(3))
 ```python
 from sqlalchemy import create_engine
 from firebolt_db.firebolt_dialect import FireboltDialect
+from sqlalchemy.dialects import registry
 
+registry.register("firebolt", "src.firebolt_db.firebolt_dialect", "FireboltDialect")
 engine = create_engine("firebolt://email@domain:password@host/sample_database")
 
 dialect = FireboltDialect()
@@ -77,18 +79,17 @@ schemas = dialect.get_schema_names(connection)
 2. Test getting access token and engine URL using Firebolt REST API through adapter API Service code.
 3. Test running SQL queries on a database using Firebolt REST API through adapter API service code.
 4. Test Firebolt Connector methods to create connection, get database cursor and execute SQL queries.
-5. Integration testing with Superset.
-6. End to end functionality testing through Superset.
-7. Link for unit tests: https://docs.google.com/spreadsheets/d/1uP49jjpwCzfYPeh9NIkm_BdsmIV1bSrJHsR4wk86zUE/edit#gid=1161341563
-8. Link for Query testing: https://docs.google.com/spreadsheets/d/1V0gw-Ke8m3bcGF4bs-SaTgnnO73Rxw8iZ15x5lMJJ0g/edit#gid=0
+5. Integration testing with Superset and Redash.
+6. End to end functionality testing through Superset and Redash.
+7. Link for unit tests: [Unit-Testing Results](https://docs.google.com/spreadsheets/d/1uP49jjpwCzfYPeh9NIkm_BdsmIV1bSrJHsR4wk86zUE/edit#gid=1161341563)
+8. Link for Query testing: [Query-Testing Results](https://docs.google.com/spreadsheets/d/1V0gw-Ke8m3bcGF4bs-SaTgnnO73Rxw8iZ15x5lMJJ0g/edit#gid=0)
 
 
 ## References:
-1. GitHub: https://github.com/raghavSharmaSigmoid/firebolt-sqlalchemy/tree/master
+1. PyPi - [Firebolt PyPi](https://pypi.org/project/firebolt-sqlalchemy/)
 2. Important Firebolt URLs:
-    1. Rest API - https://docs.firebolt.io/integrations/connecting-via-rest-api
-    2. Information schema - https://docs.firebolt.io/general-reference/information-schema
-    3. Engine usage - https://docs.firebolt.io/working-with-engines
-3. SQLAlchemy: https://docs.sqlalchemy.org/en/14/intro.html
-4. Dialect: https://docs.sqlalchemy.org/en/14/dialects/
-5. PEP 249: https://www.python.org/dev/peps/pep-0249/
+    1. [Rest API](https://docs.firebolt.io/integrations/connecting-via-rest-api)
+    2. [Information schema](https://docs.firebolt.io/general-reference/information-schema)
+    3. [Engine usage](https://docs.firebolt.io/working-with-engines)
+3. SQLAlchemy: [Dialect](https://docs.sqlalchemy.org/en/14/dialects/)
+5. DB-API Driver: [PEP 249](https://www.python.org/dev/peps/pep-0249/)
