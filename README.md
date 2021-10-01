@@ -38,7 +38,7 @@ firebolt://email@domain:password@host/sample_database
 ```
 
 
-# DB API
+## DB API
 
 ```python
 from firebolt_db.firebolt_connector import connect
@@ -51,7 +51,7 @@ response = cursor.execute(query)
 print(response.fetchmany(3))
 ```
 
-# SQLAlchemy
+## SQLAlchemy
 
 ```python
 from sqlalchemy import create_engine
