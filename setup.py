@@ -12,7 +12,7 @@ setuptools.setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/firebolt-db/firebolt-sqlalchemy",
-    download_url="https://github.com/firebolt-db/firebolt-sqlalchemy/archive/refs/tags/0.0.2.tar.gz",
+    download_url="https://github.com/firebolt-db/firebolt-sqlalchemy/archive/refs/tags/0.0.3.tar.gz",
     project_urls={
         "Bug Tracker": "https://github.com/firebolt-db/firebolt-sqlalchemy",
     },
