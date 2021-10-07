@@ -3,10 +3,12 @@ import pytest
 from firebolt_db import firebolt_dialect
 from sqlalchemy.engine import url
 from sqlalchemy import create_engine
+from sqlalchemy.dialects import registry
 
 
 @pytest.fixture
 def get_engine():
+    registry.register("firebolt", "src.firebolt_db.firebolt_dialect", "FireboltDialect")
     return create_engine("firebolt://aapurva@sigmoidanalytics.com:Apurva111@host/Sigmoid_Alchemy")
 
 

@@ -12,8 +12,8 @@ import json
 from collections import namedtuple, OrderedDict
 from datetime import date
 
-from firebolt_db.firebolt_api_service import FireboltApiService
-from firebolt_db import exceptions
+from .firebolt_api_service import FireboltApiService
+from . import exceptions
 
 
 class Error(Exception):

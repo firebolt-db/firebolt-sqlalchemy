@@ -3,9 +3,9 @@ import json
 import requests
 from requests.exceptions import HTTPError
 
-from firebolt_db import exceptions
-from firebolt_db import constants
-from firebolt_db.memoized import memoized
+from . import exceptions
+from . import constants
+from .memoized import memoized
 
 
 class FireboltApiService:
