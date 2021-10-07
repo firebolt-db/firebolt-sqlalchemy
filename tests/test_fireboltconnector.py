@@ -116,7 +116,7 @@ class TestCursor:
 
     def test_rowcount(self, get_connection):
         connection = get_connection
-        query = "select * from lineitem limit 10"
+        query = "select * from ci_fact_table limit 10"
         cursor = connection.cursor().execute(query)
         assert cursor.rowcount == 10
 
@@ -128,7 +128,7 @@ class TestCursor:
         assert cursor.closed
 
     def test_execute(self, get_connection):
-        query = 'select * from lineitem ' \
+        query = 'select * from ci_fact_table ' \
                 'where l_orderkey=3184321 and l_partkey=65945'
         connection = get_connection
         cursor = connection.cursor()
@@ -137,14 +137,14 @@ class TestCursor:
         assert cursor.rowcount == 1
 
     def test_executemany(self, get_connection):
-        query = "select * from lineitem limit 10"
+        query = "select * from ci_fact_table limit 10"
         connection = get_connection
         cursor = connection.cursor()
         with pytest.raises(exceptions.NotSupportedError):
             cursor.executemany(query)
 
     def test_fetchone(self, get_connection):
-        query = "select * from lineitem limit 10"
+        query = "select * from ci_fact_table limit 10"
         connection = get_connection
         cursor = connection.cursor()
         assert not cursor._results
@@ -153,7 +153,7 @@ class TestCursor:
         assert isinstance(result, tuple)
 
     def test_fetchmany(self, get_connection):
-        query = "select * from lineitem limit 10"
+        query = "select * from ci_fact_table limit 10"
         connection = get_connection
         cursor = connection.cursor()
         assert not cursor._results
@@ -163,7 +163,7 @@ class TestCursor:
         assert len(result) == 3
 
     def test_fetchall(self, get_connection):
-        query = "select * from lineitem limit 10"
+        query = "select * from ci_fact_table limit 10"
         connection = get_connection
         cursor = connection.cursor()
         assert not cursor._results

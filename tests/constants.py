@@ -1,4 +1,4 @@
-db_name = 'db_name'
-query = 'select * from joining_details'
-username = 'username'
-password = 'password'
+db_name = 'Sigmoid_Alchemy'
+query = 'select * from ci_fact_table limit 1'
+username = 'aapurva@sigmoidanalytics.com'
+password = 'Apurva111'

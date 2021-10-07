@@ -35,7 +35,7 @@ class TestFireboltDialect:
         assert 'Sigmoid_Alchemy' in results
 
     def test_has_table(self, get_engine):
-        table = 'lineitem'
+        table = 'ci_fact_table'
         schema = 'Sigmoid_Alchemy'
         engine = get_engine
         results = dialect.has_table(engine, table, schema)
@@ -48,7 +48,7 @@ class TestFireboltDialect:
         assert len(results) > 0
 
     def test_get_columns(self, get_engine):
-        table = 'lineitem'
+        table = 'ci_fact_table'
         schema = 'Sigmoid_Alchemy'
         engine = get_engine
         results = dialect.get_columns(engine, table, schema)
