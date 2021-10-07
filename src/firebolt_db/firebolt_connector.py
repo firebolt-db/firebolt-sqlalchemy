@@ -339,7 +339,6 @@ class Cursor(object):
         self.description = None
 
         r = FireboltApiService.run_query(self.access_token,
-                                         self.refresh_token,
                                          self.engine_url,
                                          self.db_name,
                                          query)

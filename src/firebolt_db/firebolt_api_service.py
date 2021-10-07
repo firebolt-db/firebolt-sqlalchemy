@@ -177,13 +177,13 @@ class FireboltApiService:
         return engine_url
 
     @staticmethod
-    def run_query(access_token, refresh_token, engine_url, db_name, query):
+    def run_query(access_token, engine_url, db_name, query):
         """
         Run queries
         This method is used to submit a query to run to a running engine.
         You can specify multiple queries separated by a semicolon (;)..
-        :input token url, request type of API and authentication header
-        :returns access-token
+        :input access token, engine url, database name, query
+        :returns database metadata
         """
         query_response = {}     # base-case
         payload = {}

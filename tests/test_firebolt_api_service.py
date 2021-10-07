@@ -56,7 +56,7 @@ class TestFireboltApiService:
 
     def test_run_query_success(self):
         try:
-            response = FireboltApiService.run_query(access_token["access_token"], access_token["refresh_token"],
+            response = FireboltApiService.run_query(access_token["access_token"],
                                                     engine_url, constants.db_name,
                                                     constants.query)
             assert response != ""
@@ -65,17 +65,17 @@ class TestFireboltApiService:
 
     def test_run_query_invalid_url(self):
         with pytest.raises(Exception) as e_info:
-            response = FireboltApiService.run_query(access_token["access_token"], access_token["refresh_token"], "",
+            response = FireboltApiService.run_query(access_token["access_token"], "",
                                                     constants.db_name, constants.query) != {}
 
     def test_run_query_invalid_schema(self):
         with pytest.raises(Exception) as e_info:
-            response = FireboltApiService.run_query(access_token["access_token"], access_token["refresh_token"],
+            response = FireboltApiService.run_query(access_token["access_token"],
                                                     engine_url, 'db_name', constants.query)
 
     def test_run_query_invalid_header(self):
         try:
-            response = FireboltApiService.run_query('header', access_token["refresh_token"],
+            response = FireboltApiService.run_query('header',
                                                     engine_url, constants.db_name,
                                                     constants.query)
             assert response != ""
@@ -84,5 +84,5 @@ class TestFireboltApiService:
 
     def test_run_query_invalid_query(self):
         with pytest.raises(Exception) as e_info:
-            response = FireboltApiService.run_query(access_token["access_token"], access_token["refresh_token"],
+            response = FireboltApiService.run_query(access_token["access_token"],
                                                     engine_url, constants.db_name, 'query')
