@@ -13,7 +13,7 @@ export PYTHONPATH=$PWD/src
 
 # Using python. Create external and fact table. Insert data as well.
 echo "Creating table for unit test"
-python ci/firebolt_ingest_data.py $USERNAME $PASSWORD $DB_NAME
+python3 ci/firebolt_ingest_data.py $USERNAME $PASSWORD $DB_NAME
 echo "Table for unit test has been created"
 
 # Call pytest files to run unit tests

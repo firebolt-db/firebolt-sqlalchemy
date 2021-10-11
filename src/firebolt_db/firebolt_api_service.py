@@ -86,8 +86,7 @@ class FireboltApiService:
         """
         Refresh access token
         In case the token expires or the API throws a 401 HTTP error, then this method generates a fresh token
-        :input refresh api url, request type, authentication header and
-        the refresh token generated alongside the previous expired token
+        :input refresh token generated alongside the previous expired token
         :returns new access-token
         """
         refresh_access_token = ""
@@ -136,9 +135,9 @@ class FireboltApiService:
     @staticmethod
     def get_engine_url_by_db(db_name, access_token):
         """
-        Get engine url by db name
-        This method generates engine url using db name and access-token
-        :input api url, request type, authentication header and access-token
+        Get engine url by db_name name
+        This method generates engine url using engine name and access-token
+        :input database name and access token
         :returns engine url
         """
         engine_url = ""  # base case
@@ -180,14 +179,11 @@ class FireboltApiService:
     @staticmethod
     def get_engine_url_by_engine(engine_name, access_token):
         """
-        Get engine url by db name
+        Get engine url by engine name
         This method generates engine url using engine name and access-token
-        :input api url, request type, authentication header and access-token
+        :input engine name and access-token
         :returns engine url
         """
-        print("*******************************")
-        print("This is engine name "+engine_name)
-        print("*******************************")
         engine_url = ""  # base case
         payload = {}
         try:
