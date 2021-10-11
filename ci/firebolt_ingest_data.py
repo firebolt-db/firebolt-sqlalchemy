@@ -10,8 +10,8 @@ from firebolt_db import constants
 # Arguments passed
 user_email = sys.argv[1]
 password = sys.argv[2]
-db_name = sys.argv[3]
-
+engine_url = sys.argv[3]
+db_name = sys.argv[4]
 
 class IngestFireboltData:
 
@@ -25,8 +25,6 @@ class IngestFireboltData:
         """
         # get access token
         access_token = IngestFireboltData.get_access_token({'username': user_email, 'password': password})
-        # get engine url
-        engine_url = IngestFireboltData.get_engine_url_by_db(access_token)
         # create external table
         IngestFireboltData.create_external_table(engine_url, access_token)
         # create fact table
@@ -87,54 +85,10 @@ class IngestFireboltData:
         return access_token
 
     @staticmethod
-    def get_engine_url_by_db(access_token):
-        """
-        Get engine url by db name
-        This method generates engine url using db name and access-token
-        :input api url, request type, authentication header and access-token
-        :returns engine url
-        """
-        engine_url = ""  # base case
-        payload = {}
-        try:
-            """
-            Request:
-            curl --request GET 'https://api.app.firebolt.io/core/v1/account/engines:getURLByDatabaseName?database_name=YOUR_DATABASE_NAME' \  
-            --header 'Authorization: Bearer YOUR_ACCESS_TOKEN_VALUE'
-            """
-            header = {'Authorization': "Bearer " + access_token}
-            query_engine_response = requests.get(constants.query_engine_url, params={'database_name': db_name},
-                                                 headers=header)
-            query_engine_response.raise_for_status()
-
-            """
-            Response:
-            {"engine_url": "YOUR_DATABASES_DEFAULT_ENGINE_URL"}
-            """
-            json_data = json.loads(query_engine_response.text)
-            engine_url = json_data["engine_url"]
-
-        except HTTPError as http_err:
-            payload = {
-                "error": "Engine Url API Exception",
-                "errorMessage": http_err.response.text,
-            }
-        except Exception as err:
-            payload = {
-                "error": "Engine Url API Exception",
-                "errorMessage": str(err),
-            }
-        if payload != {}:
-            msg = "{error} : {errorMessage}".format(**payload)
-            raise exceptions.SchemaNotFoundError(msg)
-
-        return engine_url
-
-    @staticmethod
     def create_external_table(engine_url, access_token):
         """
         This method is used to create an external table.
-        :input engine url, db_name, access_token, table_name
+        :input engine url, access_token
         """
         payload = {}
         try:
@@ -193,7 +147,7 @@ class IngestFireboltData:
         """
         Create a fact table
         This method is used to create a fact table.
-        :input engine url, db_name, access_token, table_name
+        :input engine url, access_token
         """
         payload = {}
         try:
@@ -246,7 +200,7 @@ class IngestFireboltData:
     def ingest_data(engine_url, access_token):
         """
         This method is used to ingest data into the fact table.
-        :input engine url, db_name, access_token, external_table, fact_table
+        :input engine url, access_token
         """
         payload = {}
         try:

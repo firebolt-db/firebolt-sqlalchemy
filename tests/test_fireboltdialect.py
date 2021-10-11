@@ -9,14 +9,14 @@ from sqlalchemy.dialects import registry
 
 test_username = os.environ["username"]
 test_password = os.environ["password"]
+test_engine_url = os.environ["engine_url"]
 test_db_name = os.environ["db_name"]
-test_engine_name = os.environ["engine_name"]
 
 
 @pytest.fixture
 def get_engine():
     registry.register("firebolt", "src.firebolt_db.firebolt_dialect", "FireboltDialect")
-    return create_engine(f"firebolt://{test_username}:{test_password}@{test_engine_name}/{test_db_name}")
+    return create_engine(f"firebolt://{test_username}:{test_password}@{test_engine_url}/{test_db_name}")
 
 
 dialect = firebolt_dialect.FireboltDialect()
