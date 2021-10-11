@@ -12,7 +12,7 @@ class FireboltApiService:
 
     @staticmethod
     @memoized
-    def get_connection(user_email, password, db_name, date):
+    def get_connection(user_email, password, engine_name, date):
         """
         Retrieve Authorisation details for connection
         This method internally calls methods to get access token, refresh token and engine URL.
@@ -25,7 +25,8 @@ class FireboltApiService:
         refresh_token = token_json["refresh_token"]
 
         # get engine url
-        engine_url = FireboltApiService.get_engine_url_by_db(db_name, access_token)
+        # engine_url = FireboltApiService.get_engine_url_by_db(db_name, access_token)
+        engine_url = FireboltApiService.get_engine_url_by_engine(engine_name, access_token)
         return access_token, engine_url, refresh_token
 
 
@@ -159,6 +160,67 @@ class FireboltApiService:
             """
             json_data = json.loads(query_engine_response.text)
             engine_url = json_data["engine_url"]
+
+        except HTTPError as http_err:
+            payload = {
+                "error": "Engine Url API Exception",
+                "errorMessage": http_err.response.text,
+            }
+        except Exception as err:
+            payload = {
+                "error": "Engine Url API Exception",
+                "errorMessage": str(err),
+            }
+        if payload != {}:
+            msg = "{error} : {errorMessage}".format(**payload)
+            raise exceptions.SchemaNotFoundError(msg)
+
+        return engine_url
+
+    @staticmethod
+    def get_engine_url_by_engine(engine_name, access_token):
+        """
+        Get engine url by db name
+        This method generates engine url using db name and access-token
+        :input api url, request type, authentication header and access-token
+        :returns engine url
+        """
+        print("*******************************")
+        print("This is engine name "+engine_name)
+        print("*******************************")
+        engine_url = ""  # base case
+        payload = {}
+        try:
+            """
+            Request:
+            curl --request GET 'https://api.app.firebolt.io/core/v1/account/engines?filter.name_contains=YOUR_ENGINE_NAME' \  
+            --header 'Authorization: Bearer YOUR_ACCESS_TOKEN_VALUE'
+            """
+            header = {'Authorization': "Bearer " + access_token}
+            query_engine_response = requests.get(constants.query_engine_url_by_engine_name,
+                                                 params={'filter.name_contains': engine_name},
+                                                 headers=header)
+            query_engine_response.raise_for_status()
+
+            """
+            Response:
+            {
+              "page": {
+                ...
+              },
+              "edges": [
+                {
+                  ...
+                    "endpoint": "YOUR_ENGINE_URL",
+                  ...
+                  }
+                }
+              ]
+            }
+            """
+            json_data = json.loads(query_engine_response.text)
+            engine_url = json_data["edges"][0]["node"]["endpoint"]
+            print(engine_url)
 
         except HTTPError as http_err:
             payload = {
