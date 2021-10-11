@@ -47,3 +47,7 @@ class InvalidCredentialsError(DatabaseError):
 
 class SchemaNotFoundError(DatabaseError):
     pass
+
+
+class EngineNotFoundError(DatabaseError):
+    pass

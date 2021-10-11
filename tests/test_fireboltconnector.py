@@ -1,44 +1,49 @@
-import itertools
+import os
 
 import pytest
 
 from firebolt_db import firebolt_connector
 from firebolt_db import exceptions
 
+test_username = os.environ["username"]
+test_password = os.environ["password"]
+test_db_name = os.environ["db_name"]
+test_engine_name = os.environ["engine_name"]
+
 
 @pytest.fixture
 def get_connection():
-    return firebolt_connector.connect('localhost', 8123, 'aapurva@sigmoidanalytics.com', 'Apurva111', 'Sigmoid_Alchemy')
+    return firebolt_connector.connect(test_engine_name, 8123, test_username, test_password, test_db_name)
 
 
 class TestConnect:
 
     def test_connect_success(self):
-        user_email = "aapurva@sigmoidanalytics.com"
-        password = "Apurva111"
-        db_name = "Sigmoid_Alchemy"
-        host = "localhost"
+        user_email = test_username
+        password = test_password
+        db_name = test_db_name
+        host = test_engine_name
         port = "8123"
         connection = firebolt_connector.connect(host, port, user_email, password, db_name)
         assert connection.access_token
         assert connection.engine_url
 
     def test_connect_invalid_credentials(self):
-        user_email = "aapurva@sigmoidanalytics.com"
+        user_email = test_username
         password = "wrongpassword"
-        db_name = "Sigmoid_Alchemy"
-        host = "localhost"
+        db_name = test_db_name
+        host = test_engine_name
         port = "8123"
         with pytest.raises(exceptions.InvalidCredentialsError):
             firebolt_connector.connect(host, port, user_email, password, db_name)
 
-    def test_connect_invalid_database(self):
-        user_email = "aapurva@sigmoidanalytics.com"
-        password = "Apurva111"
-        db_name = "wrongdatabase"
-        host = "localhost"
+    def test_connect_invalid_engine_name(self):
+        user_email = test_username
+        password = test_password
+        db_name = test_db_name
+        host = "wrongEngine"
         port = "8123"
-        with pytest.raises(exceptions.SchemaNotFoundError):
+        with pytest.raises(exceptions.EngineNotFoundError):
             firebolt_connector.connect(host, port, user_email, password, db_name)
 
 

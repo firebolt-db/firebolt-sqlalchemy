@@ -9,7 +9,7 @@ PASSWORD=$2
 ENGINE_NAME=$3
 DB_NAME=$4
 
-export PYTHONPATH=/Users/apurva.anand/firebolt_workspace/firebolt-sqlalchemy/src
+export PYTHONPATH=$PWD/src
 
 # Using python. Create external and fact table. Insert data as well.
 echo "Creating table for unit test"
@@ -18,7 +18,7 @@ echo "Table for unit test has been created"
 
 # Call pytest files to run unit tests
 echo "Running unit tests"
-python -m pytest tests
+username=$USERNAME password=$PASSWORD db_name=$DB_NAME engine_name=$ENGINE_NAME pytest ./tests
 echo "Unit tests completed"
 
 # Run pylint

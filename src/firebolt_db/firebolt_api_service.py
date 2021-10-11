@@ -95,8 +95,8 @@ class FireboltApiService:
         try:
             """
                 Request:
-                curl --request POST 'https://api.app.firebolt.io/auth/v1/refresh' \  
-                --header 'Content-Type: application/json;charset=UTF-8' \  
+                curl --request POST 'https://api.app.firebolt.io/auth/v1/refresh'
+                --header 'Content-Type: application/json;charset=UTF-8'
                 --data-binary '{"refresh_token":"YOUR_REFRESH_TOKEN_VALUE"}'
                 """
             data = {'refresh_token': refresh_token}
@@ -146,7 +146,7 @@ class FireboltApiService:
         try:
             """
             Request:
-            curl --request GET 'https://api.app.firebolt.io/core/v1/account/engines:getURLByDatabaseName?database_name=YOUR_DATABASE_NAME' \  
+            curl --request GET 'https://api.app.firebolt.io/core/v1/account/engines:getURLByDatabaseName?database_name=YOUR_DATABASE_NAME'
             --header 'Authorization: Bearer YOUR_ACCESS_TOKEN_VALUE'
             """
             header = {'Authorization': "Bearer " + access_token}
@@ -181,7 +181,7 @@ class FireboltApiService:
     def get_engine_url_by_engine(engine_name, access_token):
         """
         Get engine url by db name
-        This method generates engine url using db name and access-token
+        This method generates engine url using engine name and access-token
         :input api url, request type, authentication header and access-token
         :returns engine url
         """
@@ -193,7 +193,7 @@ class FireboltApiService:
         try:
             """
             Request:
-            curl --request GET 'https://api.app.firebolt.io/core/v1/account/engines?filter.name_contains=YOUR_ENGINE_NAME' \  
+            curl --request GET 'https://api.app.firebolt.io/core/v1/account/engines?filter.name_contains=YOUR_ENGINE_NAME'
             --header 'Authorization: Bearer YOUR_ACCESS_TOKEN_VALUE'
             """
             header = {'Authorization': "Bearer " + access_token}
@@ -234,7 +234,7 @@ class FireboltApiService:
             }
         if payload != {}:
             msg = "{error} : {errorMessage}".format(**payload)
-            raise exceptions.SchemaNotFoundError(msg)
+            raise exceptions.EngineNotFoundError(msg)
 
         return engine_url
 
