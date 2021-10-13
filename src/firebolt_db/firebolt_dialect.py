@@ -99,7 +99,7 @@ class FireboltDialect(default.DefaultDialect):
         return ([], kwargs)
 
     def get_schema_names(self, connection, **kwargs):
-        query = "SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.DATABASES"
+        query = "SELECT SCHEMA_NAME FROM information_schema.databases"
         result = connection.execute(query)
         return [
             row.schema_name for row in result
