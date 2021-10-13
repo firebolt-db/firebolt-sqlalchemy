@@ -1,7 +1,6 @@
 from datetime import date
 
 from firebolt_db.firebolt_api_service import FireboltApiService
-from requests.exceptions import HTTPError
 from firebolt_db import exceptions
 import pytest
 import os
