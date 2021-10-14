@@ -19,7 +19,8 @@ setuptools.setup(
     install_requires=[
         'sqlalchemy>=1.0.0',
         "requests",
-        "datetime"
+        "datetime",
+        "python-dotenv"
     ],
     entry_points={
         "sqlalchemy.dialects": [
