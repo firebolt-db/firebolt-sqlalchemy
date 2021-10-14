@@ -1,7 +1,7 @@
 import os
 from dotenv import load_dotenv
 
-load_dotenv()
+load_dotenv("config.env")
 
 
 def get_env_variable(var_name: str) -> str:
@@ -15,10 +15,7 @@ def get_env_variable(var_name: str) -> str:
         raise EnvironmentError(error_msg)
 
 
-DATABASE_DIALECT = get_env_variable("refresh_url")
-
 base_url = "https://api.app.firebolt.io/"
-
 token_url = f"{base_url}{get_env_variable('token_url')}"
 refresh_url = f"{base_url}{get_env_variable('refresh_url')}"
 query_engine_url = f"{base_url}{get_env_variable('query_engine_url')}:getURLByDatabaseName"
