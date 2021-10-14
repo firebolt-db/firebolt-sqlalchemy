@@ -27,10 +27,10 @@ dialect = firebolt_dialect.FireboltDialect()
 class TestFireboltDialect:
 
     def test_create_connect_args(self):
-        connection_url = "test_engine://test_user@email:test_password@test_host_name/test_db_name"
+        connection_url = "test_engine://test_user@email:test_password@test_db_name/test_engine_name"
         u = url.make_url(connection_url)
         result_list, result_dict = dialect.create_connect_args(u)
-        assert result_dict["host"] == "test_host_name"
+        assert result_dict["host"] == "test_engine_name"
         assert result_dict["port"] == 5432
         assert result_dict["username"] == "test_user@email"
         assert result_dict["password"] == "test_password"

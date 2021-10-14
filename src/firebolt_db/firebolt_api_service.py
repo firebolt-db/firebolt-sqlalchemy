@@ -24,9 +24,8 @@ class FireboltApiService:
         access_token = token_json["access_token"]
         refresh_token = token_json["refresh_token"]
 
-        print(engine_name, db_name)
         # get engine url
-        if engine_name is None:
+        if engine_name is None or engine_name == '':
             engine_url = FireboltApiService.get_engine_url_by_db(db_name, access_token)
         else:
             engine_url = FireboltApiService.get_engine_url_by_engine(engine_name, access_token)
