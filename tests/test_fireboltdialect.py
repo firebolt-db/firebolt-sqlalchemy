@@ -1,6 +1,8 @@
 import pytest
 import os
 
+import sqlalchemy
+
 from firebolt_db import firebolt_dialect
 from firebolt_db import exceptions
 
@@ -43,7 +45,7 @@ class TestFireboltDialect:
         try:
             results = dialect.get_schema_names(engine)
             assert 'Sigmoid_Alchemy' in results
-        except exceptions.InternalError as http_err:
+        except sqlalchemy.exc.InternalError as http_err:
             assert http_err != ""
 
     def test_has_table(self, get_engine):
@@ -53,7 +55,7 @@ class TestFireboltDialect:
         try:
             results = dialect.has_table(engine, table, schema)
             assert results == 1
-        except exceptions.InternalError as http_err:
+        except sqlalchemy.exc.InternalError as http_err:
             assert http_err != ""
 
     def test_get_table_names(self, get_engine):
@@ -62,7 +64,7 @@ class TestFireboltDialect:
         try:
             results = dialect.get_table_names(engine, schema)
             assert len(results) > 0
-        except exceptions.InternalError as http_err:
+        except sqlalchemy.exc.InternalError as http_err:
             assert http_err != ""
 
     def test_get_columns(self, get_engine):
@@ -79,7 +81,7 @@ class TestFireboltDialect:
             assert row_keys[1] == "type"
             assert row_keys[2] == "nullable"
             assert row_keys[3] == "default"
-        except exceptions.InternalError as http_err:
+        except sqlalchemy.exc.InternalError as http_err:
             assert http_err != ""
 
 
