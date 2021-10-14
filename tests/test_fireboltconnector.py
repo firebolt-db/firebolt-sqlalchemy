@@ -1,18 +1,19 @@
 import os
 
 import pytest
+from requests.exceptions import HTTPError
 
 from firebolt_db import firebolt_connector
 from firebolt_db import exceptions
 
 test_username = os.environ["username"]
 test_password = os.environ["password"]
-test_engine_url = os.environ["engine_url"]
+test_engine_name = os.environ["engine_name"]
 test_db_name = os.environ["db_name"]
 
 @pytest.fixture
 def get_connection():
-    return firebolt_connector.connect(test_engine_url, 8123, test_username, test_password, test_db_name)
+    return firebolt_connector.connect(test_engine_name, 8123, test_username, test_password, test_db_name)
 
 
 class TestConnect:
@@ -20,8 +21,8 @@ class TestConnect:
     def test_connect_success(self):
         user_email = test_username
         password = test_password
-        db_name = test_db_name
-        host = test_engine_url
+        db_name = test_engine_name
+        host = test_db_name
         port = "8123"
         connection = firebolt_connector.connect(host, port, user_email, password, db_name)
         assert connection.access_token
@@ -30,8 +31,8 @@ class TestConnect:
     def test_connect_invalid_credentials(self):
         user_email = test_username
         password = "wrongpassword"
-        db_name = test_db_name
-        host = test_engine_url
+        db_name = test_engine_name
+        host = test_db_name
         port = "8123"
         with pytest.raises(exceptions.InvalidCredentialsError):
             firebolt_connector.connect(host, port, user_email, password, db_name)
@@ -112,8 +113,11 @@ class TestCursor:
     def test_rowcount(self, get_connection):
         connection = get_connection
         query = "select * from ci_fact_table limit 10"
-        cursor = connection.cursor().execute(query)
-        assert cursor.rowcount == 10
+        try:
+            cursor = connection.cursor().execute(query)
+            assert cursor.rowcount == 10
+        except exceptions.InternalError as http_err:
+            assert http_err != ""
 
     def test_close(self, get_connection):
         connection = get_connection
@@ -128,8 +132,11 @@ class TestCursor:
         connection = get_connection
         cursor = connection.cursor()
         assert not cursor._results
-        cursor.execute(query)
-        assert cursor.rowcount == 1
+        try:
+            cursor.execute(query)
+            assert cursor.rowcount == 1
+        except exceptions.InternalError as http_err:
+            assert http_err != ""
 
     def test_executemany(self, get_connection):
         query = "select * from ci_fact_table limit 10"
@@ -143,19 +150,25 @@ class TestCursor:
         connection = get_connection
         cursor = connection.cursor()
         assert not cursor._results
-        cursor.execute(query)
-        result = cursor.fetchone()
-        assert isinstance(result, tuple)
+        try:
+            cursor.execute(query)
+            result = cursor.fetchone()
+            assert isinstance(result, tuple)
+        except exceptions.InternalError as http_err:
+            assert http_err != ""
 
     def test_fetchmany(self, get_connection):
         query = "select * from ci_fact_table limit 10"
         connection = get_connection
         cursor = connection.cursor()
         assert not cursor._results
-        cursor.execute(query)
-        result = cursor.fetchmany(3)
-        assert isinstance(result, list)
-        assert len(result) == 3
+        try:
+            cursor.execute(query)
+            result = cursor.fetchmany(3)
+            assert isinstance(result, list)
+            assert len(result) == 3
+        except exceptions.InternalError as http_err:
+            assert http_err != ""
 
     def test_fetchall(self, get_connection):
         query = "select * from ci_fact_table limit 10"
@@ -166,3 +179,10 @@ class TestCursor:
         result = cursor.fetchall()
         assert isinstance(result, list)
         assert len(result) == 10
+        # try:
+        #     cursor.execute(query)
+        #     result = cursor.fetchall()
+        #     assert isinstance(result, list)
+        #     assert len(result) == 10
+        # except exceptions.InternalError as http_err:
+        #     assert http_err != ""

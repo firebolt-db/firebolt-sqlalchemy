@@ -87,11 +87,11 @@ class FireboltDialect(default.DefaultDialect):
     # URL format : firebolt://username:password@host:port/db_name
     def create_connect_args(self, url):
         kwargs = {
-            "host": url.host or None,
+            "host": url.database or None,
             "port": url.port or 5432,
             "username": url.username or None,
             "password": url.password or None,
-            "db_name": url.database,
+            "db_name": url.host,
             # "scheme": self.scheme,
             "context": self.context,
             "header": False,  # url.query.get("header") == "true",

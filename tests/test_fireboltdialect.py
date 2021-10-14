@@ -2,6 +2,8 @@ import pytest
 import os
 
 from firebolt_db import firebolt_dialect
+from firebolt_db import exceptions
+
 from sqlalchemy.engine import url
 from sqlalchemy import create_engine
 from sqlalchemy.dialects import registry
@@ -9,14 +11,14 @@ from sqlalchemy.dialects import registry
 
 test_username = os.environ["username"]
 test_password = os.environ["password"]
-test_engine_url = os.environ["engine_url"]
+test_engine_name = os.environ["engine_name"]
 test_db_name = os.environ["db_name"]
 
 
 @pytest.fixture
 def get_engine():
     registry.register("firebolt", "src.firebolt_db.firebolt_dialect", "FireboltDialect")
-    return create_engine(f"firebolt://{test_username}:{test_password}@{test_engine_url}/{test_db_name}")
+    return create_engine(f"firebolt://{test_username}:{test_password}@{test_db_name}/{test_engine_name}")
 
 
 dialect = firebolt_dialect.FireboltDialect()
@@ -38,35 +40,47 @@ class TestFireboltDialect:
 
     def test_get_schema_names(self, get_engine):
         engine = get_engine
-        results = dialect.get_schema_names(engine)
-        assert 'Sigmoid_Alchemy' in results
+        try:
+            results = dialect.get_schema_names(engine)
+            assert 'Sigmoid_Alchemy' in results
+        except exceptions.InternalError as http_err:
+            assert http_err != ""
 
     def test_has_table(self, get_engine):
         table = 'ci_fact_table'
         schema = 'Sigmoid_Alchemy'
         engine = get_engine
-        results = dialect.has_table(engine, table, schema)
-        assert results == 1
+        try:
+            results = dialect.has_table(engine, table, schema)
+            assert results == 1
+        except exceptions.InternalError as http_err:
+            assert http_err != ""
 
     def test_get_table_names(self, get_engine):
         schema = 'Sigmoid_Alchemy'
         engine = get_engine
-        results = dialect.get_table_names(engine, schema)
-        assert len(results) > 0
+        try:
+            results = dialect.get_table_names(engine, schema)
+            assert len(results) > 0
+        except exceptions.InternalError as http_err:
+            assert http_err != ""
 
     def test_get_columns(self, get_engine):
         table = 'ci_fact_table'
         schema = 'Sigmoid_Alchemy'
         engine = get_engine
-        results = dialect.get_columns(engine, table, schema)
-        assert len(results) > 0
-        row = results[0]
-        assert isinstance(row, dict)
-        row_keys = list(row.keys())
-        assert row_keys[0] == "name"
-        assert row_keys[1] == "type"
-        assert row_keys[2] == "nullable"
-        assert row_keys[3] == "default"
+        try:
+            results = dialect.get_columns(engine, table, schema)
+            assert len(results) > 0
+            row = results[0]
+            assert isinstance(row, dict)
+            row_keys = list(row.keys())
+            assert row_keys[0] == "name"
+            assert row_keys[1] == "type"
+            assert row_keys[2] == "nullable"
+            assert row_keys[3] == "default"
+        except exceptions.InternalError as http_err:
+            assert http_err != ""
 
 
 def test_get_is_nullable():
