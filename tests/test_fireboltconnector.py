@@ -1,7 +1,6 @@
 import os
 
 import pytest
-from requests.exceptions import HTTPError
 
 from firebolt_db import firebolt_connector
 from firebolt_db import exceptions
@@ -10,6 +9,7 @@ test_username = os.environ["username"]
 test_password = os.environ["password"]
 test_engine_name = os.environ["engine_name"]
 test_db_name = os.environ["db_name"]
+
 
 @pytest.fixture
 def get_connection():
@@ -90,12 +90,6 @@ class TestConnection:
         cursor = connection.cursor()
         assert len(connection.cursors) > 0
         assert type(cursor) == firebolt_connector.Cursor
-
-    # def test_execute(self, get_connection):
-    #     connection = get_connection
-    #     query = "SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.DATABASES"
-    #     cursor = connection.execute(query)
-    #     assert type(cursor._results) == itertools.chain
 
     def test_commit(self):
         pass

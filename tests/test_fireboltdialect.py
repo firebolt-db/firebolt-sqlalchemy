@@ -44,13 +44,13 @@ class TestFireboltDialect:
         engine = get_engine
         try:
             results = dialect.get_schema_names(engine)
-            assert 'Sigmoid_Alchemy' in results
+            assert test_db_name in results
         except sqlalchemy.exc.InternalError as http_err:
             assert http_err != ""
 
     def test_has_table(self, get_engine):
         table = 'ci_fact_table'
-        schema = 'Sigmoid_Alchemy'
+        schema = test_db_name
         engine = get_engine
         try:
             results = dialect.has_table(engine, table, schema)
@@ -59,7 +59,7 @@ class TestFireboltDialect:
             assert http_err != ""
 
     def test_get_table_names(self, get_engine):
-        schema = 'Sigmoid_Alchemy'
+        schema = test_db_name
         engine = get_engine
         try:
             results = dialect.get_table_names(engine, schema)
@@ -69,7 +69,7 @@ class TestFireboltDialect:
 
     def test_get_columns(self, get_engine):
         table = 'ci_fact_table'
-        schema = 'Sigmoid_Alchemy'
+        schema = test_db_name
         engine = get_engine
         try:
             results = dialect.get_columns(engine, table, schema)
