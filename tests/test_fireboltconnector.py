@@ -175,14 +175,10 @@ class TestCursor:
         connection = get_connection
         cursor = connection.cursor()
         assert not cursor._results
-        cursor.execute(query)
-        result = cursor.fetchall()
-        assert isinstance(result, list)
-        assert len(result) == 10
-        # try:
-        #     cursor.execute(query)
-        #     result = cursor.fetchall()
-        #     assert isinstance(result, list)
-        #     assert len(result) == 10
-        # except exceptions.InternalError as http_err:
-        #     assert http_err != ""
+        try:
+            cursor.execute(query)
+            result = cursor.fetchall()
+            assert isinstance(result, list)
+            assert len(result) == 10
+        except exceptions.InternalError as http_err:
+            assert http_err != ""
