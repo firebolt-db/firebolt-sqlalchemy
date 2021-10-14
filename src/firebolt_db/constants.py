@@ -1,7 +1,7 @@
 import os
 from dotenv import load_dotenv
 
-load_dotenv("config.env")
+load_dotenv()
 
 
 def get_env_variable(var_name: str) -> str:
