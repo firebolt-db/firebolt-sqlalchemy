@@ -99,7 +99,7 @@ class FireboltDialect(default.DefaultDialect):
         return ([], kwargs)
 
     def get_schema_names(self, connection, **kwargs):
-        query = "SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.DATABASES"
+        query = "select schema_name from information_schema.databases"
         result = connection.execute(query)
         return [
             row.schema_name for row in result
@@ -107,9 +107,9 @@ class FireboltDialect(default.DefaultDialect):
 
     def has_table(self, connection, table_name, schema=None):
         query = """
-            SELECT COUNT(*) > 0 AS exists_
-              FROM INFORMATION_SCHEMA.TABLES
-             WHERE TABLE_NAME = '{table_name}'
+            select count(*) > 0 as exists_
+              from information_schema.tables
+             where table_name = '{table_name}'
         """.format(
             table_name=table_name
         )
@@ -118,9 +118,9 @@ class FireboltDialect(default.DefaultDialect):
         return result.fetchone().exists_
 
     def get_table_names(self, connection, schema=None, **kwargs):
-        query = "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES"
+        query = "select table_name from information_schema.tables"
         if schema:
-            query = "{query} WHERE TABLE_SCHEMA = '{schema}'".format(
+            query = "{query} where table_schema = '{schema}'".format(
                 query=query, schema=schema
             )
 
@@ -135,16 +135,16 @@ class FireboltDialect(default.DefaultDialect):
 
     def get_columns(self, connection, table_name, schema=None, **kwargs):
         query = """
-            SELECT COLUMN_NAME,
-                   DATA_TYPE,
-                   IS_NULLABLE
-              FROM INFORMATION_SCHEMA.COLUMNS
-             WHERE TABLE_NAME = '{table_name}'
+            select column_name,
+                   data_type,
+                   is_nullable
+              from information_schema.columns
+             where table_name = '{table_name}'
         """.format(
             table_name=table_name
         )
         if schema:
-            query = "{query} AND TABLE_SCHEMA = '{schema}'".format(
+            query = "{query} and table_schema = '{schema}'".format(
                 query=query, schema=schema
             )
 
