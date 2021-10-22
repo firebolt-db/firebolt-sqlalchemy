@@ -30,11 +30,14 @@ pip install firebolt-sqlalchemy
 ## Connection Method:
 The recommended connection string is:
 ```
-firebolt://{username}:{password}@{host}/{database}
+firebolt://{username}:{password}@{database}
+or
+firebolt://{username}:{password}@{database}/{engine_name}
 ```
-Here's a connection string example of Superset connecting to a Firebolt database:
+Sample connection strings to connect to a Firebolt database:
 ```
-firebolt://email@domain:password@host/sample_database
+firebolt://email@domain:password@sample_database
+firebolt://email@domain:password@sample_database/sample_engine
 ```
 
 
@@ -43,7 +46,7 @@ firebolt://email@domain:password@host/sample_database
 ```python
 from firebolt_db.firebolt_connector import connect
 
-connection = connect('localhost',8123,'email@domain', 'password', 'db_name')
+connection = connect('engine_name',8123,'email@domain', 'password', 'db_name')
 query = 'select * from sample_table limit 10'
 cursor = connection.cursor()
 
@@ -59,7 +62,7 @@ from firebolt_db.firebolt_dialect import FireboltDialect
 from sqlalchemy.dialects import registry
 
 registry.register("firebolt", "src.firebolt_db.firebolt_dialect", "FireboltDialect")
-engine = create_engine("firebolt://email@domain:password@host/sample_database")
+engine = create_engine("firebolt://email@domain:password@sample_database/sample_engine")
 
 dialect = FireboltDialect()
 schemas = dialect.get_schema_names(engine)
