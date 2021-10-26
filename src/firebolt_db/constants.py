@@ -5,7 +5,7 @@ found_dotenv = find_dotenv()
 
 if found_dotenv:
     load_dotenv(found_dotenv)
-    base_url = os.environ["BASE_URL"]
+    base_url = os.environ["FIREBOLT_BASE_URL"]
 else:
     base_url = "https://api.app.firebolt.io"
 
