@@ -5,14 +5,14 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
     name="firebolt-sqlalchemy",
-    version="0.0.8",
+    version="0.0.9",
     author="Firebolt",
     author_email="pypi@firebolt.io",
     description="Sqlalchemy adapter for Firebolt",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/firebolt-db/firebolt-sqlalchemy",
-    download_url="https://github.com/firebolt-db/firebolt-sqlalchemy/archive/refs/tags/0.0.8.tar.gz",
+    download_url="https://github.com/firebolt-db/firebolt-sqlalchemy/archive/refs/tags/0.0.9.tar.gz",
     project_urls={
         "Bug Tracker": "https://github.com/firebolt-db/firebolt-sqlalchemy",
     },
