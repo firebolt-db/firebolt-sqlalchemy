@@ -12,8 +12,8 @@ import json
 from collections import namedtuple, OrderedDict
 from datetime import date
 
-from firebolt_db.firebolt_api_service import FireboltApiService
-from firebolt_db import exceptions
+from .firebolt_api_service import FireboltApiService
+from . import exceptions
 
 
 class Error(Exception):
@@ -123,11 +123,11 @@ class Connection(object):
         self._username = username
         self._password = password
         self._db_name = db_name
-        connection_details = FireboltApiService.get_connection(username, password, db_name, date.today())
+        connection_details = FireboltApiService.get_connection(username, password, host, db_name, date.today())
 
         self.access_token = connection_details[0]
-        self.engine_url = connection_details[1]
-        self.refresh_token = connection_details[2]
+        self.refresh_token = connection_details[1]
+        self.engine_url = connection_details[2]
         self.cursors = []
         self.closed = False
 
@@ -178,11 +178,6 @@ class Connection(object):
         self.cursors.append(cursor)
 
         return cursor
-
-    # @check_closed
-    # def execute(self, operation, parameters=None):
-    #     cursor = self.cursor()
-    #     return cursor.execute(operation, parameters)
 
     def __enter__(self):
         return self.cursor()
@@ -339,7 +334,6 @@ class Cursor(object):
         self.description = None
 
         r = FireboltApiService.run_query(self.access_token,
-                                         self.refresh_token,
                                          self.engine_url,
                                          self.db_name,
                                          query)

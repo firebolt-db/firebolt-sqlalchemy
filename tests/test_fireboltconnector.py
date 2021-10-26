@@ -1,44 +1,40 @@
-import itertools
+import os
 
 import pytest
 
 from firebolt_db import firebolt_connector
 from firebolt_db import exceptions
 
+test_username = os.environ["username"]
+test_password = os.environ["password"]
+test_engine_name = os.environ["engine_name"]
+test_db_name = os.environ["db_name"]
+
 
 @pytest.fixture
 def get_connection():
-    return firebolt_connector.connect('localhost', 8123, 'aapurva@sigmoidanalytics.com', 'Apurva111', 'Sigmoid_Alchemy')
+    return firebolt_connector.connect(test_engine_name, 8123, test_username, test_password, test_db_name)
 
 
 class TestConnect:
 
     def test_connect_success(self):
-        user_email = "aapurva@sigmoidanalytics.com"
-        password = "Apurva111"
-        db_name = "Sigmoid_Alchemy"
-        host = "localhost"
+        user_email = test_username
+        password = test_password
+        db_name = test_engine_name
+        host = test_db_name
         port = "8123"
         connection = firebolt_connector.connect(host, port, user_email, password, db_name)
         assert connection.access_token
         assert connection.engine_url
 
     def test_connect_invalid_credentials(self):
-        user_email = "aapurva@sigmoidanalytics.com"
+        user_email = test_username
         password = "wrongpassword"
-        db_name = "Sigmoid_Alchemy"
-        host = "localhost"
+        db_name = test_engine_name
+        host = test_db_name
         port = "8123"
         with pytest.raises(exceptions.InvalidCredentialsError):
-            firebolt_connector.connect(host, port, user_email, password, db_name)
-
-    def test_connect_invalid_database(self):
-        user_email = "aapurva@sigmoidanalytics.com"
-        password = "Apurva111"
-        db_name = "wrongdatabase"
-        host = "localhost"
-        port = "8123"
-        with pytest.raises(exceptions.SchemaNotFoundError):
             firebolt_connector.connect(host, port, user_email, password, db_name)
 
 
@@ -95,12 +91,6 @@ class TestConnection:
         assert len(connection.cursors) > 0
         assert type(cursor) == firebolt_connector.Cursor
 
-    # def test_execute(self, get_connection):
-    #     connection = get_connection
-    #     query = "SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.DATABASES"
-    #     cursor = connection.execute(query)
-    #     assert type(cursor._results) == itertools.chain
-
     def test_commit(self):
         pass
 
@@ -116,9 +106,12 @@ class TestCursor:
 
     def test_rowcount(self, get_connection):
         connection = get_connection
-        query = "select * from lineitem limit 10"
-        cursor = connection.cursor().execute(query)
-        assert cursor.rowcount == 10
+        query = "select * from ci_fact_table limit 10"
+        try:
+            cursor = connection.cursor().execute(query)
+            assert cursor.rowcount == 10
+        except exceptions.InternalError as http_err:
+            assert http_err != ""
 
     def test_close(self, get_connection):
         connection = get_connection
@@ -128,46 +121,58 @@ class TestCursor:
         assert cursor.closed
 
     def test_execute(self, get_connection):
-        query = 'select * from lineitem ' \
+        query = 'select * from ci_fact_table ' \
                 'where l_orderkey=3184321 and l_partkey=65945'
         connection = get_connection
         cursor = connection.cursor()
         assert not cursor._results
-        cursor.execute(query)
-        assert cursor.rowcount == 1
+        try:
+            cursor.execute(query)
+            assert cursor.rowcount == 1
+        except exceptions.InternalError as http_err:
+            assert http_err != ""
 
     def test_executemany(self, get_connection):
-        query = "select * from lineitem limit 10"
+        query = "select * from ci_fact_table limit 10"
         connection = get_connection
         cursor = connection.cursor()
         with pytest.raises(exceptions.NotSupportedError):
             cursor.executemany(query)
 
     def test_fetchone(self, get_connection):
-        query = "select * from lineitem limit 10"
+        query = "select * from ci_fact_table limit 10"
         connection = get_connection
         cursor = connection.cursor()
         assert not cursor._results
-        cursor.execute(query)
-        result = cursor.fetchone()
-        assert isinstance(result, tuple)
+        try:
+            cursor.execute(query)
+            result = cursor.fetchone()
+            assert isinstance(result, tuple)
+        except exceptions.InternalError as http_err:
+            assert http_err != ""
 
     def test_fetchmany(self, get_connection):
-        query = "select * from lineitem limit 10"
+        query = "select * from ci_fact_table limit 10"
         connection = get_connection
         cursor = connection.cursor()
         assert not cursor._results
-        cursor.execute(query)
-        result = cursor.fetchmany(3)
-        assert isinstance(result, list)
-        assert len(result) == 3
+        try:
+            cursor.execute(query)
+            result = cursor.fetchmany(3)
+            assert isinstance(result, list)
+            assert len(result) == 3
+        except exceptions.InternalError as http_err:
+            assert http_err != ""
 
     def test_fetchall(self, get_connection):
-        query = "select * from lineitem limit 10"
+        query = "select * from ci_fact_table limit 10"
         connection = get_connection
         cursor = connection.cursor()
         assert not cursor._results
-        cursor.execute(query)
-        result = cursor.fetchall()
-        assert isinstance(result, list)
-        assert len(result) == 10
+        try:
+            cursor.execute(query)
+            result = cursor.fetchall()
+            assert isinstance(result, list)
+            assert len(result) == 10
+        except exceptions.InternalError as http_err:
+            assert http_err != ""
