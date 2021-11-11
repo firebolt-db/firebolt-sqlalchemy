@@ -6,7 +6,7 @@ from sqlalchemy.types import (
     TIMESTAMP, VARCHAR, BOOLEAN, FLOAT)
 
 import firebolt_db
-
+import os
 
 class ARRAY(sqltypes.TypeEngine):
     __visit_name__ = 'ARRAY'
@@ -83,19 +83,18 @@ class FireboltDialect(default.DefaultDialect):
     def dbapi(cls):
         return firebolt_db
 
-    # Build DB-API compatible connection arguments.
+    # Build firebolt-sdk compatible connection arguments.
     # URL format : firebolt://username:password@host:port/db_name
     def create_connect_args(self, url):
         kwargs = {
-            "host": url.database or None,
-            "port": url.port or 5432,
+            "database": url.host or None,
             "username": url.username or None,
             "password": url.password or None,
-            "db_name": url.host,
-            # "scheme": self.scheme,
-            "context": self.context,
-            "header": False,  # url.query.get("header") == "true",
+            "engine_name": url.database
         }
+        # If URL override is not provided leave it to the sdk to determine the endpoint
+        if "FIREBOLT_BASE_URL" in os.environ:
+            kwargs["api_endpoint"] = os.environ["FIREBOLT_BASE_URL"]
         return ([], kwargs)
 
     def get_schema_names(self, connection, **kwargs):

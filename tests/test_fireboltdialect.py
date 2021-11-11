@@ -32,13 +32,10 @@ class TestFireboltDialect:
         connection_url = "test_engine://test_user@email:test_password@test_db_name/test_engine_name"
         u = url.make_url(connection_url)
         result_list, result_dict = dialect.create_connect_args(u)
-        assert result_dict["host"] == "test_engine_name"
-        assert result_dict["port"] == 5432
+        assert result_dict["engine_name"] == "test_engine_name"
         assert result_dict["username"] == "test_user@email"
         assert result_dict["password"] == "test_password"
-        assert result_dict["db_name"] == "test_db_name"
-        assert result_dict["context"] == {}
-        assert not result_dict["header"]
+        assert result_dict["database"] == "test_db_name"
 
     def test_get_schema_names(self, get_engine):
         engine = get_engine
