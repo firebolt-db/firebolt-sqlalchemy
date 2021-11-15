@@ -8,8 +8,6 @@ from sqlalchemy.types import (
 import firebolt_db
 import os
 
-from dotenv import load_dotenv,find_dotenv
-
 
 class ARRAY(sqltypes.TypeEngine):
     __visit_name__ = 'ARRAY'
@@ -96,9 +94,7 @@ class FireboltDialect(default.DefaultDialect):
             "engine_name": url.database
         }
         # If URL override is not provided leave it to the sdk to determine the endpoint
-        found_dotenv = find_dotenv()
-        if found_dotenv:
-            load_dotenv(found_dotenv)
+        if "FIREBOLT_BASE_URL" in os.environ:
             kwargs["api_endpoint"] = os.environ["FIREBOLT_BASE_URL"]
         return ([], kwargs)
 

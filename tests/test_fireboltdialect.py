@@ -28,6 +28,7 @@ dialect = firebolt_dialect.FireboltDialect()
 class TestFireboltDialect:
 
     def test_create_connect_args(self):
+        os.environ["FIREBOLT_BASE_URL"] = "test_url"
         connection_url = "test_engine://test_user@email:test_password@test_db_name/test_engine_name"
         u = url.make_url(connection_url)
         result_list, result_dict = dialect.create_connect_args(u)
@@ -35,6 +36,11 @@ class TestFireboltDialect:
         assert result_dict["username"] == "test_user@email"
         assert result_dict["password"] == "test_password"
         assert result_dict["database"] == "test_db_name"
+        assert result_dict["api_endpoint"] == "test_url"
+        # No endpoint override
+        del os.environ["FIREBOLT_BASE_URL"]
+        result_list, result_dict = dialect.create_connect_args(u)
+        assert "api_endpoint" not in result_dict
 
     def test_get_schema_names(self, get_engine):
         engine = get_engine
