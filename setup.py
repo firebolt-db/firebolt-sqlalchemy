@@ -18,8 +18,6 @@ setuptools.setup(
     },
     install_requires=[
         'sqlalchemy>=1.0.0',
-        "requests",
-        "datetime",
         "firebolt-sdk"
     ],
     entry_points={

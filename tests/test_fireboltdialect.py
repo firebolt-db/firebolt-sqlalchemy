@@ -4,7 +4,6 @@ import os
 import sqlalchemy
 
 from firebolt_db import firebolt_dialect
-from firebolt_db import exceptions
 
 from sqlalchemy.engine import url
 from sqlalchemy import create_engine

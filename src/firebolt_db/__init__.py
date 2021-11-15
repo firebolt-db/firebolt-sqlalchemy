@@ -1,5 +1,5 @@
 from firebolt.db import connect
-from .exceptions import (
+from firebolt.common.exception import (
     DatabaseError,
     DataError,
     Error,
