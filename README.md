@@ -40,6 +40,10 @@ firebolt://email@domain:password@sample_database
 firebolt://email@domain:password@sample_database/sample_engine
 ```
 
+To override the API url (e.g. for dev testing)
+```bash
+export FIREBOLT_BASE_URL=<your_url>
+```
 
 ## DB API
 
@@ -72,9 +76,7 @@ schemas = dialect.get_schema_names(connection)
 ```
 
 ## Components in the Adapter:
-1. Firebolt Connector: This file is used to establish a connection to the Firebolt database from 3rd party applications. It provides a ‘connect’ method which accepts parameters like database name, username, password etc. from the connecting application to identify the database and authenticate the user credentials. It returns a database connection which is used to execute queries on the database.
-2. API Service: The API Service is responsible for calling Firebolt REST APIs to establish connection with the database and fire SQL queries on it. It provides methods to get access token as per user credentials, get the specific engine URL and execute/run SQL queries. Executing queries need access token and engine URL as per the Firebolt REST API specifications.
-3. Firebolt Dialect: It provides methods for retrieving metadata about databases like schema data, table names, column names etc. It also maps the data types between Firebolt and SQLAlchemy along with providing a data type compiler for complex data types.
+1. Firebolt Dialect: It provides methods for retrieving metadata about databases like schema data, table names, column names etc. It also maps the data types between Firebolt and SQLAlchemy along with providing a data type compiler for complex data types.
 
 
 ## Testing Strategy:
