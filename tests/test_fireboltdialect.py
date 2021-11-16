@@ -30,9 +30,9 @@ dialect = firebolt_dialect.FireboltDialect()
 class TestFireboltDialect:
 
     def test_create_connect_args(self):
+        connection_url = "test_engine://test_user@email:test_password@test_db_name/test_engine_name"
+        u = url.make_url(connection_url)
         with mock.patch.dict(os.environ, {"FIREBOLT_BASE_URL": "test_url"}):
-            connection_url = "test_engine://test_user@email:test_password@test_db_name/test_engine_name"
-            u = url.make_url(connection_url)
             result_list, result_dict = dialect.create_connect_args(u)
             assert result_dict["engine_name"] == "test_engine_name"
             assert result_dict["username"] == "test_user@email"
