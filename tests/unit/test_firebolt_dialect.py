@@ -175,9 +175,23 @@ class TestFireboltDialect:
     def test_unicode_description(self, dialect, mock_connection):
         assert dialect._check_unicode_description(mock_connection)
 
+
 def test_get_is_nullable():
     assert firebolt_dialect.get_is_nullable("YES")
     assert firebolt_dialect.get_is_nullable("yes")
     assert not firebolt_dialect.get_is_nullable("NO")
     assert not firebolt_dialect.get_is_nullable("no")
     assert not firebolt_dialect.get_is_nullable("ABC")
+
+
+def test_types():
+    assert firebolt_dialect.CHAR is sqlalchemy.sql.sqltypes.CHAR
+    assert firebolt_dialect.DATE is sqlalchemy.sql.sqltypes.DATE
+    assert firebolt_dialect.DATETIME is sqlalchemy.sql.sqltypes.DATETIME
+    assert firebolt_dialect.INTEGER is sqlalchemy.sql.sqltypes.INTEGER
+    assert firebolt_dialect.BIGINT is sqlalchemy.sql.sqltypes.BIGINT
+    assert firebolt_dialect.TIMESTAMP is sqlalchemy.sql.sqltypes.TIMESTAMP
+    assert firebolt_dialect.VARCHAR is sqlalchemy.sql.sqltypes.VARCHAR
+    assert firebolt_dialect.BOOLEAN is sqlalchemy.sql.sqltypes.BOOLEAN
+    assert firebolt_dialect.FLOAT is sqlalchemy.sql.sqltypes.FLOAT
+    assert issubclass(firebolt_dialect.ARRAY, sqlalchemy.types.TypeEngine)
