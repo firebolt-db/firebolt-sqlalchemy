@@ -55,9 +55,9 @@ class TestFireboltDialect:
 
     @pytest.fixture(scope="class", autouse=True)
     def setup_test_tables(self, get_connection, get_engine):
-        self.create_test_table(get_connection, get_engine, self.table_name)
+        self.create_test_table(get_connection, get_engine, self.test_table)
         yield
-        self.drop_test_table(get_connection, get_engine, self.table_name)
+        self.drop_test_table(get_connection, get_engine, self.test_table)
 
     @pytest.mark.skip(reason="Commit not implemented in sdk")
     def test_create_ex_table(self, get_engine, get_connection):
@@ -108,42 +108,30 @@ class TestFireboltDialect:
 
     def test_get_schema_names(self, get_engine):
         engine = get_engine
-        try:
-            results = dialect.get_schema_names(engine)
-            assert test_db_name in results
-        except sqlalchemy.exc.InternalError as http_err:
-            assert http_err != ""
+        results = dialect.get_schema_names(engine)
+        assert test_db_name in results
 
     def test_has_table(self, get_engine):
         schema = test_db_name
         engine = get_engine
-        try:
-            results = dialect.has_table(engine, self.test_table, schema)
-            assert results == 1
-        except sqlalchemy.exc.InternalError as http_err:
-            assert http_err != ""
+        results = dialect.has_table(engine, self.test_table, schema)
+        assert results == 1
 
     def test_get_table_names(self, get_engine):
         schema = test_db_name
         engine = get_engine
-        try:
-            results = dialect.get_table_names(engine, schema)
-            assert len(results) > 0
-        except sqlalchemy.exc.InternalError as http_err:
-            assert http_err != ""
+        results = dialect.get_table_names(engine, schema)
+        assert len(results) > 0
 
     def test_get_columns(self, get_engine):
         schema = test_db_name
         engine = get_engine
-        try:
-            results = dialect.get_columns(engine, self.test_table, schema)
-            assert len(results) > 0
-            row = results[0]
-            assert isinstance(row, dict)
-            row_keys = list(row.keys())
-            assert row_keys[0] == "name"
-            assert row_keys[1] == "type"
-            assert row_keys[2] == "nullable"
-            assert row_keys[3] == "default"
-        except sqlalchemy.exc.InternalError as http_err:
-            assert http_err != ""
+        results = dialect.get_columns(engine, self.test_table, schema)
+        assert len(results) > 0
+        row = results[0]
+        assert isinstance(row, dict)
+        row_keys = list(row.keys())
+        assert row_keys[0] == "name"
+        assert row_keys[1] == "type"
+        assert row_keys[2] == "nullable"
+        assert row_keys[3] == "default"
