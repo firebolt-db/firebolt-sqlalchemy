@@ -2,13 +2,14 @@ from _pytest.fixtures import fixture
 import pytest
 import os
 
-import sqlalchemy
 from sqlalchemy.exc import OperationalError
 
 from firebolt_db import firebolt_dialect
 
 from sqlalchemy import create_engine
 from sqlalchemy.dialects import registry
+
+import firebolt as firebolt_sdk
 
 
 test_username = os.environ["username"]
@@ -26,8 +27,11 @@ def get_engine():
 @pytest.fixture(scope="class")
 def get_connection(get_engine):
     engine = get_engine
-    # TODO: once commit is implemented in sdk remove execution options
-    return engine.connect().execution_options(autocommit=False)
+    if hasattr(firebolt_sdk.db.connection.Connection, "commit"):
+        return engine.connect()
+    else:
+        # Disabling autocommit allows for table creation/destruction without trying to call non-existing parameters
+        return engine.connect().execution_options(autocommit=False)
 
 
 dialect = firebolt_dialect.FireboltDialect()
@@ -61,7 +65,7 @@ class TestFireboltDialect:
         yield
         self.drop_test_table(get_connection, get_engine, self.test_table)
 
-    @pytest.mark.skip(reason="Commit not implemented in sdk")
+    @pytest.mark.skipif(not hasattr(firebolt_sdk.db.connection.Connection, "commit"), reason="Commit not implemented in sdk")
     def test_create_ex_table(self, get_engine, get_connection):
         engine = get_engine
         connection = get_connection
@@ -94,7 +98,7 @@ class TestFireboltDialect:
         connection.execute("DROP TABLE ex_lineitem_alchemy;")
         assert not engine.dialect.has_table(engine, "ex_lineitem_alchemy")
 
-    @pytest.mark.skip(reason="Commit not implemented in sdk")
+    @pytest.mark.skipif(not hasattr(firebolt_sdk.db.connection.Connection, "commit"), reason="Commit not implemented in sdk")
     def test_data_write(self, get_connection):
         connection = get_connection
         connection.execute(
