@@ -3,6 +3,7 @@ import pytest
 import os
 
 import sqlalchemy
+from sqlalchemy.exc import OperationalError
 
 from firebolt_db import firebolt_dialect
 
@@ -25,7 +26,7 @@ def get_engine():
 @pytest.fixture(scope="class")
 def get_connection(get_engine):
     engine = get_engine
-    # TODO: once commit is implemented remove execution options
+    # TODO: once commit is implemented in sdk remove execution options
     return engine.connect().execution_options(autocommit=False)
 
 
@@ -42,8 +43,9 @@ class TestFireboltDialect:
         connection.execute(f"""
         CREATE FACT TABLE IF NOT EXISTS {table}
         (
+            idx INT,
             dummy TEXT
-        ) PRIMARY INDEX dummy;
+        ) PRIMARY INDEX idx;
         """)
         assert get_engine.dialect.has_table(get_engine, table)
 
@@ -96,15 +98,20 @@ class TestFireboltDialect:
     def test_data_write(self, get_connection):
         connection = get_connection
         connection.execute(
-            "INSERT INTO test_alchemy(dummy) VALUES ('some_text')"
+            "INSERT INTO test_alchemy(idx, dummy) VALUES (1, 'some_text')"
         )
-        result = connection.execute("SELECT * FROM lineitem")
-        assert result.rowcount == 1
-        connection.execute(
-            "DELETE FROM lineitem WHERE l_orderkey=10"
-        )
-        result = connection.execute("SELECT * FROM lineitem")
-        assert result.rowcount == 0
+        result = connection.execute("SELECT * FROM test_alchemy")
+        assert len(result.fetchall()) == 1
+        # Update not supported
+        with pytest.raises(OperationalError):
+            connection.execute(
+                "UPDATE test_alchemy SET dummy='some_other_text' WHERE idx=1"
+            )
+        # Delete not supported
+        with pytest.raises(OperationalError):
+            connection.execute(
+                "DELETE FROM test_alchemy WHERE idx=1"
+            )
 
     def test_get_schema_names(self, get_engine):
         engine = get_engine
