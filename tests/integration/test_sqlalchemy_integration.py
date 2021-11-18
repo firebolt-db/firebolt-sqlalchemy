@@ -1,4 +1,3 @@
-from _pytest.fixtures import fixture
 import pytest
 import os
 
@@ -21,7 +20,9 @@ test_db_name = os.environ["db_name"]
 @pytest.fixture(scope="class")
 def get_engine():
     registry.register("firebolt", "src.firebolt_db.firebolt_dialect", "FireboltDialect")
-    return create_engine(f"firebolt://{test_username}:{test_password}@{test_db_name}/{test_engine_name}")
+    return create_engine(
+        f"firebolt://{test_username}:{test_password}@{test_db_name}/{test_engine_name}"
+    )
 
 
 @pytest.fixture(scope="class")
@@ -44,13 +45,15 @@ class TestFireboltDialect:
     def create_test_table(self, get_connection, get_engine, table):
         connection = get_connection
         connection.commit = lambda x: x
-        connection.execute(f"""
+        connection.execute(
+            f"""
         CREATE FACT TABLE IF NOT EXISTS {table}
         (
             idx INT,
             dummy TEXT
         ) PRIMARY INDEX idx;
-        """)
+        """
+        )
         assert get_engine.dialect.has_table(get_engine, table)
 
     def drop_test_table(self, get_connection, get_engine, table):
@@ -65,11 +68,15 @@ class TestFireboltDialect:
         yield
         self.drop_test_table(get_connection, get_engine, self.test_table)
 
-    @pytest.mark.skipif(not hasattr(firebolt_sdk.db.connection.Connection, "commit"), reason="Commit not implemented in sdk")
+    @pytest.mark.skipif(
+        not hasattr(firebolt_sdk.db.connection.Connection, "commit"),
+        reason="Commit not implemented in sdk",
+    )
     def test_create_ex_table(self, get_engine, get_connection):
         engine = get_engine
         connection = get_connection
-        connection.execute("""
+        connection.execute(
+        """
         CREATE EXTERNAL TABLE ex_lineitem_alchemy
         (       l_orderkey              LONG,
                 l_partkey               LONG,
@@ -98,7 +105,10 @@ class TestFireboltDialect:
         connection.execute("DROP TABLE ex_lineitem_alchemy;")
         assert not engine.dialect.has_table(engine, "ex_lineitem_alchemy")
 
-    @pytest.mark.skipif(not hasattr(firebolt_sdk.db.connection.Connection, "commit"), reason="Commit not implemented in sdk")
+    @pytest.mark.skipif(
+        not hasattr(firebolt_sdk.db.connection.Connection, "commit"),
+        reason="Commit not implemented in sdk",
+    )
     def test_data_write(self, get_connection):
         connection = get_connection
         connection.execute(
@@ -113,9 +123,7 @@ class TestFireboltDialect:
             )
         # Delete not supported
         with pytest.raises(OperationalError):
-            connection.execute(
-                "DELETE FROM test_alchemy WHERE idx=1"
-            )
+            connection.execute("DELETE FROM test_alchemy WHERE idx=1")
 
     def test_get_schema_names(self, get_engine):
         engine = get_engine

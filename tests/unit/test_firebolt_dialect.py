@@ -1,35 +1,35 @@
-import enum
 import os
+from unittest import mock
 
 import sqlalchemy
-from sqlalchemy.sql.expression import false, true
-from firebolt_db import firebolt_dialect
-
+from pytest import fixture
 from sqlalchemy.engine import url
 
-from unittest import mock
-from pytest import fixture
-
 import firebolt_db
+from firebolt_db import firebolt_dialect
 
-class DBApi():
+
+class DBApi:
     def execute():
         pass
+
     def executemany():
         pass
+
 
 @fixture
 def dialect():
     return firebolt_dialect.FireboltDialect()
 
+
 @fixture
 def mock_connection():
     return mock.Mock(spec=DBApi)
 
-class TestFireboltDialect:
 
+class TestFireboltDialect:
     def test_create_dialect(self, dialect):
-        assert issubclass(firebolt_dialect.dialect, firebolt_dialect.FireboltDialect) 
+        assert issubclass(firebolt_dialect.dialect, firebolt_dialect.FireboltDialect)
         assert isinstance(firebolt_dialect.FireboltDialect.dbapi(), type(firebolt_db))
         assert dialect.name == "firebolt"
         assert dialect.driver == "firebolt"
@@ -40,7 +40,9 @@ class TestFireboltDialect:
         assert dialect.context == {}
 
     def test_create_connect_args(self, dialect):
-        connection_url = "test_engine://test_user@email:test_password@test_db_name/test_engine_name"
+        connection_url = (
+            "test_engine://test_user@email:test_password@test_db_name/test_engine_name"
+        )
         u = url.make_url(connection_url)
         with mock.patch.dict(os.environ, {"FIREBOLT_BASE_URL": "test_url"}):
             result_list, result_dict = dialect.create_connect_args(u)
@@ -65,7 +67,7 @@ class TestFireboltDialect:
         result = dialect.get_schema_names(mock_connection)
         assert result == ["schema1", "schema2"]
         mock_connection.execute.assert_called_once_with(
-           "select schema_name from information_schema.databases" 
+            "select schema_name from information_schema.databases"
         )
 
     def test_table_names(self, dialect, mock_connection):
@@ -76,7 +78,7 @@ class TestFireboltDialect:
             row_with_table_name("table1"),
             row_with_table_name("table2"),
         ]
-        
+
         result = dialect.get_table_names(mock_connection)
         assert result == ["table1", "table2"]
         mock_connection.execute.assert_called_once_with(
@@ -89,7 +91,7 @@ class TestFireboltDialect:
             "select table_name from information_schema.tables"
             " where table_schema = 'schema'"
         )
-    
+
     def test_view_names(self, dialect, mock_connection):
         assert dialect.get_view_names(mock_connection) == []
 
@@ -102,7 +104,7 @@ class TestFireboltDialect:
                 for i, result in enumerate(columns):
                     if idx == i:
                         return result
-                
+
             return mock.Mock(__getitem__=getitem)
 
         mock_connection.execute.return_value = [
@@ -144,24 +146,23 @@ class TestFireboltDialect:
               from information_schema.columns
              where table_name = 'table'
         """
-        " and table_schema = 'schema'"
+            " and table_schema = 'schema'"
         )
-    
+
     def test_pk_constraint(self, dialect, mock_connection):
         assert dialect.get_pk_constraint(mock_connection, "table") == {
             "constrained_columns": [],
             "name": None,
         }
+
     def test_foreign_keys(self, dialect, mock_connection):
         assert dialect.get_foreign_keys(mock_connection, "table") == []
 
     def test_check_constraints(self, dialect, mock_connection):
         assert dialect.get_check_constraints(mock_connection, "table") == []
-    
+
     def test_table_comment(self, dialect, mock_connection):
-        assert dialect.get_table_comment(mock_connection, "table") == {
-            "text": ""
-        }
+        assert dialect.get_table_comment(mock_connection, "table") == {"text": ""}
 
     def test_indexes(self, dialect, mock_connection):
         assert dialect.get_indexes(mock_connection, "table") == []
