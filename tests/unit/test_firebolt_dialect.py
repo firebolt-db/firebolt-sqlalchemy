@@ -35,8 +35,8 @@ class TestFireboltDialect:
         assert dialect.driver == "firebolt"
         assert issubclass(dialect.preparer, firebolt_dialect.FireboltIdentifierPreparer)
         assert issubclass(dialect.statement_compiler, firebolt_dialect.FireboltCompiler)
-        #assert issubclass(dialect.type_compiler, firebolt_dialect.FireboltTypeCompiler)
-        assert isinstance(dialect.type_compiler, firebolt_dialect.FireboltTypeCompiler) # ??
+        # SQLAlchemy's DefaultDialect creates an instance of type_compiler behind the scenes
+        assert isinstance(dialect.type_compiler, firebolt_dialect.FireboltTypeCompiler)
         assert dialect.context == {}
 
     def test_create_connect_args(self, dialect):
