@@ -190,6 +190,8 @@ class FireboltDialect(default.DefaultDialect):
     def _check_unicode_description(self, connection):
         return True
 
+    def do_commit(self, dbapi_connection):
+        pass
 
 dialect = FireboltDialect
 
