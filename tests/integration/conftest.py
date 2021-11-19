@@ -1,13 +1,10 @@
-
+from logging import getLogger
 from os import environ
 
-from logging import getLogger
+import firebolt as firebolt_sdk
 from pytest import fixture
-
 from sqlalchemy import create_engine
 from sqlalchemy.dialects import registry
-
-import firebolt as firebolt_sdk
 
 LOGGER = getLogger(__name__)
 
@@ -45,8 +42,7 @@ def password() -> str:
 
 @fixture(scope="session")
 def engine(username, password, database_name, engine_name):
-    registry.register(
-        "firebolt", "src.firebolt_db.firebolt_dialect", "FireboltDialect")
+    registry.register("firebolt", "src.firebolt_db.firebolt_dialect", "FireboltDialect")
     return create_engine(
         f"firebolt://{username}:{password}@{database_name}/{engine_name}"
     )

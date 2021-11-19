@@ -1,8 +1,8 @@
-
+from unittest import mock
 
 from pytest import fixture
+
 from firebolt_db import firebolt_dialect
-from unittest import mock
 
 
 class DBApi:

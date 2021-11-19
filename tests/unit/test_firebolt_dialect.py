@@ -10,19 +10,14 @@ from firebolt_db import firebolt_dialect
 
 class TestFireboltDialect:
     def test_create_dialect(self, dialect):
-        assert issubclass(firebolt_dialect.dialect,
-                          firebolt_dialect.FireboltDialect)
-        assert isinstance(
-            firebolt_dialect.FireboltDialect.dbapi(), type(firebolt_db))
+        assert issubclass(firebolt_dialect.dialect, firebolt_dialect.FireboltDialect)
+        assert isinstance(firebolt_dialect.FireboltDialect.dbapi(), type(firebolt_db))
         assert dialect.name == "firebolt"
         assert dialect.driver == "firebolt"
-        assert issubclass(dialect.preparer,
-                          firebolt_dialect.FireboltIdentifierPreparer)
-        assert issubclass(dialect.statement_compiler,
-                          firebolt_dialect.FireboltCompiler)
+        assert issubclass(dialect.preparer, firebolt_dialect.FireboltIdentifierPreparer)
+        assert issubclass(dialect.statement_compiler, firebolt_dialect.FireboltCompiler)
         # SQLAlchemy's DefaultDialect creates an instance of type_compiler behind the scenes
-        assert isinstance(dialect.type_compiler,
-                          firebolt_dialect.FireboltTypeCompiler)
+        assert isinstance(dialect.type_compiler, firebolt_dialect.FireboltTypeCompiler)
         assert dialect.context == {}
 
     def test_create_connect_args(self, dialect):
@@ -112,8 +107,10 @@ class TestFireboltDialect:
 
         for call, expected_query in (
             (lambda: dialect.get_columns(connection, "table"), expected_query),
-            (lambda: dialect.get_columns(connection,
-             "table", "schema"), expected_query_schema)
+            (
+                lambda: dialect.get_columns(connection, "table", "schema"),
+                expected_query_schema,
+            ),
         ):
 
             assert call() == [
