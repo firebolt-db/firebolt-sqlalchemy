@@ -1,7 +1,6 @@
 from logging import getLogger
 from os import environ
 
-import firebolt as firebolt_sdk
 from pytest import fixture
 from sqlalchemy import create_engine
 from sqlalchemy.dialects import registry
@@ -51,9 +50,4 @@ def engine(username, password, database_name, engine_name):
 @fixture(scope="session")
 def connection(engine):
     engine = engine
-    if hasattr(firebolt_sdk.db.connection.Connection, "commit"):
-        return engine.connect()
-    else:
-        # Disabling autocommit allows for table creation/destruction without
-        # trying to call non-existing parameters
-        return engine.connect().execution_options(autocommit=False)
+    return engine.connect()
