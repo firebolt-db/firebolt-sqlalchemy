@@ -63,7 +63,7 @@ class TestFireboltDialect:
         connection.execute("DROP TABLE ex_lineitem_alchemy;")
         assert not engine.dialect.has_table(engine, "ex_lineitem_alchemy")
 
-    @pytest.mark.skipif(
+    @pytest.mark.skip(
         reason="Commit not implemented in sdk"
     )
     def test_data_write(self, connection):
