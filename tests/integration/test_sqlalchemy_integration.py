@@ -1,104 +1,62 @@
 import pytest
-import os
 
 from sqlalchemy.exc import OperationalError
-
-from firebolt_db import firebolt_dialect
-
-from sqlalchemy import create_engine
-from sqlalchemy.dialects import registry
-
-import firebolt as firebolt_sdk
-
-
-test_username = os.environ["username"]
-test_password = os.environ["password"]
-test_engine_name = os.environ["engine_name"]
-test_db_name = os.environ["db_name"]
-
-
-@pytest.fixture(scope="class")
-def get_engine():
-    registry.register("firebolt", "src.firebolt_db.firebolt_dialect", "FireboltDialect")
-    return create_engine(
-        f"firebolt://{test_username}:{test_password}@{test_db_name}/{test_engine_name}"
-    )
-
-
-@pytest.fixture(scope="class")
-def get_connection(get_engine):
-    engine = get_engine
-    if hasattr(firebolt_sdk.db.connection.Connection, "commit"):
-        return engine.connect()
-    else:
-        # Disabling autocommit allows for table creation/destruction without trying to call non-existing parameters
-        return engine.connect().execution_options(autocommit=False)
-
-
-dialect = firebolt_dialect.FireboltDialect()
 
 
 class TestFireboltDialect:
 
     test_table = "test_alchemy"
 
-    def create_test_table(self, get_connection, get_engine, table):
-        connection = get_connection
-        connection.commit = lambda x: x
+    def create_test_table(self, connection, engine, table):
         connection.execute(
             f"""
-        CREATE FACT TABLE IF NOT EXISTS {table}
-        (
-            idx INT,
-            dummy TEXT
-        ) PRIMARY INDEX idx;
-        """
+            CREATE FACT TABLE IF NOT EXISTS {table}
+            (
+                idx INT,
+                dummy TEXT
+            ) PRIMARY INDEX idx;
+            """
         )
-        assert get_engine.dialect.has_table(get_engine, table)
+        assert engine.dialect.has_table(engine, table)
 
-    def drop_test_table(self, get_connection, get_engine, table):
-        connection = get_connection
-        connection.commit = lambda x: x
+    def drop_test_table(self, connection, engine, table):
         connection.execute(f"DROP TABLE IF EXISTS {table}")
-        assert not get_engine.dialect.has_table(get_engine, table)
+        assert not engine.dialect.has_table(engine, table)
 
     @pytest.fixture(scope="class", autouse=True)
-    def setup_test_tables(self, get_connection, get_engine):
-        self.create_test_table(get_connection, get_engine, self.test_table)
+    def setup_test_tables(self, connection, engine):
+        self.create_test_table(connection, engine, self.test_table)
         yield
-        self.drop_test_table(get_connection, get_engine, self.test_table)
+        self.drop_test_table(connection, engine, self.test_table)
 
-    @pytest.mark.skipif(
-        not hasattr(firebolt_sdk.db.connection.Connection, "commit"),
-        reason="Commit not implemented in sdk",
+    @pytest.mark.skip(
+        reason="Commit not implemented in sdk"
     )
-    def test_create_ex_table(self, get_engine, get_connection):
-        engine = get_engine
-        connection = get_connection
+    def test_create_ex_table(self, engine, connection):
         connection.execute(
-        """
-        CREATE EXTERNAL TABLE ex_lineitem_alchemy
-        (       l_orderkey              LONG,
-                l_partkey               LONG,
-                l_suppkey               LONG,
-                l_linenumber            INT,
-                l_quantity              LONG,
-                l_extendedprice         LONG,
-                l_discount              LONG,
-                l_tax                   LONG,
-                l_returnflag            TEXT,
-                l_linestatus            TEXT,
-                l_shipdate              TEXT,
-                l_commitdate            TEXT,
-                l_receiptdate           TEXT,
-                l_shipinstruct          TEXT,
-                l_shipmode              TEXT,
-                l_comment               TEXT
-        )
-        URL = 's3://firebolt-publishing-public/samples/tpc-h/parquet/lineitem/'
-        OBJECT_PATTERN = '*.parquet'
-        TYPE = (PARQUET);
-        """
+            """
+            CREATE EXTERNAL TABLE ex_lineitem_alchemy
+            (       l_orderkey              LONG,
+                    l_partkey               LONG,
+                    l_suppkey               LONG,
+                    l_linenumber            INT,
+                    l_quantity              LONG,
+                    l_extendedprice         LONG,
+                    l_discount              LONG,
+                    l_tax                   LONG,
+                    l_returnflag            TEXT,
+                    l_linestatus            TEXT,
+                    l_shipdate              TEXT,
+                    l_commitdate            TEXT,
+                    l_receiptdate           TEXT,
+                    l_shipinstruct          TEXT,
+                    l_shipmode              TEXT,
+                    l_comment               TEXT
+            )
+            URL = 's3://firebolt-publishing-public/samples/tpc-h/parquet/lineitem/'
+            OBJECT_PATTERN = '*.parquet'
+            TYPE = (PARQUET);
+            """
         )
         assert engine.dialect.has_table(engine, "ex_lineitem_alchemy")
         # Cleanup
@@ -106,11 +64,9 @@ class TestFireboltDialect:
         assert not engine.dialect.has_table(engine, "ex_lineitem_alchemy")
 
     @pytest.mark.skipif(
-        not hasattr(firebolt_sdk.db.connection.Connection, "commit"),
-        reason="Commit not implemented in sdk",
+        reason="Commit not implemented in sdk"
     )
-    def test_data_write(self, get_connection):
-        connection = get_connection
+    def test_data_write(self, connection):
         connection.execute(
             "INSERT INTO test_alchemy(idx, dummy) VALUES (1, 'some_text')"
         )
@@ -125,27 +81,22 @@ class TestFireboltDialect:
         with pytest.raises(OperationalError):
             connection.execute("DELETE FROM test_alchemy WHERE idx=1")
 
-    def test_get_schema_names(self, get_engine):
-        engine = get_engine
-        results = dialect.get_schema_names(engine)
-        assert test_db_name in results
+    def test_get_schema_names(self, engine, database_name):
+        results = engine.dialect.get_schema_names(engine)
+        assert database_name in results
 
-    def test_has_table(self, get_engine):
-        schema = test_db_name
-        engine = get_engine
-        results = dialect.has_table(engine, self.test_table, schema)
+    def test_has_table(self, engine, database_name):
+        results = engine.dialect.has_table(
+            engine, self.test_table, database_name)
         assert results == 1
 
-    def test_get_table_names(self, get_engine):
-        schema = test_db_name
-        engine = get_engine
-        results = dialect.get_table_names(engine, schema)
+    def test_get_table_names(self, engine, database_name):
+        results = engine.dialect.get_table_names(engine, database_name)
         assert len(results) > 0
 
-    def test_get_columns(self, get_engine):
-        schema = test_db_name
-        engine = get_engine
-        results = dialect.get_columns(engine, self.test_table, schema)
+    def test_get_columns(self, engine, database_name):
+        results = engine.dialect.get_columns(
+            engine, self.test_table, database_name)
         assert len(results) > 0
         row = results[0]
         assert isinstance(row, dict)
