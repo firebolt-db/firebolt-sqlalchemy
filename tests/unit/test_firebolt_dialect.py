@@ -1,11 +1,12 @@
 import os
 from unittest import mock
 
+import firebolt.db  # Firebolt sdk
 import sqlalchemy
 from conftest import MockDBApi
 from sqlalchemy.engine import url
 
-import firebolt_db
+import firebolt_db  # SQLAlchemy package
 from firebolt_db.firebolt_dialect import (
     FireboltCompiler,
     FireboltDialect,
@@ -18,7 +19,7 @@ from firebolt_db.firebolt_dialect import dialect as dialect_definition
 class TestFireboltDialect:
     def test_create_dialect(self, dialect: FireboltDialect):
         assert issubclass(dialect_definition, FireboltDialect)
-        assert isinstance(FireboltDialect.MockDBApi(), type(firebolt_db))
+        assert isinstance(FireboltDialect.dbapi(), type(firebolt.db))
         assert dialect.name == "firebolt"
         assert dialect.driver == "firebolt"
         assert issubclass(dialect.preparer, FireboltIdentifierPreparer)
@@ -168,7 +169,9 @@ class TestFireboltDialect:
     ):
         assert dialect.get_table_comment(connection, "table") == {"text": ""}
 
-    def test_indexes(self, dialect: FireboltDialect, connection: mock.Mock(spec=MockDBApi)):
+    def test_indexes(
+        self, dialect: FireboltDialect, connection: mock.Mock(spec=MockDBApi)
+    ):
         assert dialect.get_indexes(connection, "table") == []
 
     def test_unique_constraints(

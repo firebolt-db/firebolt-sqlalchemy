@@ -5,9 +5,8 @@ from sqlalchemy.types import (
     CHAR, DATE, DATETIME, INTEGER, BIGINT,
     TIMESTAMP, VARCHAR, BOOLEAN, FLOAT)
 
-import firebolt_db
 import os
-
+import firebolt.db
 
 class ARRAY(sqltypes.TypeEngine):
     __visit_name__ = 'ARRAY'
@@ -82,7 +81,7 @@ class FireboltDialect(default.DefaultDialect):
 
     @classmethod
     def dbapi(cls):
-        return firebolt_db
+        return firebolt.db
 
     # Build firebolt-sdk compatible connection arguments.
     # URL format : firebolt://username:password@host:port/db_name
