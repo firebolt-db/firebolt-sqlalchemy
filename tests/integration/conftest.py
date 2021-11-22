@@ -53,7 +53,6 @@ def engine(
 
 @fixture(scope="session")
 def connection(engine: Engine) -> Connection:
-    engine = engine
     if hasattr(firebolt_sdk.db.connection.Connection, "commit"):
         return engine.connect()
     else:
