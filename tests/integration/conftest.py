@@ -53,9 +53,4 @@ def engine(
 
 @fixture(scope="session")
 def connection(engine: Engine) -> Connection:
-    if hasattr(firebolt_sdk.db.connection.Connection, "commit"):
-        return engine.connect()
-    else:
-        # Disabling autocommit allows for table creation/destruction without
-        # trying to call non-existing parameters
-        return engine.connect().execution_options(autocommit=False)
+    return engine.connect()

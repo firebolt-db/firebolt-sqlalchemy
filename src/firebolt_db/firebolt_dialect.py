@@ -6,7 +6,7 @@ from sqlalchemy.types import (
     TIMESTAMP, VARCHAR, BOOLEAN, FLOAT)
 
 import os
-import firebolt.db
+import firebolt_db
 
 class ARRAY(sqltypes.TypeEngine):
     __visit_name__ = 'ARRAY'
@@ -81,7 +81,7 @@ class FireboltDialect(default.DefaultDialect):
 
     @classmethod
     def dbapi(cls):
-        return firebolt.db
+        return firebolt_db
 
     # Build firebolt-sdk compatible connection arguments.
     # URL format : firebolt://username:password@host:port/db_name
@@ -188,6 +188,9 @@ class FireboltDialect(default.DefaultDialect):
 
     def _check_unicode_description(self, connection):
         return True
+
+    def do_commit(self, dbapi_connection):
+        pass
 
 
 dialect = FireboltDialect

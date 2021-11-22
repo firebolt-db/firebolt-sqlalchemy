@@ -29,7 +29,6 @@ class TestFireboltDialect:
         yield
         self.drop_test_table(connection, engine, self.test_table)
 
-    @pytest.mark.skip(reason="Commit not implemented in sdk")
     def test_create_ex_table(self, connection: Connection, engine: Engine):
         connection.execute(
             """
@@ -61,7 +60,6 @@ class TestFireboltDialect:
         connection.execute("DROP TABLE ex_lineitem_alchemy;")
         assert not engine.dialect.has_table(engine, "ex_lineitem_alchemy")
 
-    @pytest.mark.skip(reason="Commit not implemented in sdk")
     def test_data_write(self, connection: Connection):
         connection.execute(
             "INSERT INTO test_alchemy(idx, dummy) VALUES (1, 'some_text')"
