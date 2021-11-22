@@ -2,25 +2,32 @@ import os
 from unittest import mock
 
 import sqlalchemy
+from conftest import MockDBApi
 from sqlalchemy.engine import url
 
 import firebolt_db
-from firebolt_db import firebolt_dialect
+from firebolt_db.firebolt_dialect import (
+    FireboltCompiler,
+    FireboltDialect,
+    FireboltIdentifierPreparer,
+    FireboltTypeCompiler,
+)
+from firebolt_db.firebolt_dialect import dialect as dialect_definition
 
 
 class TestFireboltDialect:
-    def test_create_dialect(self, dialect):
-        assert issubclass(firebolt_dialect.dialect, firebolt_dialect.FireboltDialect)
-        assert isinstance(firebolt_dialect.FireboltDialect.dbapi(), type(firebolt_db))
+    def test_create_dialect(self, dialect: FireboltDialect):
+        assert issubclass(dialect_definition, FireboltDialect)
+        assert isinstance(FireboltDialect.MockDBApi(), type(firebolt_db))
         assert dialect.name == "firebolt"
         assert dialect.driver == "firebolt"
-        assert issubclass(dialect.preparer, firebolt_dialect.FireboltIdentifierPreparer)
-        assert issubclass(dialect.statement_compiler, firebolt_dialect.FireboltCompiler)
+        assert issubclass(dialect.preparer, FireboltIdentifierPreparer)
+        assert issubclass(dialect.statement_compiler, FireboltCompiler)
         # SQLAlchemy's DefaultDialect creates an instance of type_compiler behind the scenes
-        assert isinstance(dialect.type_compiler, firebolt_dialect.FireboltTypeCompiler)
+        assert isinstance(dialect.type_compiler, FireboltTypeCompiler)
         assert dialect.context == {}
 
-    def test_create_connect_args(self, dialect):
+    def test_create_connect_args(self, dialect: FireboltDialect):
         connection_url = (
             "test_engine://test_user@email:test_password@test_db_name/test_engine_name"
         )
@@ -39,7 +46,9 @@ class TestFireboltDialect:
             assert "api_endpoint" not in result_dict
             assert result_list == []
 
-    def test_schema_names(self, dialect, connection):
+    def test_schema_names(
+        self, dialect: FireboltDialect, connection: mock.Mock(spec=MockDBApi)
+    ):
         def row_with_schema(name):
             return mock.Mock(schema_name=name)
 
@@ -53,7 +62,9 @@ class TestFireboltDialect:
             "select schema_name from information_schema.databases"
         )
 
-    def test_table_names(self, dialect, connection):
+    def test_table_names(
+        self, dialect: FireboltDialect, connection: mock.Mock(spec=MockDBApi)
+    ):
         def row_with_table_name(name):
             return mock.Mock(table_name=name)
 
@@ -75,10 +86,14 @@ class TestFireboltDialect:
             " where table_schema = 'schema'"
         )
 
-    def test_view_names(self, dialect, connection):
+    def test_view_names(
+        self, dialect: FireboltDialect, connection: mock.Mock(spec=MockDBApi)
+    ):
         assert dialect.get_view_names(connection) == []
 
-    def test_table_options(self, dialect, connection):
+    def test_table_options(
+        self, dialect: FireboltDialect, connection: mock.Mock(spec=MockDBApi)
+    ):
         assert dialect.get_table_options(connection, "table") == {}
 
     def test_columns(self, dialect, connection):
@@ -130,50 +145,64 @@ class TestFireboltDialect:
             connection.execute.assert_called_once_with(expected_query)
             connection.execute.reset_mock()
 
-    def test_pk_constraint(self, dialect, connection):
+    def test_pk_constraint(
+        self, dialect: FireboltDialect, connection: mock.Mock(spec=MockDBApi)
+    ):
         assert dialect.get_pk_constraint(connection, "table") == {
             "constrained_columns": [],
             "name": None,
         }
 
-    def test_foreign_keys(self, dialect, connection):
+    def test_foreign_keys(
+        self, dialect: FireboltDialect, connection: mock.Mock(spec=MockDBApi)
+    ):
         assert dialect.get_foreign_keys(connection, "table") == []
 
-    def test_check_constraints(self, dialect, connection):
+    def test_check_constraints(
+        self, dialect: FireboltDialect, connection: mock.Mock(spec=MockDBApi)
+    ):
         assert dialect.get_check_constraints(connection, "table") == []
 
-    def test_table_comment(self, dialect, connection):
+    def test_table_comment(
+        self, dialect: FireboltDialect, connection: mock.Mock(spec=MockDBApi)
+    ):
         assert dialect.get_table_comment(connection, "table") == {"text": ""}
 
-    def test_indexes(self, dialect, connection):
+    def test_indexes(self, dialect: FireboltDialect, connection: mock.Mock(spec=MockDBApi)):
         assert dialect.get_indexes(connection, "table") == []
 
-    def test_unique_constraints(self, dialect, connection):
+    def test_unique_constraints(
+        self, dialect: FireboltDialect, connection: mock.Mock(spec=MockDBApi)
+    ):
         assert dialect.get_unique_constraints(connection, "table") == []
 
-    def test_unicode_returns(self, dialect, connection):
+    def test_unicode_returns(
+        self, dialect: FireboltDialect, connection: mock.Mock(spec=MockDBApi)
+    ):
         assert dialect._check_unicode_returns(connection)
 
-    def test_unicode_description(self, dialect, connection):
+    def test_unicode_description(
+        self, dialect: FireboltDialect, connection: mock.Mock(spec=MockDBApi)
+    ):
         assert dialect._check_unicode_description(connection)
 
 
 def test_get_is_nullable():
-    assert firebolt_dialect.get_is_nullable("YES")
-    assert firebolt_dialect.get_is_nullable("yes")
-    assert not firebolt_dialect.get_is_nullable("NO")
-    assert not firebolt_dialect.get_is_nullable("no")
-    assert not firebolt_dialect.get_is_nullable("ABC")
+    assert firebolt_db.firebolt_dialect.get_is_nullable("YES")
+    assert firebolt_db.firebolt_dialect.get_is_nullable("yes")
+    assert not firebolt_db.firebolt_dialect.get_is_nullable("NO")
+    assert not firebolt_db.firebolt_dialect.get_is_nullable("no")
+    assert not firebolt_db.firebolt_dialect.get_is_nullable("ABC")
 
 
 def test_types():
-    assert firebolt_dialect.CHAR is sqlalchemy.sql.sqltypes.CHAR
-    assert firebolt_dialect.DATE is sqlalchemy.sql.sqltypes.DATE
-    assert firebolt_dialect.DATETIME is sqlalchemy.sql.sqltypes.DATETIME
-    assert firebolt_dialect.INTEGER is sqlalchemy.sql.sqltypes.INTEGER
-    assert firebolt_dialect.BIGINT is sqlalchemy.sql.sqltypes.BIGINT
-    assert firebolt_dialect.TIMESTAMP is sqlalchemy.sql.sqltypes.TIMESTAMP
-    assert firebolt_dialect.VARCHAR is sqlalchemy.sql.sqltypes.VARCHAR
-    assert firebolt_dialect.BOOLEAN is sqlalchemy.sql.sqltypes.BOOLEAN
-    assert firebolt_dialect.FLOAT is sqlalchemy.sql.sqltypes.FLOAT
-    assert issubclass(firebolt_dialect.ARRAY, sqlalchemy.types.TypeEngine)
+    assert firebolt_db.firebolt_dialect.CHAR is sqlalchemy.sql.sqltypes.CHAR
+    assert firebolt_db.firebolt_dialect.DATE is sqlalchemy.sql.sqltypes.DATE
+    assert firebolt_db.firebolt_dialect.DATETIME is sqlalchemy.sql.sqltypes.DATETIME
+    assert firebolt_db.firebolt_dialect.INTEGER is sqlalchemy.sql.sqltypes.INTEGER
+    assert firebolt_db.firebolt_dialect.BIGINT is sqlalchemy.sql.sqltypes.BIGINT
+    assert firebolt_db.firebolt_dialect.TIMESTAMP is sqlalchemy.sql.sqltypes.TIMESTAMP
+    assert firebolt_db.firebolt_dialect.VARCHAR is sqlalchemy.sql.sqltypes.VARCHAR
+    assert firebolt_db.firebolt_dialect.BOOLEAN is sqlalchemy.sql.sqltypes.BOOLEAN
+    assert firebolt_db.firebolt_dialect.FLOAT is sqlalchemy.sql.sqltypes.FLOAT
+    assert issubclass(firebolt_db.firebolt_dialect.ARRAY, sqlalchemy.types.TypeEngine)

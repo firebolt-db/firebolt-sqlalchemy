@@ -5,6 +5,7 @@ import firebolt as firebolt_sdk
 from pytest import fixture
 from sqlalchemy import create_engine
 from sqlalchemy.dialects import registry
+from sqlalchemy.engine.base import Connection, Engine
 
 LOGGER = getLogger(__name__)
 
@@ -41,7 +42,9 @@ def password() -> str:
 
 
 @fixture(scope="session")
-def engine(username, password, database_name, engine_name):
+def engine(
+    username: str, password: str, database_name: str, engine_name: str
+) -> Engine:
     registry.register("firebolt", "src.firebolt_db.firebolt_dialect", "FireboltDialect")
     return create_engine(
         f"firebolt://{username}:{password}@{database_name}/{engine_name}"
@@ -49,7 +52,7 @@ def engine(username, password, database_name, engine_name):
 
 
 @fixture(scope="session")
-def connection(engine):
+def connection(engine: Engine) -> Connection:
     engine = engine
     if hasattr(firebolt_sdk.db.connection.Connection, "commit"):
         return engine.connect()

@@ -5,7 +5,7 @@ from pytest import fixture
 from firebolt_db import firebolt_dialect
 
 
-class DBApi:
+class MockDBApi:
     def execute():
         pass
 
@@ -14,10 +14,10 @@ class DBApi:
 
 
 @fixture
-def dialect():
+def dialect() -> firebolt_dialect.FireboltDialect:
     return firebolt_dialect.FireboltDialect()
 
 
 @fixture
-def connection():
-    return mock.Mock(spec=DBApi)
+def connection() -> mock.Mock(spec=MockDBApi):
+    return mock.Mock(spec=MockDBApi)

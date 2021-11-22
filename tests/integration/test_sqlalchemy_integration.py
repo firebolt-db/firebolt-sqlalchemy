@@ -1,4 +1,5 @@
 import pytest
+from sqlalchemy.engine.base import Connection, Engine
 from sqlalchemy.exc import OperationalError
 
 
@@ -6,7 +7,7 @@ class TestFireboltDialect:
 
     test_table = "test_alchemy"
 
-    def create_test_table(self, connection, engine, table):
+    def create_test_table(self, connection: Connection, engine: Engine, table: str):
         connection.execute(
             f"""
             CREATE FACT TABLE IF NOT EXISTS {table}
@@ -18,18 +19,18 @@ class TestFireboltDialect:
         )
         assert engine.dialect.has_table(engine, table)
 
-    def drop_test_table(self, connection, engine, table):
+    def drop_test_table(self, connection: Connection, engine: Engine, table: str):
         connection.execute(f"DROP TABLE IF EXISTS {table}")
         assert not engine.dialect.has_table(engine, table)
 
     @pytest.fixture(scope="class", autouse=True)
-    def setup_test_tables(self, connection, engine):
+    def setup_test_tables(self, connection: Connection, engine: Engine):
         self.create_test_table(connection, engine, self.test_table)
         yield
         self.drop_test_table(connection, engine, self.test_table)
 
     @pytest.mark.skip(reason="Commit not implemented in sdk")
-    def test_create_ex_table(self, engine, connection):
+    def test_create_ex_table(self, connection: Connection, engine: Engine):
         connection.execute(
             """
             CREATE EXTERNAL TABLE ex_lineitem_alchemy
@@ -61,7 +62,7 @@ class TestFireboltDialect:
         assert not engine.dialect.has_table(engine, "ex_lineitem_alchemy")
 
     @pytest.mark.skip(reason="Commit not implemented in sdk")
-    def test_data_write(self, connection):
+    def test_data_write(self, connection: Connection):
         connection.execute(
             "INSERT INTO test_alchemy(idx, dummy) VALUES (1, 'some_text')"
         )
@@ -76,19 +77,19 @@ class TestFireboltDialect:
         with pytest.raises(OperationalError):
             connection.execute("DELETE FROM test_alchemy WHERE idx=1")
 
-    def test_get_schema_names(self, engine, database_name):
+    def test_get_schema_names(self, engine: Engine, database_name: str):
         results = engine.dialect.get_schema_names(engine)
         assert database_name in results
 
-    def test_has_table(self, engine, database_name):
+    def test_has_table(self, engine: Engine, database_name: str):
         results = engine.dialect.has_table(engine, self.test_table, database_name)
         assert results == 1
 
-    def test_get_table_names(self, engine, database_name):
+    def test_get_table_names(self, engine: Engine, database_name: str):
         results = engine.dialect.get_table_names(engine, database_name)
         assert len(results) > 0
 
-    def test_get_columns(self, engine, database_name):
+    def test_get_columns(self, engine: Engine, database_name: str):
         results = engine.dialect.get_columns(engine, self.test_table, database_name)
         assert len(results) > 0
         row = results[0]
