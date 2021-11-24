@@ -19,7 +19,7 @@ from firebolt_db.firebolt_dialect import dialect as dialect_definition
 class TestFireboltDialect:
     def test_create_dialect(self, dialect: FireboltDialect):
         assert issubclass(dialect_definition, FireboltDialect)
-        assert isinstance(FireboltDialect.dbapi(), type(firebolt.db))
+        assert isinstance(FireboltDialect.dbapi(), type(firebolt_db))
         assert dialect.name == "firebolt"
         assert dialect.driver == "firebolt"
         assert issubclass(dialect.preparer, FireboltIdentifierPreparer)
@@ -97,7 +97,9 @@ class TestFireboltDialect:
     ):
         assert dialect.get_table_options(connection, "table") == {}
 
-    def test_columns(self, dialect, connection):
+    def test_columns(
+        self, dialect: FireboltDialect, connection: mock.Mock(spec=MockDBApi)
+    ):
         def multi_column_row(columns):
             def getitem(self, idx):
                 for i, result in enumerate(columns):
