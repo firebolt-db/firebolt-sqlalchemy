@@ -1,15 +1,26 @@
+import os
+
+import sqlalchemy.pool.base
 import sqlalchemy.types as sqltypes
 from sqlalchemy.engine import default
 from sqlalchemy.sql import compiler
 from sqlalchemy.types import (
-    CHAR, DATE, DATETIME, INTEGER, BIGINT,
-    TIMESTAMP, VARCHAR, BOOLEAN, FLOAT)
+    BIGINT,
+    BOOLEAN,
+    CHAR,
+    DATE,
+    DATETIME,
+    FLOAT,
+    INTEGER,
+    TIMESTAMP,
+    VARCHAR,
+)
 
-import os
 import firebolt_db
 
+
 class ARRAY(sqltypes.TypeEngine):
-    __visit_name__ = 'ARRAY'
+    __visit_name__ = "ARRAY"
 
 
 # Firebolt data types compatibility with sqlalchemy.sql.types
@@ -47,7 +58,6 @@ class FireboltCompiler(compiler.SQLCompiler):
 
 
 class FireboltTypeCompiler(compiler.GenericTypeCompiler):
-
     def visit_ARRAY(self, type, **kw):
         return "Array(%s)" % type
 
@@ -90,7 +100,7 @@ class FireboltDialect(default.DefaultDialect):
             "database": url.host or None,
             "username": url.username or None,
             "password": url.password or None,
-            "engine_name": url.database
+            "engine_name": url.database,
         }
         # If URL override is not provided leave it to the sdk to determine the endpoint
         if "FIREBOLT_BASE_URL" in os.environ:
@@ -100,9 +110,7 @@ class FireboltDialect(default.DefaultDialect):
     def get_schema_names(self, connection, **kwargs):
         query = "select schema_name from information_schema.databases"
         result = connection.execute(query)
-        return [
-            row.schema_name for row in result
-        ]
+        return [row.schema_name for row in result]
 
     def has_table(self, connection, table_name, schema=None):
         query = """
@@ -189,7 +197,7 @@ class FireboltDialect(default.DefaultDialect):
     def _check_unicode_description(self, connection):
         return True
 
-    def do_commit(self, dbapi_connection):
+    def do_commit(self, dbapi_connection: sqlalchemy.pool.base._ConnectionFairy):
         pass
 
 
