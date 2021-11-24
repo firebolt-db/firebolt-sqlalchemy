@@ -42,7 +42,7 @@ registry.register("firebolt", "src.firebolt_db.firebolt_dialect", "FireboltDiale
 engine = create_engine("firebolt://email@domain:password@sample_database/sample_engine")
 connection = engine.connect()
 
-connection.execute("CREATE FACT TABLE example(dummy int)")
+connection.execute("CREATE FACT TABLE example(dummy int) PRIMARY INDEX dummy")
 connection.execute("INSERT INTO example(dummy) VALUES (11)")
 result = connection.execute("SELECT * FROM example")
 for item in result.fetchall():
