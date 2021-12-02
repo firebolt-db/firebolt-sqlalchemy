@@ -1,11 +1,11 @@
 import os
+from types import ModuleType
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 import sqlalchemy.types as sqltypes
 from sqlalchemy.engine import Connection as AlchemyConnection
 from sqlalchemy.engine import ExecutionContext, default
 from sqlalchemy.engine.url import URL
-from sqlalchemy.pool.base import _ConnectionFairy
 from sqlalchemy.sql import compiler
 from sqlalchemy.types import (
     BIGINT,
@@ -48,7 +48,7 @@ type_map = {
 
 
 class UniversalSet(set):
-    def __contains__(self, item):
+    def __contains__(self, item: Any) -> bool:
         return True
 
 
@@ -61,14 +61,15 @@ class FireboltCompiler(compiler.SQLCompiler):
 
 
 class FireboltTypeCompiler(compiler.GenericTypeCompiler):
-    def visit_ARRAY(self, type, **kw):
+    def visit_ARRAY(self, type: sqltypes.TypeEngine, **kw: int) -> str:
         return "Array(%s)" % type
 
 
 class FireboltDialect(default.DefaultDialect):
     """
     FireboltDialect defines the behavior of Firebolt database and DB-API combination.
-    It is responsible for metadata definition and firing queries for receiving Database schema and table information.
+    It is responsible for metadata definition and firing queries for receiving Database
+    schema and table information.
     """
 
     name = "firebolt"
@@ -88,12 +89,14 @@ class FireboltDialect(default.DefaultDialect):
     description_encoding = None
     supports_native_boolean = True
 
-    def __init__(self, context: Optional[ExecutionContext] = None, *args, **kwargs):
+    def __init__(
+        self, context: Optional[ExecutionContext] = None, *args: Any, **kwargs: Any
+    ):
         super(FireboltDialect, self).__init__(*args, **kwargs)
         self.context: Union[ExecutionContext, Dict] = context or {}
 
     @classmethod
-    def dbapi(cls):
+    def dbapi(cls) -> ModuleType:
         return firebolt_db
 
     # Build firebolt-sdk compatible connection arguments.
@@ -110,7 +113,9 @@ class FireboltDialect(default.DefaultDialect):
             kwargs["api_endpoint"] = os.environ["FIREBOLT_BASE_URL"]
         return ([], kwargs)
 
-    def get_schema_names(self, connection: AlchemyConnection, **kwargs) -> List[str]:
+    def get_schema_names(
+        self, connection: AlchemyConnection, **kwargs: Any
+    ) -> List[str]:
         query = "select schema_name from information_schema.databases"
         result = connection.execute(query)
         return [row.schema_name for row in result]
@@ -133,7 +138,7 @@ class FireboltDialect(default.DefaultDialect):
         return result.fetchone().exists_
 
     def get_table_names(
-        self, connection: AlchemyConnection, schema: Optional[str] = None, **kwargs
+        self, connection: AlchemyConnection, schema: Optional[str] = None, **kwargs: Any
     ) -> List[str]:
         query = "select table_name from information_schema.tables"
         if schema:
@@ -145,7 +150,7 @@ class FireboltDialect(default.DefaultDialect):
         return [row.table_name for row in result]
 
     def get_view_names(
-        self, connection: AlchemyConnection, schema: Optional[str] = None, **kwargs
+        self, connection: AlchemyConnection, schema: Optional[str] = None, **kwargs: Any
     ) -> List[str]:
         return []
 
@@ -154,7 +159,7 @@ class FireboltDialect(default.DefaultDialect):
         connection: AlchemyConnection,
         table_name: str,
         schema: Optional[str] = None,
-        **kwargs
+        **kwargs: Any
     ) -> Dict:
         return {}
 
@@ -163,7 +168,7 @@ class FireboltDialect(default.DefaultDialect):
         connection: AlchemyConnection,
         table_name: str,
         schema: Optional[str] = None,
-        **kwargs
+        **kwargs: Any
     ) -> List[Dict]:
         query = """
             select column_name,
@@ -196,7 +201,7 @@ class FireboltDialect(default.DefaultDialect):
         connection: AlchemyConnection,
         table_name: str,
         schema: Optional[str] = None,
-        **kwargs
+        **kwargs: Any
     ) -> Dict:
         return {"constrained_columns": [], "name": None}
 
@@ -205,7 +210,7 @@ class FireboltDialect(default.DefaultDialect):
         connection: AlchemyConnection,
         table_name: str,
         schema: Optional[str] = None,
-        **kwargs
+        **kwargs: Any
     ) -> List[Dict]:
         return []
 
@@ -214,7 +219,7 @@ class FireboltDialect(default.DefaultDialect):
         connection: AlchemyConnection,
         table_name: str,
         schema: Optional[str] = None,
-        **kwargs
+        **kwargs: Any
     ) -> List[Dict]:
         return []
 
@@ -223,7 +228,7 @@ class FireboltDialect(default.DefaultDialect):
         connection: AlchemyConnection,
         table_name: str,
         schema: Optional[str] = None,
-        **kwargs
+        **kwargs: Any
     ) -> Dict:
         return {"text": ""}
 
@@ -232,7 +237,7 @@ class FireboltDialect(default.DefaultDialect):
         connection: AlchemyConnection,
         table_name: str,
         schema: Optional[str] = None,
-        **kwargs
+        **kwargs: Any
     ) -> List[Dict]:
         return []
 
@@ -241,7 +246,7 @@ class FireboltDialect(default.DefaultDialect):
         connection: AlchemyConnection,
         table_name: str,
         schema: Optional[str] = None,
-        **kwargs
+        **kwargs: Any
     ) -> List[Dict]:
         return []
 
@@ -250,11 +255,11 @@ class FireboltDialect(default.DefaultDialect):
         connection: AlchemyConnection,
         view_name: str,
         schema: Optional[str] = None,
-        **kwargs
+        **kwargs: Any
     ) -> str:
         pass
 
-    def do_rollback(self, dbapi_connection: _ConnectionFairy):
+    def do_rollback(self, dbapi_connection: AlchemyConnection) -> None:
         pass
 
     def _check_unicode_returns(
@@ -270,11 +275,12 @@ class FireboltDialect(default.DefaultDialect):
 
     def _check_unicode_description(self, connection: AlchemyConnection) -> bool:
         """
-        Same as _check_unicode_returns this might be redundant as there's no reference to it in the sqlalchemy repo
+        Same as _check_unicode_returns this might be redundant as there's
+        no reference to it in the sqlalchemy repo.
         """
         return True
 
-    def do_commit(self, dbapi_connection: _ConnectionFairy):
+    def do_commit(self, dbapi_connection: AlchemyConnection) -> None:
         pass
 
 
