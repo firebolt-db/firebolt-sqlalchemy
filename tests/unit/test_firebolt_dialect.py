@@ -1,7 +1,6 @@
 import os
 from unittest import mock
 
-import firebolt.db  # Firebolt sdk
 import sqlalchemy
 from conftest import MockDBApi
 from sqlalchemy.engine import url
@@ -24,7 +23,8 @@ class TestFireboltDialect:
         assert dialect.driver == "firebolt"
         assert issubclass(dialect.preparer, FireboltIdentifierPreparer)
         assert issubclass(dialect.statement_compiler, FireboltCompiler)
-        # SQLAlchemy's DefaultDialect creates an instance of type_compiler behind the scenes
+        # SQLAlchemy's DefaultDialect creates an instance of
+        # type_compiler behind the scenes
         assert isinstance(dialect.type_compiler, FireboltTypeCompiler)
         assert dialect.context == {}
 

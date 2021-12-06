@@ -1,7 +1,6 @@
 from logging import getLogger
 from os import environ
 
-import firebolt as firebolt_sdk
 from pytest import fixture
 from sqlalchemy import create_engine
 from sqlalchemy.dialects import registry

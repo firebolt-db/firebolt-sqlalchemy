@@ -1,4 +1,3 @@
-from firebolt.db import connect
 from firebolt.common.exception import (
     DatabaseError,
     DataError,
@@ -11,7 +10,7 @@ from firebolt.common.exception import (
     ProgrammingError,
     Warning,
 )
-
+from firebolt.db import connect
 
 __all__ = [
     "connect",
