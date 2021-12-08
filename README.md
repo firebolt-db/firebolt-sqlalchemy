@@ -1,37 +1,46 @@
+<p align="center">
+    <img width="761" alt="SQLAlchemy and Firebolt" src="https://user-images.githubusercontent.com/7674553/145249436-534b3cc0-2350-4f7e-9c56-78ffbcc0f003.png">
+</p>
+
 # firebolt-sqlalchemy
 
-[Firebolt](https://www.firebolt.io/) is a Cloud Data Warehousing solution that helps its users streamline their Data Analytics and access to insights. It offers fast query performance and combines Elasticity, Simplicity, Low cost of the Cloud, and innovation in Analytics.
+The [Firebolt](https://www.firebolt.io/) dialect for [SQLAlchemy](https://www.sqlalchemy.org/). `firebolt-sqlalchemy` uses [Firebolt's Python SDK](https://github.com/firebolt-db/firebolt-python-sdk) which implements [PEP 249](https://www.python.org/dev/peps/pep-0249/).
 
-The SQLAlchemy Adapter acts as an interface for third-party applications with SQLAlchemy support (like Superset, Redash etc.) to communicate with Firebolt databases through REST APIs provided by Firebolt.
+* [SQLAlchemy Dialects](https://docs.sqlalchemy.org/en/14/dialects/index.html)
+* [PyPI Package](https://pypi.org/project/firebolt-sqlalchemy/)
 
+## Installation
 
-## Installation:
-
-Requires Python >=3.7
+Requires Python >=3.7.
 
 ```bash
 pip install firebolt-sqlalchemy
 ```
 
-## Connection Method:
-The recommended connection string is:
+## Connecting
+
+Connection strings use the following structure:
+
 ```
-firebolt://{username}:{password}@{database}
-or
-firebolt://{username}:{password}@{database}/{engine_name}
+firebolt://{username}:{password}@{database}[/{engine_name}]
 ```
-Sample connection strings to connect to a Firebolt database:
+
+`engine_name` is optional. If omitted, Firebolt will use the default engine for the database.
+
+Examples:
+
 ```
 firebolt://email@domain:password@sample_database
 firebolt://email@domain:password@sample_database/sample_engine
 ```
 
-To override the API url (e.g. for dev testing)
+To override the API URL (e.g. for dev testing):
+
 ```bash
 export FIREBOLT_BASE_URL=<your_url>
 ```
 
-## Quickstart
+## Quick Start
 
 ```python
 from sqlalchemy import create_engine
@@ -57,12 +66,3 @@ for item in result.fetchall():
 ## Contributing
 
 See: [CONTRIBUTING.MD](https://github.com/firebolt-db/firebolt-sqlalchemy/tree/master/CONTRIBUTING.MD)
-
-## References:
-1. PyPi - [Firebolt PyPi](https://pypi.org/project/firebolt-sqlalchemy/)
-2. Important Firebolt URLs:
-    1. [Rest API](https://docs.firebolt.io/integrations/connecting-via-rest-api)
-    2. [Information schema](https://docs.firebolt.io/general-reference/information-schema)
-    3. [Engine usage](https://docs.firebolt.io/working-with-engines)
-3. SQLAlchemy: [Dialect](https://docs.sqlalchemy.org/en/14/dialects/)
-5. DB-API Driver: [PEP 249](https://www.python.org/dev/peps/pep-0249/)
