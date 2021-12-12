@@ -2,6 +2,7 @@ import os
 from types import ModuleType
 from typing import Any, Dict, List, Optional, Tuple, Union
 
+import firebolt.db as dbapi
 import sqlalchemy.types as sqltypes
 from sqlalchemy.engine import Connection as AlchemyConnection
 from sqlalchemy.engine import ExecutionContext, default
@@ -18,8 +19,6 @@ from sqlalchemy.types import (
     TIMESTAMP,
     VARCHAR,
 )
-
-import firebolt_db
 
 
 class ARRAY(sqltypes.TypeEngine):
@@ -97,7 +96,7 @@ class FireboltDialect(default.DefaultDialect):
 
     @classmethod
     def dbapi(cls) -> ModuleType:
-        return firebolt_db
+        return dbapi
 
     # Build firebolt-sdk compatible connection arguments.
     # URL format : firebolt://username:password@host:port/db_name
