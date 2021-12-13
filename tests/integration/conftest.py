@@ -1,10 +1,15 @@
+import asyncio
 from logging import getLogger
 from os import environ
 
+import nest_asyncio
 from pytest import fixture
 from sqlalchemy import create_engine
 from sqlalchemy.dialects import registry
 from sqlalchemy.engine.base import Connection, Engine
+from sqlalchemy.ext.asyncio import create_async_engine
+
+nest_asyncio.apply()
 
 LOGGER = getLogger(__name__)
 
@@ -53,3 +58,27 @@ def engine(
 @fixture(scope="session")
 def connection(engine: Engine) -> Connection:
     return engine.connect()
+
+
+@fixture(scope="session")
+def event_loop():
+    loop = asyncio.get_event_loop()
+    yield loop
+    loop.close()
+
+
+@fixture(scope="session")
+def async_engine(
+    username: str, password: str, database_name: str, engine_name: str
+) -> Engine:
+    registry.register(
+        "firebolt_aio", "src.firebolt_db.firebolt_async_dialect", "AsyncFireboltDialect"
+    )
+    return create_async_engine(
+        f"firebolt_aio://{username}:{password}@{database_name}/{engine_name}"
+    )
+
+
+@fixture(scope="session")
+async def async_connection(async_engine: Engine, event_loop) -> Connection:
+    return await async_engine.connect()

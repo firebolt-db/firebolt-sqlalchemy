@@ -13,70 +13,69 @@ class AsyncCursorWrapper:
         "await_",
         "_cursor",
         "_rows",
-        # "arraysize",
-        # "rowcount",
+        "arraysize",
+        "rowcount",
     )
 
-    server_side = True
+    server_side = False
 
     def __init__(self, adapt_connection):
         self._adapt_connection = adapt_connection
         self._connection = adapt_connection._connection
         self.await_ = adapt_connection.await_
-        # self.arraysize = 1
-        # self.rowcount = -1
+        self.arraysize = 1
+        self.rowcount = -1
         self.description = None
         self._rows = []
-        cursor = self._connection.cursor()
-        self._cursor = cursor
-        # self._cursor = self.await_(cursor.__enter__())
-        # self._cursor = self.await_(self._connection.cursor())
-        print(self._cursor)
-
-    @property  # type: ignore
-    def rowcount(self) -> int:
-        """The number of rows produced by last query."""
-        print(self._cursor.rowcount)
-        return self._cursor.rowcount
 
     def close(self):
-        if self._cursor is not None:
-            self._cursor.close()
-            self._cursor = None
+        self._rows[:] = []
 
     def execute(self, operation, parameters=None):
-        result = self.await_(self._cursor.execute(operation, parameters))
-        if self._cursor.description:
-            self.description = self._cursor.description
-            # self.lastrowid = self.rowcount = -1
-        return result
+        _cursor = self._connection.cursor()
+        self.await_(_cursor.execute(operation, parameters))
+        if _cursor.description:
+            self.description = _cursor.description
+            self.rowcount = -1
+            self._rows = self.await_(_cursor.fetchall())
+        else:
+            self.description = None
+            self.rowcount = _cursor.rowcount
+
+        _cursor.close()
 
     def executemany(self, operation, seq_of_parameters):
-        return self.await_(self._cursor.executemany(operation, seq_of_parameters))
+        _cursor = self._connection.cursor()
+        self.await_(_cursor.executemany(operation, seq_of_parameters))
+        self.description = None
+        self.rowcount = _cursor.rowcount
+        _cursor.close()
 
     def setinputsizes(self, *inputsizes):
         pass
 
     def __iter__(self):
-        return self._cursor.__aiter__()
-
-    #     while self._rows:
-    #         yield self._rows.pop(0)
+        while self._rows:
+            yield self._rows.pop(0)
 
     def fetchone(self):
-        return self.await_(self._cursor.fetchone())
+        if self._rows:
+            return self._rows.pop(0)
+        else:
+            return None
 
     def fetchmany(self, size=None):
-        return self.await_(self._cursor.fetchmany(size=size))
+        if size is None:
+            size = self.arraysize
+
+        retval = self._rows[0:size]
+        self._rows[:] = self._rows[size:]
+        return retval
 
     def fetchall(self):
-        # print(self._cursor)
-        print("In my fetchall")
-        return self.await_(self._cursor.fetchall())
-        # res = self._cursor.fetchall()
-        # print(res)
-        # print(type(res))
-        # return res
+        retval = self._rows[:]
+        self._rows[:] = []
+        return retval
 
 
 class AsyncConnectionWrapper(AdaptedConnection):
@@ -86,14 +85,6 @@ class AsyncConnectionWrapper(AdaptedConnection):
     def __init__(self, dbapi, connection):
         self.dbapi = dbapi
         self._connection = connection
-
-    # @property
-    # def isolation_level(self):
-    #     return self._connection.isolation_level
-
-    # @isolation_level.setter
-    # def isolation_level(self, value):
-    #     self._connection.isolation_level = value
 
     def create_function(self, *args, **kw):
         self.await_(self._connection.create_function(*args, **kw))
@@ -118,6 +109,18 @@ class AsyncAPIWrapper:
     def __init__(self, dbapi):
         self.dbapi = dbapi
         self.paramstyle = dbapi.paramstyle
+        self._init_dbapi_attributes()
+
+    def _init_dbapi_attributes(self):
+        for name in (
+            "DatabaseError",
+            "Error",
+            "IntegrityError",
+            "NotSupportedError",
+            "OperationalError",
+            "ProgrammingError",
+        ):
+            setattr(self, name, getattr(self.dbapi, name))
 
     def connect(self, *arg, **kw):
 
@@ -126,8 +129,6 @@ class AsyncAPIWrapper:
             self,
             await_only(connection),
         )
-
-    # TODO: this might need to have Error class defined
 
 
 class MySQLExecutionContext_mysqldb(default.DefaultExecutionContext):
