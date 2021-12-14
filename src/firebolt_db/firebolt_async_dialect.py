@@ -1,5 +1,5 @@
 import firebolt.async_db as async_dbapi
-from sqlalchemy.engine import AdaptedConnection, default
+from sqlalchemy.engine import AdaptedConnection
 from sqlalchemy.util.concurrency import await_only
 
 from firebolt_db.firebolt_dialect import FireboltDialect
@@ -131,22 +131,11 @@ class AsyncAPIWrapper:
         )
 
 
-class MySQLExecutionContext_mysqldb(default.DefaultExecutionContext):
-    @property
-    def rowcount(self):
-        if hasattr(self, "_rowcount"):
-            return self._rowcount
-        else:
-            return self.cursor.rowcount
-
-
 class AsyncFireboltDialect(FireboltDialect):
     driver = "firebolt_aio"
     supports_statement_cache = False
     supports_server_side_cursors = True
     is_async = True
-
-    execution_ctx_cls = MySQLExecutionContext_mysqldb
 
     @classmethod
     def dbapi(cls):
