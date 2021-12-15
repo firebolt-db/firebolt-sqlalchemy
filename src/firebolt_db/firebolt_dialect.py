@@ -1,5 +1,4 @@
 import os
-from types import ModuleType
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 import firebolt.db as dbapi
@@ -95,7 +94,7 @@ class FireboltDialect(default.DefaultDialect):
         self.context: Union[ExecutionContext, Dict] = context or {}
 
     @classmethod
-    def dbapi(cls) -> ModuleType:
+    def dbapi(cls) -> Any:
         return dbapi
 
     # Build firebolt-sdk compatible connection arguments.
