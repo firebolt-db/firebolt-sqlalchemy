@@ -32,6 +32,8 @@ class AsyncCursorWrapper:
         self._rows[:] = []
 
     def execute(self, operation, parameters=None):
+        # print(self._connection)
+        # print(self._connection.cursor)
         _cursor = self._connection.cursor()
         self.await_(_cursor.execute(operation, parameters))
         if _cursor.description:
@@ -45,14 +47,10 @@ class AsyncCursorWrapper:
         _cursor.close()
 
     def executemany(self, operation, seq_of_parameters):
-        _cursor = self._connection.cursor()
-        self.await_(_cursor.executemany(operation, seq_of_parameters))
-        self.description = None
-        self.rowcount = _cursor.rowcount
-        _cursor.close()
+        raise NotImplementedError("executemany is not supported yet")
 
-    def setinputsizes(self, *inputsizes):
-        pass
+    # def setinputsizes(self, *inputsizes):
+    #     pass
 
     def __iter__(self):
         while self._rows:
@@ -86,10 +84,7 @@ class AsyncConnectionWrapper(AdaptedConnection):
         self.dbapi = dbapi
         self._connection = connection
 
-    def create_function(self, *args, **kw):
-        self.await_(self._connection.create_function(*args, **kw))
-
-    def cursor(self, server_side=False):
+    def cursor(self):
         return AsyncCursorWrapper(self)
 
     def rollback(self):
@@ -140,9 +135,6 @@ class AsyncFireboltDialect(FireboltDialect):
     @classmethod
     def dbapi(cls):
         return AsyncAPIWrapper(async_dbapi)
-
-    def get_driver_connection(self, connection):
-        return connection._connection
 
 
 dialect = AsyncFireboltDialect
