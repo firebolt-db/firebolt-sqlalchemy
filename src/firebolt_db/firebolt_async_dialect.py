@@ -5,8 +5,7 @@ from typing import Any, Iterator, List, Optional, Tuple
 
 import firebolt.async_db as async_dbapi
 from firebolt.async_db import Connection
-from sqlalchemy.engine import AdaptedConnection
-from sqlalchemy.sql.expression import Executable
+from sqlalchemy.engine import AdaptedConnection  # type: ignore[attr-defined]
 from sqlalchemy.util.concurrency import await_only
 
 from firebolt_db.firebolt_dialect import FireboltDialect
@@ -38,9 +37,7 @@ class AsyncCursorWrapper:
     def close(self) -> None:
         self._rows[:] = []
 
-    def execute(
-        self, operation: Executable, parameters: Optional[Tuple] = None
-    ) -> None:
+    def execute(self, operation: str, parameters: Optional[Tuple] = None) -> None:
         _cursor = self._connection.cursor()
         self.await_(_cursor.execute(operation, parameters))
         if _cursor.description:
@@ -53,9 +50,7 @@ class AsyncCursorWrapper:
 
         _cursor.close()
 
-    def executemany(
-        self, operation: Executable, seq_of_parameters: List[Tuple]
-    ) -> None:
+    def executemany(self, operation: str, seq_of_parameters: List[Tuple]) -> None:
         raise NotImplementedError("executemany is not supported yet")
 
     def __iter__(self) -> Iterator[Tuple]:
