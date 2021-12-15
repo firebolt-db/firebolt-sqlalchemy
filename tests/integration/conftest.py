@@ -82,3 +82,58 @@ def async_engine(
 @fixture(scope="session")
 async def async_connection(async_engine: Engine, event_loop) -> Connection:
     return await async_engine.connect()
+
+
+@fixture
+def ex_table_name() -> str:
+    return "ex_lineitem_alchemy"
+
+
+@fixture
+def ex_table_query(ex_table_name) -> str:
+    return f"""
+            CREATE EXTERNAL TABLE {ex_table_name}
+            (       l_orderkey              LONG,
+                    l_partkey               LONG,
+                    l_suppkey               LONG,
+                    l_linenumber            INT,
+                    l_quantity              LONG,
+                    l_extendedprice         LONG,
+                    l_discount              LONG,
+                    l_tax                   LONG,
+                    l_returnflag            TEXT,
+                    l_linestatus            TEXT,
+                    l_shipdate              TEXT,
+                    l_commitdate            TEXT,
+                    l_receiptdate           TEXT,
+                    l_shipinstruct          TEXT,
+                    l_shipmode              TEXT,
+                    l_comment               TEXT
+            )
+            URL = 's3://firebolt-publishing-public/samples/tpc-h/parquet/lineitem/'
+            OBJECT_PATTERN = '*.parquet'
+            TYPE = (PARQUET);
+            """
+
+
+@fixture(scope="class")
+def fact_table_name() -> str:
+    return "test_alchemy"
+
+
+@fixture(scope="class", autouse=True)
+def setup_test_tables(connection: Connection, engine: Engine, fact_table_name: str):
+    connection.execute(
+        f"""
+        CREATE FACT TABLE IF NOT EXISTS {fact_table_name}
+        (
+            idx INT,
+            dummy TEXT
+        ) PRIMARY INDEX idx;
+        """
+    )
+    assert engine.dialect.has_table(engine, fact_table_name)
+    yield
+    # Teardown
+    connection.execute(f"DROP TABLE IF EXISTS {fact_table_name}")
+    assert not engine.dialect.has_table(engine, fact_table_name)
