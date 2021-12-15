@@ -90,7 +90,7 @@ def ex_table_name() -> str:
 
 
 @fixture
-def ex_table_query(ex_table_name) -> str:
+def ex_table_query(ex_table_name: str) -> str:
     return f"""
             CREATE EXTERNAL TABLE {ex_table_name}
             (       l_orderkey              LONG,

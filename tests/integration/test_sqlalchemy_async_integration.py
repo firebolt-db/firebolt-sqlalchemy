@@ -1,3 +1,5 @@
+from typing import Dict, List
+
 import pytest
 from sqlalchemy import inspect, text
 from sqlalchemy.engine.base import Connection, Engine
@@ -15,7 +17,7 @@ class TestAsyncFireboltDialect:
     ):
         await async_connection.execute(text(ex_table_query))
 
-        def has_test_table(conn):
+        def has_test_table(conn: Connection) -> bool:
             inspector = inspect(conn)
             return inspector.has_table(ex_table_name)
 
@@ -50,7 +52,7 @@ class TestAsyncFireboltDialect:
     async def test_get_table_names(
         self, async_connection: Connection, database_name: str
     ):
-        def get_table_names(conn):
+        def get_table_names(conn: Connection) -> bool:
             inspector = inspect(conn)
             return inspector.get_table_names(database_name)
 
@@ -61,7 +63,7 @@ class TestAsyncFireboltDialect:
     async def test_get_columns(
         self, async_connection: Connection, database_name: str, fact_table_name: str
     ):
-        def get_columns(conn):
+        def get_columns(conn: Connection) -> List[Dict]:
             inspector = inspect(conn)
             return inspector.get_columns(fact_table_name, database_name)
 

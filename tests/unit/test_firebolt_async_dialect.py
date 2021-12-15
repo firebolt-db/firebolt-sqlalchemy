@@ -1,7 +1,7 @@
 from unittest import mock
 
 import pytest
-from conftest import MockAsyncDBApi
+from conftest import MockAsyncConnection, MockAsyncCursor, MockAsyncDBApi
 from sqlalchemy.util import await_only, greenlet_spawn
 
 from firebolt_db.firebolt_async_dialect import (
@@ -37,7 +37,7 @@ class TestAsyncFireboltDialect:
     async def test_create_api_wrapper(
         self, async_api: mock.AsyncMock(spec=MockAsyncDBApi)
     ):
-        def test_connect():
+        def test_connect() -> AsyncAPIWrapper:
             async_api.paramstyle = "quoted"
             wrapper = AsyncAPIWrapper(async_api)
             wrapper.connect("test arg")
@@ -52,7 +52,7 @@ class TestAsyncFireboltDialect:
     async def test_connection_wrapper(
         self, async_api: mock.AsyncMock(spec=MockAsyncDBApi)
     ):
-        def test_connection():
+        def test_connection() -> AsyncConnectionWrapper:
             wrapper = AsyncConnectionWrapper(async_api, await_only(async_api.connect()))
             # Check call propagation
             wrapper.commit()
@@ -70,10 +70,10 @@ class TestAsyncFireboltDialect:
     async def test_cursor_execute(
         self,
         async_api: mock.AsyncMock(spec=MockAsyncDBApi),
-        async_connection,
-        async_cursor,
+        async_connection: mock.AsyncMock(spec=MockAsyncConnection),
+        async_cursor: mock.AsyncMock(spec=MockAsyncCursor),
     ):
-        def test_cursor():
+        def test_cursor() -> AsyncCursorWrapper:
             async_connection.cursor.return_value = async_cursor
             conn_wrapper = AsyncConnectionWrapper(async_api, async_connection)
             wrapper = AsyncCursorWrapper(conn_wrapper)
@@ -95,10 +95,10 @@ class TestAsyncFireboltDialect:
     async def test_cursor_execute_no_fetch(
         self,
         async_api: mock.AsyncMock(spec=MockAsyncDBApi),
-        async_connection,
-        async_cursor,
+        async_connection: mock.AsyncMock(spec=MockAsyncConnection),
+        async_cursor: mock.AsyncMock(spec=MockAsyncCursor),
     ):
-        def test_cursor():
+        def test_cursor() -> AsyncCursorWrapper:
             async_connection.cursor.return_value = async_cursor
             conn_wrapper = AsyncConnectionWrapper(async_api, async_connection)
             wrapper = AsyncCursorWrapper(conn_wrapper)
@@ -121,8 +121,8 @@ class TestAsyncFireboltDialect:
     async def test_cursor_close(
         self,
         async_api: mock.AsyncMock(spec=MockAsyncDBApi),
-        async_connection,
-        async_cursor,
+        async_connection: mock.AsyncMock(spec=MockAsyncConnection),
+        async_cursor: mock.AsyncMock(spec=MockAsyncCursor),
     ):
         def test_cursor():
             async_connection.cursor.return_value = async_cursor
@@ -138,8 +138,8 @@ class TestAsyncFireboltDialect:
     async def test_cursor_executemany(
         self,
         async_api: mock.AsyncMock(spec=MockAsyncDBApi),
-        async_connection,
-        async_cursor,
+        async_connection: mock.AsyncMock(spec=MockAsyncConnection),
+        async_cursor: mock.AsyncMock(spec=MockAsyncCursor),
     ):
         def test_cursor():
             async_connection.cursor.return_value = async_cursor
@@ -156,8 +156,8 @@ class TestAsyncFireboltDialect:
     async def test_cursor_fetch(
         self,
         async_api: mock.AsyncMock(spec=MockAsyncDBApi),
-        async_connection,
-        async_cursor,
+        async_connection: mock.AsyncMock(spec=MockAsyncConnection),
+        async_cursor: mock.AsyncMock(spec=MockAsyncCursor),
     ):
         def test_cursor():
             async_connection.cursor.return_value = async_cursor

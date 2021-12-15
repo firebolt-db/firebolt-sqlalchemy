@@ -1,5 +1,12 @@
+from __future__ import annotations
+
+from types import ModuleType
+from typing import Any, List, Optional, Tuple
+
 import firebolt.async_db as async_dbapi
+from firebolt.async_db import Connection
 from sqlalchemy.engine import AdaptedConnection
+from sqlalchemy.sql.expression import Executable
 from sqlalchemy.util.concurrency import await_only
 
 from firebolt_db.firebolt_dialect import FireboltDialect
@@ -19,7 +26,7 @@ class AsyncCursorWrapper:
 
     server_side = False
 
-    def __init__(self, adapt_connection):
+    def __init__(self, adapt_connection: AsyncConnectionWrapper):
         self._adapt_connection = adapt_connection
         self._connection = adapt_connection._connection
         self.await_ = adapt_connection.await_
@@ -31,9 +38,7 @@ class AsyncCursorWrapper:
     def close(self):
         self._rows[:] = []
 
-    def execute(self, operation, parameters=None):
-        # print(self._connection)
-        # print(self._connection.cursor)
+    def execute(self, operation: Executable, parameters: Optional[Tuple] = None):
         _cursor = self._connection.cursor()
         self.await_(_cursor.execute(operation, parameters))
         if _cursor.description:
@@ -46,23 +51,20 @@ class AsyncCursorWrapper:
 
         _cursor.close()
 
-    def executemany(self, operation, seq_of_parameters):
+    def executemany(self, operation: Executable, seq_of_parameters: List[Tuple]):
         raise NotImplementedError("executemany is not supported yet")
 
-    # def setinputsizes(self, *inputsizes):
-    #     pass
-
-    def __iter__(self):
+    def __iter__(self) -> Tuple:
         while self._rows:
             yield self._rows.pop(0)
 
-    def fetchone(self):
+    def fetchone(self) -> Optional[Tuple]:
         if self._rows:
             return self._rows.pop(0)
         else:
             return None
 
-    def fetchmany(self, size=None):
+    def fetchmany(self, size=None) -> List[Tuple]:
         if size is None:
             size = self.arraysize
 
@@ -70,7 +72,7 @@ class AsyncCursorWrapper:
         self._rows[:] = self._rows[size:]
         return retval
 
-    def fetchall(self):
+    def fetchall(self) -> List[Tuple]:
         retval = self._rows[:]
         self._rows[:] = []
         return retval
@@ -80,11 +82,11 @@ class AsyncConnectionWrapper(AdaptedConnection):
     await_ = staticmethod(await_only)
     __slots__ = ("dbapi", "_connection")
 
-    def __init__(self, dbapi, connection):
+    def __init__(self, dbapi: AsyncAPIWrapper, connection: Connection):
         self.dbapi = dbapi
         self._connection = connection
 
-    def cursor(self):
+    def cursor(self) -> AsyncCursorWrapper:
         return AsyncCursorWrapper(self)
 
     def rollback(self):
@@ -101,7 +103,7 @@ class AsyncAPIWrapper:
     """Wrapper around Firebolt async dbapi that returns a similar wrapper for
     Cursor on connect()"""
 
-    def __init__(self, dbapi):
+    def __init__(self, dbapi: ModuleType):
         self.dbapi = dbapi
         self.paramstyle = dbapi.paramstyle
         self._init_dbapi_attributes()
@@ -117,7 +119,7 @@ class AsyncAPIWrapper:
         ):
             setattr(self, name, getattr(self.dbapi, name))
 
-    def connect(self, *arg, **kw):
+    def connect(self, *arg: Any, **kw: Any) -> AsyncConnectionWrapper:
 
         connection = self.dbapi.connect(*arg, **kw)
         return AsyncConnectionWrapper(
@@ -133,7 +135,7 @@ class AsyncFireboltDialect(FireboltDialect):
     is_async = True
 
     @classmethod
-    def dbapi(cls):
+    def dbapi(cls) -> AsyncAPIWrapper:
         return AsyncAPIWrapper(async_dbapi)
 
 
