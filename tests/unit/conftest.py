@@ -36,21 +36,6 @@ class MockDBApi:
         pass
 
 
-@fixture
-def dialect() -> firebolt_dialect.FireboltDialect:
-    return firebolt_dialect.FireboltDialect()
-
-
-@fixture
-def async_dialect() -> firebolt_async_dialect.AsyncFireboltDialect:
-    return firebolt_async_dialect.AsyncFireboltDialect()
-
-
-@fixture
-def connection() -> mock.Mock(spec=MockDBApi):
-    return mock.Mock(spec=MockDBApi)
-
-
 class MockAsyncDBApi:
     class DatabaseError:
         pass
@@ -76,11 +61,6 @@ class MockAsyncDBApi:
         pass
 
 
-@fixture
-def async_api() -> mock.AsyncMock(spec=MockAsyncDBApi):
-    return mock.AsyncMock(spec=MockAsyncDBApi)
-
-
 class MockAsyncConnection:
     def cursor():
         pass
@@ -101,6 +81,26 @@ class MockAsyncCursor:
 
     def close():
         pass
+
+
+@fixture
+def dialect() -> firebolt_dialect.FireboltDialect:
+    return firebolt_dialect.FireboltDialect()
+
+
+@fixture
+def async_dialect() -> firebolt_async_dialect.AsyncFireboltDialect:
+    return firebolt_async_dialect.AsyncFireboltDialect()
+
+
+@fixture
+def connection() -> mock.Mock(spec=MockDBApi):
+    return mock.Mock(spec=MockDBApi)
+
+
+@fixture
+def async_api() -> mock.AsyncMock(spec=MockAsyncDBApi):
+    return mock.AsyncMock(spec=MockAsyncDBApi)
 
 
 @fixture

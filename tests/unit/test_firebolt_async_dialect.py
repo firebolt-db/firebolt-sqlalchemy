@@ -34,15 +34,18 @@ class TestAsyncFireboltDialect:
         assert async_dialect.context == {}
 
     @pytest.mark.asyncio
-    async def test_create_wrapper(self, async_api: mock.AsyncMock(spec=MockAsyncDBApi)):
-        def test_wrapper():
+    async def test_create_api_wrapper(
+        self, async_api: mock.AsyncMock(spec=MockAsyncDBApi)
+    ):
+        def test_connect():
             async_api.paramstyle = "quoted"
             wrapper = AsyncAPIWrapper(async_api)
-            assert wrapper.dbapi == async_api
-            assert wrapper.paramstyle == "quoted"
             wrapper.connect("test arg")
+            return wrapper
 
-        await greenlet_spawn(test_wrapper)
+        wrapper = await greenlet_spawn(test_connect)
+        assert wrapper.dbapi == async_api
+        assert wrapper.paramstyle == "quoted"
         async_api.connect.assert_called_once_with("test arg")
 
     @pytest.mark.asyncio
@@ -55,9 +58,10 @@ class TestAsyncFireboltDialect:
             wrapper.commit()
             wrapper.rollback()
             wrapper.close()
-            assert isinstance(wrapper.cursor(), AsyncCursorWrapper)
+            return wrapper
 
-        await greenlet_spawn(test_connection)
+        wrapper = await greenlet_spawn(test_connection)
+        assert isinstance(wrapper.cursor(), AsyncCursorWrapper)
         async_api.connect.return_value.commit.assert_awaited_once()
         async_api.connect.return_value.rollback.assert_awaited_once()
         async_api.connect.return_value._aclose.assert_awaited_once()
@@ -74,24 +78,39 @@ class TestAsyncFireboltDialect:
             conn_wrapper = AsyncConnectionWrapper(async_api, async_connection)
             wrapper = AsyncCursorWrapper(conn_wrapper)
             wrapper.execute("INSERT INTO test(a, b) VALUES (?, ?)", [(1, "a")])
-            assert wrapper.description == async_cursor.description
-            assert wrapper.rowcount == async_cursor.rowcount
+            return wrapper
 
+        async_cursor.description = "dummy"
         async_cursor.rowcount = -1
-        await greenlet_spawn(test_cursor)
+        wrapper = await greenlet_spawn(test_cursor)
+        assert wrapper.description == "dummy"
+        assert wrapper.rowcount == -1
         async_cursor.execute.assert_awaited_once_with(
             "INSERT INTO test(a, b) VALUES (?, ?)", [(1, "a")]
         )
         async_cursor.fetchall.assert_awaited_once()
         async_cursor.close.assert_called_once()
 
-        async_cursor.execute.reset_mock()
-        async_cursor.fetchall.reset_mock()
-        async_cursor.close.reset_mock()
+    @pytest.mark.asyncio
+    async def test_cursor_execute_no_fetch(
+        self,
+        async_api: mock.AsyncMock(spec=MockAsyncDBApi),
+        async_connection,
+        async_cursor,
+    ):
+        def test_cursor():
+            async_connection.cursor.return_value = async_cursor
+            conn_wrapper = AsyncConnectionWrapper(async_api, async_connection)
+            wrapper = AsyncCursorWrapper(conn_wrapper)
+            wrapper.execute("INSERT INTO test(a, b) VALUES (?, ?)", [(1, "a")])
+            return wrapper
+
         async_cursor.description = None
         async_cursor.rowcount = 100
 
-        await greenlet_spawn(test_cursor)
+        wrapper = await greenlet_spawn(test_cursor)
+        assert wrapper.description is None
+        assert wrapper.rowcount == 100
         async_cursor.execute.assert_awaited_once_with(
             "INSERT INTO test(a, b) VALUES (?, ?)", [(1, "a")]
         )
