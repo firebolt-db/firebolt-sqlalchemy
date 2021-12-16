@@ -44,11 +44,11 @@ class AsyncCursorWrapper:
         self.await_(_cursor.execute(operation, parameters))
         if _cursor.description:
             self.description = _cursor.description
-            self.rowcount = -1
+            self.rowcount = _cursor.rowcount
             self._rows = self.await_(_cursor.fetchall())
         else:
             self.description = None
-            self.rowcount = _cursor.rowcount
+            self.rowcount = -1
 
         _cursor.close()
 

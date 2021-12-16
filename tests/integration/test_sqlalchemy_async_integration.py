@@ -28,12 +28,14 @@ class TestAsyncFireboltDialect:
 
     @pytest.mark.asyncio
     async def test_data_write(self, async_connection: Connection, fact_table_name: str):
-        await async_connection.execute(
+        result = await async_connection.execute(
             text(f"INSERT INTO {fact_table_name}(idx, dummy) VALUES (1, 'some_text')")
         )
+        assert result.rowcount == -1
         result = await async_connection.execute(
             text(f"SELECT * FROM {fact_table_name}")
         )
+        assert result.rowcount == 1
         assert len(result.fetchall()) == 1
         # Update not supported
         with pytest.raises(OperationalError):
