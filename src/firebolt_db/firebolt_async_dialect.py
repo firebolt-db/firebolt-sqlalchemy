@@ -29,9 +29,9 @@ class AsyncCursorWrapper:
         self._adapt_connection = adapt_connection
         self._connection = adapt_connection._connection
         self.await_ = adapt_connection.await_
-        self.arraysize = 1
-        self.rowcount = -1
-        self.description = None
+        self.arraysize: int = 1
+        self.rowcount: int = -1
+        self.description: Optional[str] = None
         self._rows: List[Tuple] = []
 
     def close(self) -> None:
@@ -129,9 +129,9 @@ class AsyncAPIWrapper:
 
 class AsyncFireboltDialect(FireboltDialect):
     driver = "firebolt_aio"
-    supports_statement_cache = False
-    supports_server_side_cursors = False
-    is_async = True
+    supports_statement_cache: bool = False
+    supports_server_side_cursors: bool = False
+    is_async: bool = True
 
     @classmethod
     def dbapi(cls) -> Any:
