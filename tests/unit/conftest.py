@@ -1,5 +1,6 @@
 from unittest import mock
 
+from mock import AsyncMock
 from pytest import fixture
 
 from firebolt_db import firebolt_async_dialect, firebolt_dialect
@@ -99,15 +100,15 @@ def connection() -> mock.Mock(spec=MockDBApi):
 
 
 @fixture
-def async_api() -> mock.AsyncMock(spec=MockAsyncDBApi):
-    return mock.AsyncMock(spec=MockAsyncDBApi)
+def async_api() -> AsyncMock(spec=MockAsyncDBApi):
+    return AsyncMock(spec=MockAsyncDBApi)
 
 
 @fixture
-def async_connection() -> mock.AsyncMock(spec=MockAsyncConnection):
-    return mock.AsyncMock(spec=MockAsyncConnection)
+def async_connection() -> AsyncMock(spec=MockAsyncConnection):
+    return AsyncMock(spec=MockAsyncConnection)
 
 
 @fixture
-def async_cursor() -> mock.AsyncMock(spec=MockAsyncCursor):
-    return mock.AsyncMock(spec=MockAsyncCursor)
+def async_cursor() -> AsyncMock(spec=MockAsyncCursor):
+    return AsyncMock(spec=MockAsyncCursor)
