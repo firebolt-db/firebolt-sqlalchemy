@@ -130,7 +130,7 @@ class AsyncAPIWrapper:
 class AsyncFireboltDialect(FireboltDialect):
     driver = "firebolt_aio"
     supports_statement_cache = False
-    supports_server_side_cursors = True
+    supports_server_side_cursors = False
     is_async = True
 
     @classmethod
