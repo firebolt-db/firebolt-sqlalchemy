@@ -80,7 +80,9 @@ def async_engine(
 
 
 @fixture(scope="session")
-async def async_connection(async_engine: Engine, event_loop) -> Connection:
+async def async_connection(
+    async_engine: Engine,
+) -> Connection:
     return await async_engine.connect()
 
 

@@ -60,12 +60,12 @@ from sqlalchemy.dialects import registry
 registry.register("firebolt", "src.firebolt_db.firebolt_async_dialect", "AsyncFireboltDialect")
 engine = create_async_engine("firebolt://email@domain:password@sample_database/sample_engine")
 
-async with engine.begin() as conn:
+async with engine.connect() as conn:
+
     await conn.execute(
         text(f"INSERT INTO example(dummy) VALUES (11)")
     )
 
-async with engine.connect() as conn:
     result = await conn.execute(
         text(f"SELECT * FROM example")
     )

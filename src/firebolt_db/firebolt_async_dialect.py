@@ -5,6 +5,8 @@ from typing import Any, Iterator, List, Optional, Tuple
 
 import firebolt.async_db as async_dbapi
 from firebolt.async_db import Connection
+
+# Ignoring type since sqlalchemy-stubs doesn't cover AdaptedConnection
 from sqlalchemy.engine import AdaptedConnection  # type: ignore[attr-defined]
 from sqlalchemy.util.concurrency import await_only
 
@@ -98,7 +100,7 @@ class AsyncConnectionWrapper(AdaptedConnection):
         self.await_(self._connection._aclose())
 
 
-class AsyncAPIWrapper:
+class AsyncAPIWrapper(ModuleType):
     """Wrapper around Firebolt async dbapi that returns a similar wrapper for
     Cursor on connect()"""
 
@@ -120,10 +122,10 @@ class AsyncAPIWrapper:
 
     def connect(self, *arg: Any, **kw: Any) -> AsyncConnectionWrapper:
 
-        connection = self.dbapi.connect(*arg, **kw)  # type: ignore[attr-defined] # noqa: F821,E501
+        connection = await_only(self.dbapi.connect(*arg, **kw))  # type: ignore[attr-defined] # noqa: F821,E501
         return AsyncConnectionWrapper(
             self,
-            await_only(connection),
+            connection,
         )
 
 
@@ -134,7 +136,7 @@ class AsyncFireboltDialect(FireboltDialect):
     is_async: bool = True
 
     @classmethod
-    def dbapi(cls) -> Any:
+    def dbapi(cls) -> AsyncAPIWrapper:
         return AsyncAPIWrapper(async_dbapi)
 
 
