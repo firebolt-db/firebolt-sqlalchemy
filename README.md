@@ -58,10 +58,36 @@ for item in result.fetchall():
     print(item)
 ```
 
+### [AsyncIO](https://docs.sqlalchemy.org/en/14/orm/extensions/asyncio.html) extension
+
+```python
+from sqlalchemy import text
+from sqlalchemy.ext.asyncio import create_async_engine
+from firebolt_db.firebolt_async_dialect import AsyncFireboltDialect
+from sqlalchemy.dialects import registry
+
+registry.register("firebolt", "src.firebolt_db.firebolt_async_dialect", "AsyncFireboltDialect")
+engine = create_async_engine("firebolt://email@domain:password@sample_database/sample_engine")
+
+async with engine.connect() as conn:
+
+    await conn.execute(
+        text(f"INSERT INTO example(dummy) VALUES (11)")
+    )
+
+    result = await conn.execute(
+        text(f"SELECT * FROM example")
+    )
+    print(result.fetchall())
+
+await engine.dispose()
+```
+
+
 ## Limitations
 
 1. Transactions are not supported since Firebolt database does not support them at this time.
-1. [AsyncIO](https://docs.sqlalchemy.org/en/14/orm/extensions/asyncio.html) is not yet implemented.
+1. Parametrised calls to execute and executemany are not implemented.
 
 ## Contributing
 

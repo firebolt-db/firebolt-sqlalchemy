@@ -2,11 +2,12 @@ import os
 from types import ModuleType
 from typing import Any, Dict, List, Optional, Tuple, Union
 
+import firebolt.db as dbapi
 import sqlalchemy.types as sqltypes
 from sqlalchemy.engine import Connection as AlchemyConnection
 from sqlalchemy.engine import ExecutionContext, default
 from sqlalchemy.engine.url import URL
-from sqlalchemy.sql import compiler
+from sqlalchemy.sql import compiler, text
 from sqlalchemy.types import (
     BIGINT,
     BOOLEAN,
@@ -18,8 +19,6 @@ from sqlalchemy.types import (
     TIMESTAMP,
     VARCHAR,
 )
-
-import firebolt_db
 
 
 class ARRAY(sqltypes.TypeEngine):
@@ -97,7 +96,7 @@ class FireboltDialect(default.DefaultDialect):
 
     @classmethod
     def dbapi(cls) -> ModuleType:
-        return firebolt_db
+        return dbapi
 
     # Build firebolt-sdk compatible connection arguments.
     # URL format : firebolt://username:password@host:port/db_name
@@ -117,7 +116,7 @@ class FireboltDialect(default.DefaultDialect):
         self, connection: AlchemyConnection, **kwargs: Any
     ) -> List[str]:
         query = "select schema_name from information_schema.databases"
-        result = connection.execute(query)
+        result = connection.execute(text(query))
         return [row.schema_name for row in result]
 
     def has_table(
@@ -133,8 +132,7 @@ class FireboltDialect(default.DefaultDialect):
         """.format(
             table_name=table_name
         )
-
-        result = connection.execute(query)
+        result = connection.execute(text(query))
         return result.fetchone().exists_
 
     def get_table_names(
@@ -146,7 +144,7 @@ class FireboltDialect(default.DefaultDialect):
                 query=query, schema=schema
             )
 
-        result = connection.execute(query)
+        result = connection.execute(text(query))
         return [row.table_name for row in result]
 
     def get_view_names(
@@ -184,7 +182,7 @@ class FireboltDialect(default.DefaultDialect):
                 query=query, schema=schema
             )
 
-        result = connection.execute(query)
+        result = connection.execute(text(query))
 
         return [
             {

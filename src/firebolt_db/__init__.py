@@ -1,17 +1,3 @@
-from firebolt.common.exception import (
-    DatabaseError,
-    DataError,
-    Error,
-    IntegrityError,
-    InterfaceError,
-    InternalError,
-    NotSupportedError,
-    OperationalError,
-    ProgrammingError,
-    Warning,
-)
-from firebolt.db import connect
-
 __all__ = [
     "connect",
     "apilevel",

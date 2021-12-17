@@ -4,6 +4,7 @@ from unittest import mock
 import sqlalchemy
 from conftest import MockDBApi
 from sqlalchemy.engine import url
+from sqlalchemy.sql import text
 
 import firebolt_db  # SQLAlchemy package
 from firebolt_db.firebolt_dialect import (
@@ -59,8 +60,9 @@ class TestFireboltDialect:
         ]
         result = dialect.get_schema_names(connection)
         assert result == ["schema1", "schema2"]
-        connection.execute.assert_called_once_with(
-            "select schema_name from information_schema.databases"
+        connection.execute.assert_called_once()
+        assert str(connection.execute.call_args[0][0].compile()) == str(
+            text("select schema_name from information_schema.databases").compile()
         )
 
     def test_table_names(
@@ -76,15 +78,19 @@ class TestFireboltDialect:
 
         result = dialect.get_table_names(connection)
         assert result == ["table1", "table2"]
-        connection.execute.assert_called_once_with(
-            "select table_name from information_schema.tables"
+        connection.execute.assert_called_once()
+        assert str(connection.execute.call_args[0][0].compile()) == str(
+            text("select table_name from information_schema.tables").compile()
         )
         connection.execute.reset_mock()
         result = dialect.get_table_names(connection, schema="schema")
         assert result == ["table1", "table2"]
-        connection.execute.assert_called_once_with(
-            "select table_name from information_schema.tables"
-            " where table_schema = 'schema'"
+        connection.execute.assert_called_once()
+        assert str(connection.execute.call_args[0][0].compile()) == str(
+            text(
+                "select table_name from information_schema.tables"
+                " where table_schema = 'schema'"
+            ).compile()
         )
 
     def test_view_names(
@@ -145,7 +151,10 @@ class TestFireboltDialect:
                     "default": None,
                 },
             ]
-            connection.execute.assert_called_once_with(expected_query)
+            connection.execute.assert_called_once()
+            assert str(connection.execute.call_args[0][0].compile()) == str(
+                text(expected_query).compile()
+            )
             connection.execute.reset_mock()
 
     def test_pk_constraint(
