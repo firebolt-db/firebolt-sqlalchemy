@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from asyncio import Lock
 from types import ModuleType
 from typing import Any, Iterator, List, Optional, Tuple
 
@@ -16,13 +17,9 @@ from firebolt_db.firebolt_dialect import FireboltDialect
 class AsyncCursorWrapper:
     __slots__ = (
         "_adapt_connection",
-        "_connection",
-        "description",
-        "await_",
+        "_connection" "await_",
         "_cursor",
         "_rows",
-        "arraysize",
-        "rowcount",
     )
 
     server_side = False
@@ -31,26 +28,41 @@ class AsyncCursorWrapper:
         self._adapt_connection = adapt_connection
         self._connection = adapt_connection._connection
         self.await_ = adapt_connection.await_
-        self.arraysize: int = 1
-        self.rowcount: int = -1
-        self.description: Optional[str] = None
         self._rows: List[Tuple] = []
+        self._cursor = self._connection.cursor()
 
     def close(self) -> None:
         self._rows[:] = []
+        self._cursor.close()
+
+    @property
+    def description(self) -> str:
+        return self._cursor.description
+
+    @property
+    def arraysize(self) -> int:
+        return self._cursor.arraysize
+
+    @arraysize.setter
+    def arraysize(self, value: int) -> None:
+        self._cursor.arraysize = value
+
+    @property
+    def rowcount(self) -> int:
+        return self._cursor.rowcount
 
     def execute(self, operation: str, parameters: Optional[Tuple] = None) -> None:
-        _cursor = self._connection.cursor()
-        self.await_(_cursor.execute(operation, parameters))
-        if _cursor.description:
-            self.description = _cursor.description
-            self.rowcount = _cursor.rowcount
-            self._rows = self.await_(_cursor.fetchall())
-        else:
-            self.description = None
-            self.rowcount = -1
+        self.await_(self._execute(operation, parameters))
 
-        _cursor.close()
+    async def _execute(
+        self, operation: str, parameters: Optional[Tuple] = None
+    ) -> None:
+        async with self._adapt_connection._execute_mutex:
+            await self._cursor.execute(operation, parameters)
+            if self._cursor.description:
+                self._rows = list(await self._cursor.fetchall())
+            else:
+                self._rows = []
 
     def executemany(self, operation: str, seq_of_parameters: List[Tuple]) -> None:
         raise NotImplementedError("executemany is not supported yet")
@@ -67,7 +79,7 @@ class AsyncCursorWrapper:
 
     def fetchmany(self, size: int = None) -> List[Tuple]:
         if size is None:
-            size = self.arraysize
+            size = self._cursor.arraysize
 
         retval = self._rows[0:size]
         self._rows[:] = self._rows[size:]
@@ -81,11 +93,12 @@ class AsyncCursorWrapper:
 
 class AsyncConnectionWrapper(AdaptedConnection):
     await_ = staticmethod(await_only)
-    __slots__ = ("dbapi", "_connection")
+    __slots__ = ("dbapi", "_connection", "_execute_mutex")
 
     def __init__(self, dbapi: AsyncAPIWrapper, connection: Connection):
         self.dbapi = dbapi
         self._connection = connection
+        self._execute_mutex = Lock()
 
     def cursor(self) -> AsyncCursorWrapper:
         return AsyncCursorWrapper(self)

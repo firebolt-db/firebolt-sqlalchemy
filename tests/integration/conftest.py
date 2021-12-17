@@ -57,7 +57,8 @@ def engine(
 
 @fixture(scope="session")
 def connection(engine: Engine) -> Connection:
-    return engine.connect()
+    with engine.connect() as c:
+        yield c
 
 
 @fixture(scope="session")
@@ -83,7 +84,8 @@ def async_engine(
 async def async_connection(
     async_engine: Engine,
 ) -> Connection:
-    return await async_engine.connect()
+    async with async_engine.connect() as c:
+        yield c
 
 
 @fixture

@@ -70,6 +70,7 @@ class MockAsyncConnection:
 class MockAsyncCursor:
     description = ""
     rowcount = -1
+    arraysize = 1
 
     async def execute():
         pass

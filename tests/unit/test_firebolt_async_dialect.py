@@ -83,7 +83,6 @@ class TestAsyncFireboltDialect:
             "INSERT INTO test(a, b) VALUES (?, ?)", [(1, "a")]
         )
         async_cursor.fetchall.assert_awaited_once()
-        async_cursor.close.assert_called_once()
 
     @pytest.mark.asyncio
     async def test_cursor_execute_no_fetch(
@@ -109,7 +108,6 @@ class TestAsyncFireboltDialect:
             "INSERT INTO test(a, b) VALUES (?, ?)", [(1, "a")]
         )
         async_cursor.fetchall.assert_not_awaited()
-        async_cursor.close.assert_called_once()
 
     @pytest.mark.asyncio
     async def test_cursor_close(
@@ -125,6 +123,7 @@ class TestAsyncFireboltDialect:
             wrapper._rows = [1, 2, 3]
             wrapper.close()
             assert wrapper._rows == []
+            async_cursor.close.assert_called_once()
 
         await greenlet_spawn(test_cursor)
 
@@ -157,10 +156,13 @@ class TestAsyncFireboltDialect:
             async_connection.cursor.return_value = async_cursor
             conn_wrapper = AsyncConnectionWrapper(async_api, async_connection)
             wrapper = AsyncCursorWrapper(conn_wrapper)
-            wrapper._rows = [1, 2, 3, 4, 5, 6]
+            wrapper._rows = [1, 2, 3, 4, 5, 6, 7, 8]
             assert wrapper.fetchone() == 1
             assert wrapper.fetchmany() == [2]
-            assert wrapper.fetchmany(2) == [3, 4]
-            assert wrapper.fetchall() == [5, 6]
+            async_cursor.arraysize = 2
+            assert wrapper.fetchmany() == [3, 4]
+            async_cursor.arraysize = 1
+            assert wrapper.fetchmany(2) == [5, 6]
+            assert wrapper.fetchall() == [7, 8]
 
         await greenlet_spawn(test_cursor)
