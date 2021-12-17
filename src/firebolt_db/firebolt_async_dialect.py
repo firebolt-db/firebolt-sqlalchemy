@@ -17,7 +17,8 @@ from firebolt_db.firebolt_dialect import FireboltDialect
 class AsyncCursorWrapper:
     __slots__ = (
         "_adapt_connection",
-        "_connection" "await_",
+        "_connection",
+        "await_",
         "_cursor",
         "_rows",
     )
@@ -28,7 +29,7 @@ class AsyncCursorWrapper:
         self._adapt_connection = adapt_connection
         self._connection = adapt_connection._connection
         self.await_ = adapt_connection.await_
-        self._rows: List[Tuple] = []
+        self._rows: List[List] = []
         self._cursor = self._connection.cursor()
 
     def close(self) -> None:
@@ -60,24 +61,24 @@ class AsyncCursorWrapper:
         async with self._adapt_connection._execute_mutex:
             await self._cursor.execute(operation, parameters)
             if self._cursor.description:
-                self._rows = list(await self._cursor.fetchall())
+                self._rows = await self._cursor.fetchall()
             else:
                 self._rows = []
 
     def executemany(self, operation: str, seq_of_parameters: List[Tuple]) -> None:
         raise NotImplementedError("executemany is not supported yet")
 
-    def __iter__(self) -> Iterator[Tuple]:
+    def __iter__(self) -> Iterator[List]:
         while self._rows:
             yield self._rows.pop(0)
 
-    def fetchone(self) -> Optional[Tuple]:
+    def fetchone(self) -> Optional[List]:
         if self._rows:
             return self._rows.pop(0)
         else:
             return None
 
-    def fetchmany(self, size: int = None) -> List[Tuple]:
+    def fetchmany(self, size: int = None) -> List[List]:
         if size is None:
             size = self._cursor.arraysize
 
@@ -85,7 +86,7 @@ class AsyncCursorWrapper:
         self._rows[:] = self._rows[size:]
         return retval
 
-    def fetchall(self) -> List[Tuple]:
+    def fetchall(self) -> List[List]:
         retval = self._rows[:]
         self._rows[:] = []
         return retval
