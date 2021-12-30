@@ -5,7 +5,6 @@ from os import environ
 import nest_asyncio
 from pytest import fixture
 from sqlalchemy import create_engine
-from sqlalchemy.dialects import registry
 from sqlalchemy.engine.base import Connection, Engine
 from sqlalchemy.ext.asyncio import create_async_engine
 
@@ -49,7 +48,6 @@ def password() -> str:
 def engine(
     username: str, password: str, database_name: str, engine_name: str
 ) -> Engine:
-    registry.register("firebolt", "src.firebolt_db.firebolt_dialect", "FireboltDialect")
     return create_engine(
         f"firebolt://{username}:{password}@{database_name}/{engine_name}"
     )
@@ -72,11 +70,8 @@ def event_loop():
 def async_engine(
     username: str, password: str, database_name: str, engine_name: str
 ) -> Engine:
-    registry.register(
-        "firebolt_aio", "src.firebolt_db.firebolt_async_dialect", "AsyncFireboltDialect"
-    )
     return create_async_engine(
-        f"firebolt_aio://{username}:{password}@{database_name}/{engine_name}"
+        f"asyncio+firebolt://{username}:{password}@{database_name}/{engine_name}"
     )
 
 

@@ -44,10 +44,7 @@ export FIREBOLT_BASE_URL=<your_url>
 
 ```python
 from sqlalchemy import create_engine
-from firebolt_db.firebolt_dialect import FireboltDialect
-from sqlalchemy.dialects import registry
 
-registry.register("firebolt", "src.firebolt_db.firebolt_dialect", "FireboltDialect")
 engine = create_engine("firebolt://email@domain:password@sample_database/sample_engine")
 connection = engine.connect()
 
@@ -63,11 +60,8 @@ for item in result.fetchall():
 ```python
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import create_async_engine
-from firebolt_db.firebolt_async_dialect import AsyncFireboltDialect
-from sqlalchemy.dialects import registry
 
-registry.register("firebolt", "src.firebolt_db.firebolt_async_dialect", "AsyncFireboltDialect")
-engine = create_async_engine("firebolt://email@domain:password@sample_database/sample_engine")
+engine = create_async_engine("asyncio+firebolt://email@domain:password@sample_database/sample_engine")
 
 async with engine.connect() as conn:
 
