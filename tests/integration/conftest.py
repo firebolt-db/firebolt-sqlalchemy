@@ -12,10 +12,10 @@ nest_asyncio.apply()
 
 LOGGER = getLogger(__name__)
 
-ENGINE_NAME_ENV = "engine_name"
-DATABASE_NAME_ENV = "database_name"
-USERNAME_ENV = "username"
-PASSWORD_ENV = "password"
+ENGINE_NAME_ENV = "ENGINE_NAME"
+DATABASE_NAME_ENV = "DATABASE_NAME"
+USERNAME_ENV = "USER_NAME"
+PASSWORD_ENV = "PASSWORD"
 
 
 def must_env(var_name: str) -> str:
