@@ -68,3 +68,4 @@ jobs:
         major-release: ${{ inputs.major-release }}
         pypi-username: ${{ secrets.PYPI_USERNAME }}
         pypi-password: ${{ secrets.PYPI_PASSWORD }}
+        main-branch: "master"
