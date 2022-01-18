@@ -2,13 +2,10 @@ import asyncio
 from logging import getLogger
 from os import environ
 
-import nest_asyncio
 from pytest import fixture
 from sqlalchemy import create_engine
 from sqlalchemy.engine.base import Connection, Engine
 from sqlalchemy.ext.asyncio import create_async_engine
-
-nest_asyncio.apply()
 
 LOGGER = getLogger(__name__)
 
