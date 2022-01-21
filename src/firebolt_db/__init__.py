@@ -15,7 +15,7 @@ __all__ = [
     "Warning",
 ]
 
-
+__version__ = "0.2.0"
 apilevel = "2.0"
 # Threads may share the module and connections
 threadsafety = 1
