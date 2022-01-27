@@ -40,12 +40,21 @@ To override the API URL (e.g. for dev testing):
 export FIREBOLT_BASE_URL=<your_url>
 ```
 
+If your password contains % or / characters they need to be sanitised as per https://docs.sqlalchemy.org/en/14/core/engines.html#database-urls
+```python
+my_pass = "0920%/2"
+import urllib.parse
+new_pass = urllib.parse.quote_plus(my_pass)
+```
+
 ## Quick Start
 
 ```python
+import urllib.parse
 from sqlalchemy import create_engine
 
-engine = create_engine("firebolt://email@domain:password@sample_database/sample_engine")
+password = urllib.parse.quote_plus("your_password_here")
+engine = create_engine("firebolt://email@domain:" + password + "@sample_database/sample_engine")
 connection = engine.connect()
 
 connection.execute("CREATE FACT TABLE example(dummy int) PRIMARY INDEX dummy")
@@ -58,10 +67,12 @@ for item in result.fetchall():
 ### [AsyncIO](https://docs.sqlalchemy.org/en/14/orm/extensions/asyncio.html) extension
 
 ```python
+import urllib.parse
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import create_async_engine
 
-engine = create_async_engine("asyncio+firebolt://email@domain:password@sample_database/sample_engine")
+password = urllib.parse.quote_plus("your_password_here")
+engine = create_async_engine("asyncio+firebolt://email@domain:" + password + "@sample_database/sample_engine")
 
 async with engine.connect() as conn:
 
