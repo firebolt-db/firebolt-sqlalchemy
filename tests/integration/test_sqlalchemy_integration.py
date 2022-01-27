@@ -1,4 +1,5 @@
 import pytest
+from sqlalchemy import create_engine
 from sqlalchemy.engine.base import Connection, Engine
 from sqlalchemy.exc import OperationalError
 
@@ -16,6 +17,18 @@ class TestFireboltDialect:
         # Cleanup
         connection.execute(f"DROP TABLE {ex_table_name}")
         assert not engine.dialect.has_table(engine, ex_table_name)
+
+    def test_set_params(
+        self, username: str, password: str, database_name: str, engine_name: str
+    ):
+        engine = create_engine(
+            f"firebolt://{username}:{password}@{database_name}/{engine_name}?"
+            "advanced_mode=1&use_standard_sql=0"
+        )
+        with engine.connect() as connection:
+            result = connection.execute("SELECT sleepEachRow(1) from numbers(1)")
+            assert len(result.fetchall()) == 1
+        engine.dispose()
 
     def test_data_write(self, connection: Connection, fact_table_name: str):
         connection.execute(

@@ -87,6 +87,7 @@ class FireboltDialect(default.DefaultDialect):
     returns_unicode_strings = True
     description_encoding = None
     supports_native_boolean = True
+    _set_parameters: Dict[str, Any] = None
 
     def __init__(
         self, context: Optional[ExecutionContext] = None, *args: Any, **kwargs: Any
@@ -107,11 +108,13 @@ class FireboltDialect(default.DefaultDialect):
             "password": url.password or None,
             "engine_name": url.database,
         }
+        parameters = dict(url.query)
+        if "account_name" in parameters:
+            kwargs["account_name"] = parameters.pop("account_name")
+        self._set_parameters = parameters
         # If URL override is not provided leave it to the sdk to determine the endpoint
         if "FIREBOLT_BASE_URL" in os.environ:
             kwargs["api_endpoint"] = os.environ["FIREBOLT_BASE_URL"]
-        if "FIREBOLT_ACCOUNT" in os.environ:
-            kwargs["account_name"] = os.environ["FIREBOLT_ACCOUNT"]
         return ([], kwargs)
 
     def get_schema_names(
@@ -258,6 +261,9 @@ class FireboltDialect(default.DefaultDialect):
         **kwargs: Any
     ) -> str:
         pass
+
+    def do_execute(self, cursor, statement, parameters, context):
+        cursor.execute(statement, set_parameters=self._set_parameters)
 
     def do_rollback(self, dbapi_connection: AlchemyConnection) -> None:
         pass

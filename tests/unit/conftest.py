@@ -37,6 +37,20 @@ class MockDBApi:
         pass
 
 
+class MockCursor:
+    def execute():
+        pass
+
+    def executemany():
+        pass
+
+    def fetchall():
+        pass
+
+    def close():
+        pass
+
+
 class MockAsyncDBApi:
     class DatabaseError:
         pass
@@ -98,6 +112,11 @@ def async_dialect() -> firebolt_async_dialect.AsyncFireboltDialect:
 @fixture
 def connection() -> mock.Mock(spec=MockDBApi):
     return mock.Mock(spec=MockDBApi)
+
+
+@fixture
+def cursor() -> mock.Mock(spec=MockCursor):
+    return mock.Mock(spec=MockCursor)
 
 
 @fixture
