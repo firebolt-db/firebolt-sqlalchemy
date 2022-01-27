@@ -87,7 +87,7 @@ class FireboltDialect(default.DefaultDialect):
     returns_unicode_strings = True
     description_encoding = None
     supports_native_boolean = True
-    _set_parameters: Dict[str, Any] = None
+    _set_parameters: Optional[Dict[str, Any]] = None
 
     def __init__(
         self, context: Optional[ExecutionContext] = None, *args: Any, **kwargs: Any
