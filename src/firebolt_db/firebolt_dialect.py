@@ -4,6 +4,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 
 import firebolt.db as dbapi
 import sqlalchemy.types as sqltypes
+from firebolt.db import Cursor
 from sqlalchemy.engine import Connection as AlchemyConnection
 from sqlalchemy.engine import ExecutionContext, default
 from sqlalchemy.engine.url import URL
@@ -264,11 +265,11 @@ class FireboltDialect(default.DefaultDialect):
 
     def do_execute(
         self,
-        cursor: dbapi.Cursor,
+        cursor: Cursor,
         statement: str,
         parameters: Tuple[str, Any],
-        context: ExecutionContext,
-    ):
+        context: Optional[ExecutionContext] = None,
+    ) -> None:
         cursor.execute(statement, set_parameters=self._set_parameters)
 
     def do_rollback(self, dbapi_connection: AlchemyConnection) -> None:

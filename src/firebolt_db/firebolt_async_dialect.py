@@ -8,8 +8,9 @@ import firebolt.async_db as async_dbapi
 from firebolt.async_db import Connection
 
 # Ignoring type since sqlalchemy-stubs doesn't cover AdaptedConnection
+# and util.concurrency
 from sqlalchemy.engine import AdaptedConnection  # type: ignore[attr-defined]
-from sqlalchemy.util.concurrency import await_only
+from sqlalchemy.util.concurrency import await_only  # type: ignore[import]
 
 from firebolt_db.firebolt_dialect import FireboltDialect
 
