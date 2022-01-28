@@ -2,7 +2,7 @@ import os
 from unittest import mock
 
 import sqlalchemy
-from conftest import MockDBApi
+from conftest import MockCursor, MockDBApi
 from sqlalchemy.engine import url
 from sqlalchemy.sql import text
 
@@ -47,6 +47,25 @@ class TestFireboltDialect:
             result_list, result_dict = dialect.create_connect_args(u)
             assert "api_endpoint" not in result_dict
             assert result_list == []
+
+    def test_create_connect_args_set_params(self, dialect: FireboltDialect):
+        connection_url = (
+            "test_engine://test_user@email:test_password@test_db_name/test_engine_name"
+            "?account_name=FB&param1=1&param2=2"
+        )
+        u = url.make_url(connection_url)
+        result_list, result_dict = dialect.create_connect_args(u)
+        assert (
+            "account_name" in result_dict
+        ), "account_name was not parsed correctly from connection string"
+        assert dialect._set_parameters == {"param1": "1", "param2": "2"}
+
+    def test_do_execute(
+        self, dialect: FireboltDialect, cursor: mock.Mock(spec=MockCursor)
+    ):
+        dialect._set_parameters = {"a": "b"}
+        dialect.do_execute(cursor, "SELECT *", None, None)
+        cursor.execute.assert_called_once_with("SELECT *", set_parameters={"a": "b"})
 
     def test_schema_names(
         self, dialect: FireboltDialect, connection: mock.Mock(spec=MockDBApi)

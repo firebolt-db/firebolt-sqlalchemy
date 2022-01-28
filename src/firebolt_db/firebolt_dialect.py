@@ -4,6 +4,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 
 import firebolt.db as dbapi
 import sqlalchemy.types as sqltypes
+from firebolt.db import Cursor
 from sqlalchemy.engine import Connection as AlchemyConnection
 from sqlalchemy.engine import ExecutionContext, default
 from sqlalchemy.engine.url import URL
@@ -87,6 +88,7 @@ class FireboltDialect(default.DefaultDialect):
     returns_unicode_strings = True
     description_encoding = None
     supports_native_boolean = True
+    _set_parameters: Optional[Dict[str, Any]] = None
 
     def __init__(
         self, context: Optional[ExecutionContext] = None, *args: Any, **kwargs: Any
@@ -107,6 +109,10 @@ class FireboltDialect(default.DefaultDialect):
             "password": url.password or None,
             "engine_name": url.database,
         }
+        parameters = dict(url.query)
+        if "account_name" in parameters:
+            kwargs["account_name"] = parameters.pop("account_name")
+        self._set_parameters = parameters
         # If URL override is not provided leave it to the sdk to determine the endpoint
         if "FIREBOLT_BASE_URL" in os.environ:
             kwargs["api_endpoint"] = os.environ["FIREBOLT_BASE_URL"]
@@ -256,6 +262,15 @@ class FireboltDialect(default.DefaultDialect):
         **kwargs: Any
     ) -> str:
         pass
+
+    def do_execute(
+        self,
+        cursor: Cursor,
+        statement: str,
+        parameters: Tuple[str, Any],
+        context: Optional[ExecutionContext] = None,
+    ) -> None:
+        cursor.execute(statement, set_parameters=self._set_parameters)
 
     def do_rollback(self, dbapi_connection: AlchemyConnection) -> None:
         pass
