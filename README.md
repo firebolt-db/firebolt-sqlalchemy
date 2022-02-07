@@ -26,6 +26,7 @@ firebolt://{username}:{password}@{database}[/{engine_name}][?account_name={name}
 ```
 
 `engine_name` is optional. If omitted, Firebolt will use the default engine for the database.
+
 `account_name` is optional. If omitted a default account will be used for connection.
 
 Examples:
