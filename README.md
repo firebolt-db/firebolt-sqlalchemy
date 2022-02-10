@@ -22,16 +22,24 @@ pip install firebolt-sqlalchemy
 Connection strings use the following structure:
 
 ```
-firebolt://{username}:{password}@{database}[/{engine_name}]
+firebolt://{username}:{password}@{database}[/{engine_name}][?account_name={name}}]
 ```
 
 `engine_name` is optional. If omitted, Firebolt will use the default engine for the database.
+
+`account_name` is optional. If omitted a default account will be used for connection.
 
 Examples:
 
 ```
 firebolt://email@domain:password@sample_database
 firebolt://email@domain:password@sample_database/sample_engine
+```
+
+If a different account name is required, it can be specified in the connection string
+
+```
+firebolt://email@domain:password@sample_database/sample_engine?account_name=my_account
 ```
 
 To override the API URL (e.g. for dev testing):
