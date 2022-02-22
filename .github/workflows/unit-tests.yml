@@ -26,7 +26,7 @@ jobs:
 
     - name: Run unit tests
       run: |
-        pytest --cov=./src/ tests/unit --cov-report=xml
+        pytest --cov=src/ tests/unit --cov-report=xml
     
     - name: Upload coverage report
       uses: actions/upload-artifact@v2
