@@ -2,6 +2,11 @@ name: Firebolt Security Scan
 
 on:
   workflow_call:
+    secrets:
+      FOSSA_TOKEN:
+        required: true
+      SONARCLOUD_TOKEN:
+        required: true
 
 jobs:
   security-scan:
