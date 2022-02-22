@@ -1,7 +1,7 @@
 name: Firebolt Security Scan
 
 on:
-  workflow_dispatch:
+  workflow_call:
 
 jobs:
   security-scan:
