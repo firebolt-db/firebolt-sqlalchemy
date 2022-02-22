@@ -1,0 +1,30 @@
+# This workflow will install Python dependencies, run pre-commit checks, and run tests with a single version of Python
+# For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
+
+name: CI verify
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  check-title:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Check title name convention
+        uses: jef/conventional-commits-pr-action@v1.0.0
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+  code-check:
+    uses: firebolt-db/firebolt-python-sdk/.github/workflows/code-check.yml@ci-fix-branch
+  unit-tests:
+    uses: firebolt-db/firebolt-python-sdk/.github/workflows/unit-tests.yml@ci-fix-branch
+  security-scan:
+    needs: [unit-tests]
+    uses: firebolt-db/firebolt-python-sdk/.github/workflows/security-scan.yml@ci-fix-branch
+    secrets:
+      FOSSA_TOKEN: ${{ secrets.FOSSA_TOKEN }}
+      SONARCLOUD_TOKEN: ${{ secrets.SONARCLOUD_TOKEN }}
