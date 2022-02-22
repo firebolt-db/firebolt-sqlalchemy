@@ -19,12 +19,12 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
   code-check:
-    uses: firebolt-db/firebolt-python-sdk/.github/workflows/code-check.yml@ci-fix-branch
+    uses: .github/workflows/code-check.yml@ci-fix-branch
   unit-tests:
-    uses: firebolt-db/firebolt-python-sdk/.github/workflows/unit-tests.yml@ci-fix-branch
+    uses: .github/workflows/unit-tests.yml@ci-fix-branch
   security-scan:
     needs: [unit-tests]
-    uses: firebolt-db/firebolt-python-sdk/.github/workflows/security-scan.yml@ci-fix-branch
+    uses: .github/workflows/security-scan.yml@ci-fix-branch
     secrets:
       FOSSA_TOKEN: ${{ secrets.FOSSA_TOKEN }}
       SONARCLOUD_TOKEN: ${{ secrets.SONARCLOUD_TOKEN }}
