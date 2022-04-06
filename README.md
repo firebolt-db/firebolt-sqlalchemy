@@ -4,6 +4,14 @@
 
 # firebolt-sqlalchemy
 
+[![Unit tests](https://github.com/firebolt-db/firebolt-sqlalchemy/actions/workflows/unit-tests.yml/badge.svg)](https://github.com/firebolt-db/firebolt-sqlalchemy/actions/workflows/unit-tests.yml)
+[![Code quality checks](https://github.com/firebolt-db/firebolt-sqlalchemy/actions/workflows/code-check.yml/badge.svg)](https://github.com/firebolt-db/firebolt-sqlalchemy/actions/workflows/code-check.yml)
+[![Firebolt Security Scan](https://github.com/firebolt-db/firebolt-sqlalchemy/actions/workflows/security-scan.yml/badge.svg)](https://github.com/firebolt-db/firebolt-sqlalchemy/actions/workflows/security-scan.yml)
+[![Integration tests](https://github.com/firebolt-db/firebolt-sqlalchemy/actions/workflows/python-integration-tests.yml/badge.svg)](https://github.com/firebolt-db/firebolt-sqlalchemy/actions/workflows/python-integration-tests.yml)
+![Coverage](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/ptiurin/64f31d124b7249319234d247ade4a7db/raw/firebolt-sqlalchemy-coverage.json)
+
+
+
 The [Firebolt](https://www.firebolt.io/) dialect for [SQLAlchemy](https://www.sqlalchemy.org/). `firebolt-sqlalchemy` uses [Firebolt's Python SDK](https://github.com/firebolt-db/firebolt-python-sdk) which implements [PEP 249](https://www.python.org/dev/peps/pep-0249/).
 
 * [SQLAlchemy Dialects](https://docs.sqlalchemy.org/en/14/dialects/index.html)
