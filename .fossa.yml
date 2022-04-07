@@ -1,9 +1,5 @@
 version: 3
 
-project:
-  id: git+github.com/firebolt-db/firebolt-sqlalchemy
-  name: firebolt-sqlalchemy
-
 targets:
   only:
     - type: pipenv
