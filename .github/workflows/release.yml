@@ -68,5 +68,5 @@ jobs:
         major-release: ${{ inputs.major-release }}
         pypi-username: ${{ secrets.PYPI_USERNAME }}
         pypi-password: ${{ secrets.PYPI_PASSWORD }}
-        main-branch: "master"
+        main-branch: "main"
         version-file-path: "src/firebolt_db/__init__.py"
