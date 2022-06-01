@@ -64,6 +64,11 @@ class TestFireboltDialect:
         self, dialect: FireboltDialect, cursor: mock.Mock(spec=MockCursor)
     ):
         dialect._set_parameters = {"a": "b"}
+        dialect.do_execute(cursor, "SELECT *", None)
+        cursor.execute.assert_called_once_with(
+            "SELECT *", parameters=None, set_parameters={"a": "b"}
+        )
+        cursor.execute.reset_mock()
         dialect.do_execute(cursor, "SELECT *", (1, 22), None)
         cursor.execute.assert_called_once_with(
             "SELECT *", parameters=(1, 22), set_parameters={"a": "b"}
@@ -136,8 +141,8 @@ class TestFireboltDialect:
             return mock.Mock(__getitem__=getitem)
 
         connection.execute.return_value = [
-            multi_column_row(["name1", "INT", "YES"]),
-            multi_column_row(["name2", "date", "no"]),
+            multi_column_row(["name1", "INT", 1]),
+            multi_column_row(["name2", "date", 0]),
         ]
 
         expected_query = """
@@ -223,11 +228,8 @@ class TestFireboltDialect:
 
 
 def test_get_is_nullable():
-    assert firebolt_db.firebolt_dialect.get_is_nullable("YES")
-    assert firebolt_db.firebolt_dialect.get_is_nullable("yes")
-    assert not firebolt_db.firebolt_dialect.get_is_nullable("NO")
-    assert not firebolt_db.firebolt_dialect.get_is_nullable("no")
-    assert not firebolt_db.firebolt_dialect.get_is_nullable("ABC")
+    assert firebolt_db.firebolt_dialect.get_is_nullable(1)
+    assert not firebolt_db.firebolt_dialect.get_is_nullable(0)
 
 
 def test_types():

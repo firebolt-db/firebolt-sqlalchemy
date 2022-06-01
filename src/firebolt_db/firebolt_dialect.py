@@ -302,5 +302,5 @@ class FireboltDialect(default.DefaultDialect):
 dialect = FireboltDialect
 
 
-def get_is_nullable(column_is_nullable: str) -> bool:
-    return column_is_nullable.lower() == "yes"
+def get_is_nullable(column_is_nullable: int) -> bool:
+    return column_is_nullable == 1

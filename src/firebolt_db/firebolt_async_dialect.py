@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from asyncio import Lock
 from types import ModuleType
-from typing import Any, Iterator, List, Optional, Tuple
+from typing import Any, Dict, Iterator, List, Optional, Tuple
 
 import firebolt.async_db as async_dbapi
 from firebolt.async_db import Connection
@@ -53,14 +53,24 @@ class AsyncCursorWrapper:
     def rowcount(self) -> int:
         return self._cursor.rowcount
 
-    def execute(self, operation: str, parameters: Optional[Tuple] = None) -> None:
-        self.await_(self._execute(operation, parameters))
+    def execute(
+        self,
+        operation: str,
+        parameters: Optional[Tuple] = None,
+        set_parameters: Optional[Dict] = None,
+    ) -> None:
+        self.await_(self._execute(operation, parameters, set_parameters=set_parameters))
 
     async def _execute(
-        self, operation: str, parameters: Optional[Tuple] = None
+        self,
+        operation: str,
+        parameters: Optional[Tuple] = None,
+        set_parameters: Optional[Dict] = None,
     ) -> None:
         async with self._adapt_connection._execute_mutex:
-            await self._cursor.execute(operation, parameters)
+            await self._cursor.execute(
+                operation, parameters, set_parameters=set_parameters
+            )
             if self._cursor.description:
                 self._rows = await self._cursor.fetchall()
             else:
