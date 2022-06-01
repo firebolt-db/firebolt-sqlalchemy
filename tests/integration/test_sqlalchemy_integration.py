@@ -34,7 +34,9 @@ class TestFireboltDialect:
         connection.execute(
             f"INSERT INTO {fact_table_name}(idx, dummy) VALUES (1, 'some_text')"
         )
-        result = connection.execute(f"SELECT * FROM {fact_table_name}")
+        result = connection.execute(
+            f"SELECT * FROM {fact_table_name} WHERE dummy=?", (1,)
+        )
         assert len(result.fetchall()) == 1
         # Update not supported
         with pytest.raises(OperationalError):

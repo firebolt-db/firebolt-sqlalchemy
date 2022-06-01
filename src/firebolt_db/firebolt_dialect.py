@@ -270,7 +270,9 @@ class FireboltDialect(default.DefaultDialect):
         parameters: Tuple[str, Any],
         context: Optional[ExecutionContext] = None,
     ) -> None:
-        cursor.execute(statement, set_parameters=self._set_parameters)
+        cursor.execute(
+            statement, parameters=parameters, set_parameters=self._set_parameters
+        )
 
     def do_rollback(self, dbapi_connection: AlchemyConnection) -> None:
         pass

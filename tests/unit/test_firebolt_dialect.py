@@ -64,8 +64,10 @@ class TestFireboltDialect:
         self, dialect: FireboltDialect, cursor: mock.Mock(spec=MockCursor)
     ):
         dialect._set_parameters = {"a": "b"}
-        dialect.do_execute(cursor, "SELECT *", None, None)
-        cursor.execute.assert_called_once_with("SELECT *", set_parameters={"a": "b"})
+        dialect.do_execute(cursor, "SELECT *", (1, 22), None)
+        cursor.execute.assert_called_once_with(
+            "SELECT *", parameters=(1, 22), set_parameters={"a": "b"}
+        )
 
     def test_schema_names(
         self, dialect: FireboltDialect, connection: mock.Mock(spec=MockDBApi)
