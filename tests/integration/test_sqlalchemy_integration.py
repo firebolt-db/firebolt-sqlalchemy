@@ -34,6 +34,8 @@ class TestFireboltDialect:
         connection.execute(
             f"INSERT INTO {fact_table_name}(idx, dummy) VALUES (1, 'some_text')"
         )
+        result = connection.execute(f"SELECT * FROM {fact_table_name} WHERE idx=?", 1)
+        assert result.fetchall() == [(1, "some_text")]
         result = connection.execute(f"SELECT * FROM {fact_table_name}")
         assert len(result.fetchall()) == 1
         # Update not supported
