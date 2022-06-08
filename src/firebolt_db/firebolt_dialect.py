@@ -1,4 +1,5 @@
 import os
+from distutils.util import strtobool
 from types import ModuleType
 from typing import Any, Dict, List, Optional, Tuple, Union
 
@@ -112,6 +113,12 @@ class FireboltDialect(default.DefaultDialect):
         parameters = dict(url.query)
         if "account_name" in parameters:
             kwargs["account_name"] = parameters.pop("account_name")
+        if "use_token_cache" in parameters:
+            # parameters are all passed as a string, we need to convert it
+            # to boolean for SDK compatibility
+            kwargs["use_token_cache"] = bool(
+                strtobool(parameters.pop("use_token_cache"))
+            )
         self._set_parameters = parameters
         # If URL override is not provided leave it to the sdk to determine the endpoint
         if "FIREBOLT_BASE_URL" in os.environ:
