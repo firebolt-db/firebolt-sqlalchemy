@@ -3,6 +3,7 @@ from unittest import mock
 
 import sqlalchemy
 from conftest import MockCursor, MockDBApi
+from pytest import mark
 from sqlalchemy.engine import url
 from sqlalchemy.sql import text
 
@@ -46,6 +47,7 @@ class TestFireboltDialect:
         with mock.patch.dict(os.environ, {}, clear=True):
             result_list, result_dict = dialect.create_connect_args(u)
             assert "api_endpoint" not in result_dict
+            assert "use_token_cache" not in result_dict
             assert result_list == []
 
     def test_create_connect_args_set_params(self, dialect: FireboltDialect):
@@ -58,6 +60,24 @@ class TestFireboltDialect:
         assert (
             "account_name" in result_dict
         ), "account_name was not parsed correctly from connection string"
+        assert dialect._set_parameters == {"param1": "1", "param2": "2"}
+
+    @mark.parametrize(
+        "token,expected", [("false", False), ("0", False), ("true", True)]
+    )
+    def test_create_connect_args_token_cache(
+        self, token, expected, dialect: FireboltDialect
+    ):
+        connection_url = (
+            "test_engine://test_user@email:test_password@test_db_name/test_engine_name"
+            f"?use_token_cache={token}&param1=1&param2=2"
+        )
+        u = url.make_url(connection_url)
+        result_list, result_dict = dialect.create_connect_args(u)
+        assert (
+            "use_token_cache" in result_dict
+        ), "use_token_cache was not parsed correctly from connection string"
+        assert result_dict["use_token_cache"] == expected
         assert dialect._set_parameters == {"param1": "1", "param2": "2"}
 
     def test_do_execute(
