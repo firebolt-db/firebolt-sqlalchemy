@@ -38,10 +38,13 @@ class TestFireboltDialect:
         with mock.patch.dict(os.environ, {"FIREBOLT_BASE_URL": "test_url"}):
             result_list, result_dict = dialect.create_connect_args(u)
             assert result_dict["engine_name"] == "test_engine_name"
-            assert result_dict["username"] == "test_user@email"
-            assert result_dict["password"] == "test_password"
+            assert result_dict["auth"].username == "test_user@email"
+            assert result_dict["auth"].password == "test_password"
+            assert result_dict["auth"]._use_token_cache is True
             assert result_dict["database"] == "test_db_name"
             assert result_dict["api_endpoint"] == "test_url"
+            assert "username" not in result_dict
+            assert "password" not in result_dict
             assert result_list == []
         # No endpoint override
         with mock.patch.dict(os.environ, {}, clear=True):
@@ -74,10 +77,9 @@ class TestFireboltDialect:
         )
         u = url.make_url(connection_url)
         result_list, result_dict = dialect.create_connect_args(u)
-        assert (
-            "use_token_cache" in result_dict
-        ), "use_token_cache was not parsed correctly from connection string"
-        assert result_dict["use_token_cache"] == expected
+        assert result_dict["auth"].username == "test_user@email"
+        assert result_dict["auth"].password == "test_password"
+        assert result_dict["auth"]._use_token_cache == expected
         assert dialect._set_parameters == {"param1": "1", "param2": "2"}
 
     def test_do_execute(

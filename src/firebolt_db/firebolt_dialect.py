@@ -5,6 +5,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 
 import firebolt.db as dbapi
 import sqlalchemy.types as sqltypes
+from firebolt.client.auth import UsernamePassword
 from firebolt.db import Cursor
 from sqlalchemy.engine import Connection as AlchemyConnection
 from sqlalchemy.engine import ExecutionContext, default
@@ -101,24 +102,23 @@ class FireboltDialect(default.DefaultDialect):
     def dbapi(cls) -> ModuleType:
         return dbapi
 
-    # Build firebolt-sdk compatible connection arguments.
-    # URL format : firebolt://username:password@host:port/db_name
     def create_connect_args(self, url: URL) -> Tuple[List, Dict]:
+        """
+        Build firebolt-sdk compatible connection arguments.
+        URL format : firebolt://username:password@host:port/db_name
+        """
+        parameters = dict(url.query)
+        # parameters are all passed as a string, we need to convert
+        # bool flag to boolean for SDK compatibility
+        token_cache_flag = bool(strtobool(parameters.pop("use_token_cache", "True")))
+        auth = UsernamePassword(url.username, url.password, token_cache_flag)
         kwargs = {
             "database": url.host or None,
-            "username": url.username or None,
-            "password": url.password or None,
+            "auth": auth,
             "engine_name": url.database,
         }
-        parameters = dict(url.query)
         if "account_name" in parameters:
             kwargs["account_name"] = parameters.pop("account_name")
-        if "use_token_cache" in parameters:
-            # parameters are all passed as a string, we need to convert it
-            # to boolean for SDK compatibility
-            kwargs["use_token_cache"] = bool(
-                strtobool(parameters.pop("use_token_cache"))
-            )
         self._set_parameters = parameters
         # If URL override is not provided leave it to the sdk to determine the endpoint
         if "FIREBOLT_BASE_URL" in os.environ:
