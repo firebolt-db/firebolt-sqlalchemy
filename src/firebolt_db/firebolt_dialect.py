@@ -111,10 +111,9 @@ class FireboltDialect(default.DefaultDialect):
         # parameters are all passed as a string, we need to convert
         # bool flag to boolean for SDK compatibility
         token_cache_flag = bool(strtobool(parameters.pop("use_token_cache", "True")))
-        auth = UsernamePassword(url.username, url.password, token_cache_flag)
         kwargs = {
             "database": url.host or None,
-            "auth": auth,
+            "auth": UsernamePassword(url.username, url.password, token_cache_flag),
             "engine_name": url.database,
         }
         if "account_name" in parameters:
