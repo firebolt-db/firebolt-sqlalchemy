@@ -122,6 +122,15 @@ class FireboltDialect(default.DefaultDialect):
         # If URL override is not provided leave it to the sdk to determine the endpoint
         if "FIREBOLT_BASE_URL" in os.environ:
             kwargs["api_endpoint"] = os.environ["FIREBOLT_BASE_URL"]
+        # Tracking information
+        if "user_clients" in parameters or "user_drivers" in parameters:
+            kwargs["additional_parameters"] = {}
+            kwargs["additional_parameters"]["user_drivers"] = parameters.pop(
+                "user_drivers", []
+            )
+            kwargs["additional_parameters"]["user_clients"] = parameters.pop(
+                "user_clients", []
+            )
         return ([], kwargs)
 
     def get_schema_names(
