@@ -51,18 +51,16 @@ class TestFireboltDialect:
         results = engine.dialect.get_schema_names(engine)
         assert database_name in results
 
-    def test_has_table(self, engine: Engine, database_name: str, fact_table_name: str):
-        results = engine.dialect.has_table(engine, fact_table_name, database_name)
+    def test_has_table(self, engine: Engine, fact_table_name: str):
+        results = engine.dialect.has_table(engine, fact_table_name)
         assert results == 1
 
-    def test_get_table_names(self, engine: Engine, database_name: str):
-        results = engine.dialect.get_table_names(engine, database_name)
+    def test_get_table_names(self, engine: Engine):
+        results = engine.dialect.get_table_names(engine)
         assert len(results) > 0
 
-    def test_get_columns(
-        self, engine: Engine, database_name: str, fact_table_name: str
-    ):
-        results = engine.dialect.get_columns(engine, fact_table_name, database_name)
+    def test_get_columns(self, engine: Engine, fact_table_name: str):
+        results = engine.dialect.get_columns(engine, fact_table_name)
         assert len(results) > 0
         row = results[0]
         assert isinstance(row, dict)
