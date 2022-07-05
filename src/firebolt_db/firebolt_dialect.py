@@ -5,7 +5,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 
 import firebolt.db as dbapi
 import sqlalchemy.types as sqltypes
-from firebolt.client.auth import UsernamePassword
+from firebolt.client.auth import Auth, UsernamePassword
 from firebolt.db import Cursor
 from sqlalchemy.engine import Connection as AlchemyConnection
 from sqlalchemy.engine import ExecutionContext, default
@@ -111,17 +111,24 @@ class FireboltDialect(default.DefaultDialect):
         # parameters are all passed as a string, we need to convert
         # bool flag to boolean for SDK compatibility
         token_cache_flag = bool(strtobool(parameters.pop("use_token_cache", "True")))
-        kwargs = {
+        kwargs: Dict[str, Union[str, Auth, Dict[str, Any], None]] = {
             "database": url.host or None,
             "auth": UsernamePassword(url.username, url.password, token_cache_flag),
             "engine_name": url.database,
+            "additional_parameters": {},
         }
+        additional_parameters = {}
         if "account_name" in parameters:
             kwargs["account_name"] = parameters.pop("account_name")
         self._set_parameters = parameters
         # If URL override is not provided leave it to the sdk to determine the endpoint
         if "FIREBOLT_BASE_URL" in os.environ:
             kwargs["api_endpoint"] = os.environ["FIREBOLT_BASE_URL"]
+        # Tracking information
+        if "user_clients" in parameters or "user_drivers" in parameters:
+            additional_parameters["user_drivers"] = parameters.pop("user_drivers", [])
+            additional_parameters["user_clients"] = parameters.pop("user_clients", [])
+        kwargs["additional_parameters"] = additional_parameters
         return ([], kwargs)
 
     def get_schema_names(

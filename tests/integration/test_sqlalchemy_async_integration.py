@@ -51,23 +51,21 @@ class TestAsyncFireboltDialect:
             )
 
     @pytest.mark.asyncio
-    async def test_get_table_names(
-        self, async_connection: Connection, database_name: str
-    ):
+    async def test_get_table_names(self, async_connection: Connection):
         def get_table_names(conn: Connection) -> bool:
             inspector = inspect(conn)
-            return inspector.get_table_names(database_name)
+            return inspector.get_table_names()
 
         results = await async_connection.run_sync(get_table_names)
         assert len(results) > 0
 
     @pytest.mark.asyncio
     async def test_get_columns(
-        self, async_connection: Connection, database_name: str, fact_table_name: str
+        self, async_connection: Connection, fact_table_name: str
     ):
         def get_columns(conn: Connection) -> List[Dict]:
             inspector = inspect(conn)
-            return inspector.get_columns(fact_table_name, database_name)
+            return inspector.get_columns(fact_table_name)
 
         results = await async_connection.run_sync(get_columns)
         assert len(results) > 0

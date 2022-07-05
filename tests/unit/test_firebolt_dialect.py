@@ -65,6 +65,23 @@ class TestFireboltDialect:
         ), "account_name was not parsed correctly from connection string"
         assert dialect._set_parameters == {"param1": "1", "param2": "2"}
 
+    def test_create_connect_args_driver_override(self, dialect: FireboltDialect):
+        connection_url = (
+            "test_engine://test_user@email:test_password@test_db_name/test_engine_name"
+            "?user_drivers=DriverA:1.0.2&user_clients=ClientB:2.0.9"
+        )
+        u = url.make_url(connection_url)
+        result_list, result_dict = dialect.create_connect_args(u)
+        assert (
+            "additional_parameters" in result_dict
+        ), "additional_parameters were not parsed correctly from connection string"
+        assert (
+            result_dict["additional_parameters"].get("user_drivers") == "DriverA:1.0.2"
+        )
+        assert (
+            result_dict["additional_parameters"].get("user_clients") == "ClientB:2.0.9"
+        )
+
     @mark.parametrize(
         "token,expected", [("false", False), ("0", False), ("true", True)]
     )
