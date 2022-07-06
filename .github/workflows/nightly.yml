@@ -1,6 +1,7 @@
 name: Nightly code check
 on:
   workflow_dispatch:
+  push:
   schedule:
     - cron: '0 3 * * *' # 3 am UTC every day
 jobs:
