@@ -60,6 +60,8 @@ class TestFireboltDialect:
         assert len(results) > 0
         results = engine.dialect.get_table_names(engine, "public")
         assert len(results) > 0
+        results = engine.dialect.get_table_names(engine, "non_existing_schema")
+        assert len(results) == 0
 
     def test_get_columns(self, engine: Engine, fact_table_name: str):
         results = engine.dialect.get_columns(engine, fact_table_name)
