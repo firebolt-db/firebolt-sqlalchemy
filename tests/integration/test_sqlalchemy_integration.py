@@ -49,7 +49,7 @@ class TestFireboltDialect:
 
     def test_get_schema_names(self, engine: Engine, database_name: str):
         results = engine.dialect.get_schema_names(engine)
-        assert database_name in results
+        assert "public" in results
 
     def test_has_table(self, engine: Engine, fact_table_name: str):
         results = engine.dialect.has_table(engine, fact_table_name)
@@ -58,6 +58,10 @@ class TestFireboltDialect:
     def test_get_table_names(self, engine: Engine):
         results = engine.dialect.get_table_names(engine)
         assert len(results) > 0
+        results = engine.dialect.get_table_names(engine, "public")
+        assert len(results) > 0
+        results = engine.dialect.get_table_names(engine, "non_existing_schema")
+        assert len(results) == 0
 
     def test_get_columns(self, engine: Engine, fact_table_name: str):
         results = engine.dialect.get_columns(engine, fact_table_name)

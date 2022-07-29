@@ -116,19 +116,8 @@ class TestFireboltDialect:
     def test_schema_names(
         self, dialect: FireboltDialect, connection: mock.Mock(spec=MockDBApi)
     ):
-        def row_with_schema(name):
-            return mock.Mock(schema_name=name)
-
-        connection.execute.return_value = [
-            row_with_schema("schema1"),
-            row_with_schema("schema2"),
-        ]
         result = dialect.get_schema_names(connection)
-        assert result == ["schema1", "schema2"]
-        connection.execute.assert_called_once()
-        assert str(connection.execute.call_args[0][0].compile()) == str(
-            text("select schema_name from information_schema.databases").compile()
-        )
+        assert result == ["public"]
 
     def test_table_names(
         self, dialect: FireboltDialect, connection: mock.Mock(spec=MockDBApi)

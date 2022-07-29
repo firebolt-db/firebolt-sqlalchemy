@@ -134,9 +134,9 @@ class FireboltDialect(default.DefaultDialect):
     def get_schema_names(
         self, connection: AlchemyConnection, **kwargs: Any
     ) -> List[str]:
-        query = "select schema_name from information_schema.databases"
-        result = connection.execute(text(query))
-        return [row.schema_name for row in result]
+        # There's no support for schemas in Firebolt at the moment
+        # Public is used as a placeholder in many system tables.
+        return ["public"]
 
     def has_table(
         self,
