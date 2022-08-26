@@ -102,6 +102,14 @@ class AsyncCursorWrapper:
         self._rows[:] = []
         return retval
 
+    @property
+    def _set_parameters(self) -> Dict[str, Any]:
+        return self._cursor._set_parameters
+
+    @_set_parameters.setter
+    def _set_parameters(self, value: Dict[str, Any]) -> None:
+        self._cursor._set_parameters = value
+
 
 class AsyncConnectionWrapper(AdaptedConnection):
     await_ = staticmethod(await_only)
