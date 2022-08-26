@@ -51,6 +51,17 @@ class TestAsyncFireboltDialect:
             )
 
     @pytest.mark.asyncio
+    async def test_set_params(self, async_connection: Engine):
+        await async_connection.execute(text(f"SET advanced_mode=1"))
+        await async_connection.execute(text(f"SET use_standard_sql=0"))
+        result = await async_connection.execute(
+            text(f"SELECT sleepEachRow(1) from numbers(1)")
+        )
+        assert len(result.fetchall()) == 1
+        await async_connection.execute(text(f"SET use_standard_sql=1"))
+        await async_connection.execute(text(f"SET advanced_mode=0"))
+
+    @pytest.mark.asyncio
     async def test_get_table_names(self, async_connection: Connection):
         def get_table_names(conn: Connection) -> bool:
             inspector = inspect(conn)
