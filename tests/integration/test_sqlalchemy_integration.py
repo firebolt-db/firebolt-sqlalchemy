@@ -22,10 +22,11 @@ class TestFireboltDialect:
         self, username: str, password: str, database_name: str, engine_name: str
     ):
         engine = create_engine(
-            f"firebolt://{username}:{password}@{database_name}/{engine_name}?"
-            "advanced_mode=1&use_standard_sql=0"
+            f"firebolt://{username}:{password}@{database_name}/{engine_name}"
         )
         with engine.connect() as connection:
+            connection.execute("SET advanced_mode=1")
+            connection.execute("SET use_standard_sql=0")
             result = connection.execute("SELECT sleepEachRow(1) from numbers(1)")
             assert len(result.fetchall()) == 1
         engine.dispose()

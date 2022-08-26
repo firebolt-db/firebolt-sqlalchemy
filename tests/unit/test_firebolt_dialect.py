@@ -104,14 +104,13 @@ class TestFireboltDialect:
     ):
         dialect._set_parameters = {"a": "b"}
         dialect.do_execute(cursor, "SELECT *", None)
-        cursor.execute.assert_called_once_with(
-            "SELECT *", parameters=None, set_parameters={"a": "b"}
-        )
+        cursor.execute.assert_called_once_with("SELECT *", parameters=None)
+        assert cursor._set_parameters == {"a": "b"}, "Set parameters were not set"
+        cursor._set_parameters = {}
         cursor.execute.reset_mock()
         dialect.do_execute(cursor, "SELECT *", (1, 22), None)
-        cursor.execute.assert_called_once_with(
-            "SELECT *", parameters=(1, 22), set_parameters={"a": "b"}
-        )
+        cursor.execute.assert_called_once_with("SELECT *", parameters=(1, 22))
+        assert cursor._set_parameters == {"a": "b"}, "Set parameters were not set"
 
     def test_schema_names(
         self, dialect: FireboltDialect, connection: mock.Mock(spec=MockDBApi)
