@@ -90,7 +90,7 @@ class FireboltDialect(default.DefaultDialect):
     returns_unicode_strings = True
     description_encoding = None
     supports_native_boolean = True
-    _set_parameters: Optional[Dict[str, Any]] = None
+    _set_parameters: Dict[str, Any] = dict()
 
     def __init__(
         self, context: Optional[ExecutionContext] = None, *args: Any, **kwargs: Any
@@ -283,9 +283,10 @@ class FireboltDialect(default.DefaultDialect):
         parameters: Tuple[str, Any],
         context: Optional[ExecutionContext] = None,
     ) -> None:
-        cursor.execute(
-            statement, parameters=parameters, set_parameters=self._set_parameters
-        )
+        cursor._set_parameters = self._set_parameters
+        cursor.execute(statement, parameters=parameters)
+        # Persist set parameters across calls
+        self._set_parameters = cursor._set_parameters
 
     def do_rollback(self, dbapi_connection: AlchemyConnection) -> None:
         pass
