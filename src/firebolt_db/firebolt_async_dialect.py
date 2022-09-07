@@ -66,9 +66,7 @@ class AsyncCursorWrapper:
         parameters: Optional[Tuple] = None,
     ) -> None:
         async with self._adapt_connection._execute_mutex:
-            await self._cursor.execute(
-                operation, parameters
-            )
+            await self._cursor.execute(operation, parameters)
             if self._cursor.description:
                 self._rows = await self._cursor.fetchall()
             else:
