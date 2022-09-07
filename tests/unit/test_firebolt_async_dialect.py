@@ -80,7 +80,7 @@ class TestAsyncFireboltDialect:
         assert wrapper.description == "dummy"
         assert wrapper.rowcount == -1
         async_cursor.execute.assert_awaited_once_with(
-            "INSERT INTO test(a, b) VALUES (?, ?)", [(1, "a")], set_parameters=None
+            "INSERT INTO test(a, b) VALUES (?, ?)", [(1, "a")]
         )
         async_cursor.fetchall.assert_awaited_once()
 
@@ -105,7 +105,7 @@ class TestAsyncFireboltDialect:
         assert wrapper.description is None
         assert wrapper.rowcount == 100
         async_cursor.execute.assert_awaited_once_with(
-            "INSERT INTO test(a, b) VALUES (?, ?)", [(1, "a")], set_parameters=None
+            "INSERT INTO test(a, b) VALUES (?, ?)", [(1, "a")]
         )
         async_cursor.fetchall.assert_not_awaited()
 
