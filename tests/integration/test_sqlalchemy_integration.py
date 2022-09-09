@@ -59,6 +59,32 @@ class TestFireboltDialect:
         result = connection.execute("SELECT 100.76 :: DECIMAL(5, 2)")
         assert result.fetchall() == [(Decimal("100.76"),)]
 
+    def test_agg_index(self, connection: Connection, fact_table_name: str):
+        # Test if sql parsing allows it
+        agg_index = "idx_agg_max"
+        connection.execute(
+            f"""
+            CREATE AGGREGATING INDEX {agg_index} ON {fact_table_name} (
+                dummy,
+                max(idx)
+            );
+            """
+        )
+        connection.execute(f"DROP AGGREGATING INDEX {agg_index}")
+
+    def test_join_index(self, connection: Connection, dimension_table_name: str):
+        # Test if sql parsing allows it
+        join_index = "idx_join"
+        connection.execute(
+            f"""
+            CREATE JOIN INDEX {join_index} ON {dimension_table_name} (
+                idx,
+                dummy
+            );
+            """
+        )
+        connection.execute(f"DROP JOIN INDEX {join_index}")
+
     def test_get_schema_names(self, engine: Engine, database_name: str):
         results = engine.dialect.get_schema_names(engine)
         assert "public" in results
