@@ -1,3 +1,6 @@
+from datetime import date, datetime
+from decimal import Decimal
+
 import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.engine.base import Connection, Engine
@@ -47,6 +50,14 @@ class TestFireboltDialect:
         # Delete not supported
         with pytest.raises(OperationalError):
             connection.execute(f"DELETE FROM {fact_table_name} WHERE idx=1")
+
+    def test_firebolt_types(self, connection: Connection):
+        result = connection.execute("SELECT '1896-01-01' :: DATE_EXT")
+        assert result.fetchall() == [(date(1896, 1, 1),)]
+        result = connection.execute("SELECT '1896-01-01 00:01:00' :: TIMESTAMP_EXT")
+        assert result.fetchall() == [(datetime(1896, 1, 1, 0, 1, 0, 0),)]
+        result = connection.execute("SELECT 100.76 :: DECIMAL(5, 2)")
+        assert result.fetchall() == [(Decimal("100.76"),)]
 
     def test_agg_index(self, connection: Connection, fact_table_name: str):
         # Test if sql parsing allows it
