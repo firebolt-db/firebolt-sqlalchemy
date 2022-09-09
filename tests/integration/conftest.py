@@ -117,8 +117,18 @@ def fact_table_name() -> str:
     return "test_alchemy"
 
 
+@fixture(scope="class")
+def dimension_table_name() -> str:
+    return "test_alchemy_dimension"
+
+
 @fixture(scope="class", autouse=True)
-def setup_test_tables(connection: Connection, engine: Engine, fact_table_name: str):
+def setup_test_tables(
+    connection: Connection,
+    engine: Engine,
+    fact_table_name: str,
+    dimension_table_name: str,
+):
     connection.execute(
         f"""
         CREATE FACT TABLE IF NOT EXISTS {fact_table_name}
@@ -128,8 +138,20 @@ def setup_test_tables(connection: Connection, engine: Engine, fact_table_name: s
         ) PRIMARY INDEX idx;
         """
     )
+    connection.execute(
+        f"""
+        CREATE DIMENSION TABLE IF NOT EXISTS {dimension_table_name}
+        (
+            idx INT,
+            dummy TEXT
+        );
+        """
+    )
     assert engine.dialect.has_table(engine, fact_table_name)
+    assert engine.dialect.has_table(engine, dimension_table_name)
     yield
     # Teardown
-    connection.execute(f"DROP TABLE IF EXISTS {fact_table_name}")
+    connection.execute(f"DROP TABLE IF EXISTS {fact_table_name} CASCADE;")
+    connection.execute(f"DROP TABLE IF EXISTS {dimension_table_name} CASCADE;")
     assert not engine.dialect.has_table(engine, fact_table_name)
+    assert not engine.dialect.has_table(engine, dimension_table_name)
