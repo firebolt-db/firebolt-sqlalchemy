@@ -2,7 +2,7 @@ name: Nightly code check
 on:
   workflow_dispatch:
   schedule:
-    - cron: '0 3 * * *' # 3 am UTC every day
+    - cron: '0 4 * * *' # 4 am UTC every day
 jobs:
   code-check:
     uses: ./.github/workflows/code-check.yml
