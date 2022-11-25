@@ -44,11 +44,11 @@ class TestAsyncFireboltDialect:
                     f"UPDATE {fact_table_name} SET dummy='some_other_text' WHERE idx=1"
                 )
             )
-        # Delete not supported
-        with pytest.raises(OperationalError):
-            await async_connection.execute(
-                text(f"DELETE FROM {fact_table_name} WHERE idx=1")
-            )
+        # Delete works but is not officially supported yet
+        # with pytest.raises(OperationalError):
+        #     await async_connection.execute(
+        #         text(f"DELETE FROM {fact_table_name} WHERE idx=1")
+        #     )
 
     @pytest.mark.asyncio
     async def test_set_params(self, async_connection: Engine):
