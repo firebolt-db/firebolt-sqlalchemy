@@ -47,9 +47,9 @@ class TestFireboltDialect:
             connection.execute(
                 f"UPDATE {fact_table_name} SET dummy='some_other_text' WHERE idx=1"
             )
-        # Delete not supported
-        with pytest.raises(OperationalError):
-            connection.execute(f"DELETE FROM {fact_table_name} WHERE idx=1")
+        # Delete works but is not officially supported yet
+        # with pytest.raises(OperationalError):
+        #     connection.execute(f"DELETE FROM {fact_table_name} WHERE idx=1")
 
     def test_firebolt_types(self, connection: Connection):
         result = connection.execute("SELECT '1896-01-01' :: DATE_EXT")
