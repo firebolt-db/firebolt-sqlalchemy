@@ -111,3 +111,7 @@ class TestFireboltDialect:
         assert row_keys[1] == "type"
         assert row_keys[2] == "nullable"
         assert row_keys[3] == "default"
+
+    def test_service_account_connect(self, connection_service_account: Connection):
+        result = connection_service_account.execute("SELECT 1")
+        assert result.fetchall() == [(1,)]

@@ -13,6 +13,8 @@ ENGINE_NAME_ENV = "ENGINE_NAME"
 DATABASE_NAME_ENV = "DATABASE_NAME"
 USERNAME_ENV = "USER_NAME"
 PASSWORD_ENV = "PASSWORD"
+SERVICE_ID = "SERVICE_ID"
+SERVICE_SECRET = "SERVICE_SECRET"
 
 
 def must_env(var_name: str) -> str:
@@ -42,6 +44,16 @@ def password() -> str:
 
 
 @fixture(scope="session")
+def service_id() -> str:
+    return must_env(SERVICE_ID)
+
+
+@fixture(scope="session")
+def service_secret() -> str:
+    return must_env(SERVICE_SECRET)
+
+
+@fixture(scope="session")
 def engine(
     username: str, password: str, database_name: str, engine_name: str
 ) -> Engine:
@@ -51,8 +63,24 @@ def engine(
 
 
 @fixture(scope="session")
+def engine_service_account(
+    service_id: str, service_secret: str, database_name: str, engine_name: str
+) -> Engine:
+    return create_engine(
+        f"firebolt://{service_id}:{service_secret}@{database_name}/{engine_name}"
+        "?service_account=1"
+    )
+
+
+@fixture(scope="session")
 def connection(engine: Engine) -> Connection:
     with engine.connect() as c:
+        yield c
+
+
+@fixture(scope="session")
+def connection_service_account(engine_service_account: Engine) -> Connection:
+    with engine_service_account.connect() as c:
         yield c
 
 
