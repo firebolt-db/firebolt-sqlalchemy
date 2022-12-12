@@ -30,11 +30,42 @@ class TestFireboltDialect:
         assert isinstance(dialect.type_compiler, FireboltTypeCompiler)
         assert dialect.context == {}
 
-    def test_create_connect_args(self, dialect: FireboltDialect):
-        connection_url = (
-            "test_engine://test_user@email:test_password@test_db_name/test_engine_name"
+    @mark.parametrize(
+        "query_params",
+        [
+            ("service_account=True"),
+            ("service_account=true"),
+            ("service_account=1"),
+        ],
+    )
+    def test_create_connect_args_service_account(
+        self, dialect: FireboltDialect, query_params: str
+    ):
+        u = url.make_url(
+            "test_engine://test-sa-user-key:test_password@test_db_name/test_engine_name"
+            + "?"
+            + query_params
         )
-        u = url.make_url(connection_url)
+        with mock.patch.dict(os.environ, {"FIREBOLT_BASE_URL": "test_url"}):
+            result_list, result_dict = dialect.create_connect_args(u)
+            assert result_dict["engine_name"] == "test_engine_name"
+            assert result_dict["auth"].client_id == "test-sa-user-key"
+            assert result_dict["auth"].client_secret == "test_password"
+            assert result_dict["auth"]._use_token_cache is True
+            assert result_dict["database"] == "test_db_name"
+            assert result_dict["api_endpoint"] == "test_url"
+            assert "username" not in result_dict
+            assert "password" not in result_dict
+            assert result_list == []
+
+    @mark.parametrize(
+        "query_params", [(""), ("service_account=0"), ("service_account=False")]
+    )
+    def test_create_connect_args(self, dialect: FireboltDialect, query_params: str):
+        connection_url = (
+            "test_engine://test_user@email:test_password@test_db_name/test_engine_name?"
+        )
+        u = url.make_url(connection_url + query_params)
         with mock.patch.dict(os.environ, {"FIREBOLT_BASE_URL": "test_url"}):
             result_list, result_dict = dialect.create_connect_args(u)
             assert result_dict["engine_name"] == "test_engine_name"

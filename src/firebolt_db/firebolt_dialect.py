@@ -111,9 +111,12 @@ class FireboltDialect(default.DefaultDialect):
         # parameters are all passed as a string, we need to convert
         # bool flag to boolean for SDK compatibility
         token_cache_flag = bool(strtobool(parameters.pop("use_token_cache", "True")))
+        service_account_flag = bool(
+            strtobool(parameters.pop("service_account", "False"))
+        )
         auth = (
             ServiceAccount(url.username, url.password, token_cache_flag)
-            if "@" in url.username
+            if service_account_flag
             else UsernamePassword(url.username, url.password, token_cache_flag)
         )
         kwargs: Dict[str, Union[str, Auth, Dict[str, Any], None]] = {
