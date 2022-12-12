@@ -68,7 +68,6 @@ def engine_service_account(
 ) -> Engine:
     return create_engine(
         f"firebolt://{service_id}:{service_secret}@{database_name}/{engine_name}"
-        "?service_account=1"
     )
 
 
