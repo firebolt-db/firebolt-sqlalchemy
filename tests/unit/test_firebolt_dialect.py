@@ -30,21 +30,9 @@ class TestFireboltDialect:
         assert isinstance(dialect.type_compiler, FireboltTypeCompiler)
         assert dialect.context == {}
 
-    @mark.parametrize(
-        "query_params",
-        [
-            ("service_account=True"),
-            ("service_account=true"),
-            ("service_account=1"),
-        ],
-    )
-    def test_create_connect_args_service_account(
-        self, dialect: FireboltDialect, query_params: str
-    ):
+    def test_create_connect_args_service_account(self, dialect: FireboltDialect):
         u = url.make_url(
             "test_engine://test-sa-user-key:test_password@test_db_name/test_engine_name"
-            + "?"
-            + query_params
         )
         with mock.patch.dict(os.environ, {"FIREBOLT_BASE_URL": "test_url"}):
             result_list, result_dict = dialect.create_connect_args(u)
@@ -58,14 +46,11 @@ class TestFireboltDialect:
             assert "password" not in result_dict
             assert result_list == []
 
-    @mark.parametrize(
-        "query_params", [(""), ("service_account=0"), ("service_account=False")]
-    )
-    def test_create_connect_args(self, dialect: FireboltDialect, query_params: str):
+    def test_create_connect_args(self, dialect: FireboltDialect):
         connection_url = (
             "test_engine://test_user@email:test_password@test_db_name/test_engine_name?"
         )
-        u = url.make_url(connection_url + query_params)
+        u = url.make_url(connection_url)
         with mock.patch.dict(os.environ, {"FIREBOLT_BASE_URL": "test_url"}):
             result_list, result_dict = dialect.create_connect_args(u)
             assert result_dict["engine_name"] == "test_engine_name"
