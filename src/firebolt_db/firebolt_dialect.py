@@ -5,7 +5,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 
 import firebolt.db as dbapi
 import sqlalchemy.types as sqltypes
-from firebolt.client.auth import Auth, UsernamePassword
+from firebolt.client.auth import Auth, ServiceAccount, UsernamePassword
 from firebolt.db import Cursor
 from sqlalchemy.engine import Connection as AlchemyConnection
 from sqlalchemy.engine import ExecutionContext, default
@@ -111,9 +111,14 @@ class FireboltDialect(default.DefaultDialect):
         # parameters are all passed as a string, we need to convert
         # bool flag to boolean for SDK compatibility
         token_cache_flag = bool(strtobool(parameters.pop("use_token_cache", "True")))
+        auth = (
+            ServiceAccount(url.username, url.password, token_cache_flag)
+            if "@" not in url.username
+            else UsernamePassword(url.username, url.password, token_cache_flag)
+        )
         kwargs: Dict[str, Union[str, Auth, Dict[str, Any], None]] = {
             "database": url.host or None,
-            "auth": UsernamePassword(url.username, url.password, token_cache_flag),
+            "auth": auth,
             "engine_name": url.database,
             "additional_parameters": {},
         }
