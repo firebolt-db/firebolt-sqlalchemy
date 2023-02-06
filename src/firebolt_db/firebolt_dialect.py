@@ -148,6 +148,7 @@ class FireboltDialect(default.DefaultDialect):
         connection: AlchemyConnection,
         table_name: str,
         schema: Optional[str] = None,
+        **kw: Any
     ) -> bool:
         query = """
             select count(*) > 0 as exists_
