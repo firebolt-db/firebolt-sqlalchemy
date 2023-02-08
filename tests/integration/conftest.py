@@ -3,7 +3,7 @@ from logging import getLogger
 from os import environ
 
 from pytest import fixture
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from sqlalchemy.engine.base import Connection, Engine
 from sqlalchemy.ext.asyncio import create_async_engine
 
@@ -157,28 +157,32 @@ def setup_test_tables(
     dimension_table_name: str,
 ):
     connection.execute(
-        f"""
+        text(
+            f"""
         CREATE FACT TABLE IF NOT EXISTS {fact_table_name}
         (
             idx INT,
             dummy TEXT
         ) PRIMARY INDEX idx;
         """
+        )
     )
     connection.execute(
-        f"""
+        text(
+            f"""
         CREATE DIMENSION TABLE IF NOT EXISTS {dimension_table_name}
         (
             idx INT,
             dummy TEXT
         );
         """
+        )
     )
-    assert engine.dialect.has_table(engine, fact_table_name)
-    assert engine.dialect.has_table(engine, dimension_table_name)
+    assert engine.dialect.has_table(connection, fact_table_name)
+    assert engine.dialect.has_table(connection, dimension_table_name)
     yield
     # Teardown
-    connection.execute(f"DROP TABLE IF EXISTS {fact_table_name} CASCADE;")
-    connection.execute(f"DROP TABLE IF EXISTS {dimension_table_name} CASCADE;")
-    assert not engine.dialect.has_table(engine, fact_table_name)
-    assert not engine.dialect.has_table(engine, dimension_table_name)
+    connection.execute(text(f"DROP TABLE IF EXISTS {fact_table_name} CASCADE;"))
+    connection.execute(text(f"DROP TABLE IF EXISTS {dimension_table_name} CASCADE;"))
+    assert not engine.dialect.has_table(connection, fact_table_name)
+    assert not engine.dialect.has_table(connection, dimension_table_name)
