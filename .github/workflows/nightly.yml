@@ -67,14 +67,14 @@ jobs:
           FIREBOLT_BASE_URL: "api.dev.firebolt.io"
         run: |
           pytest -o log_cli=true -o log_cli_level=INFO tests/integration
-        
+
       - name: Slack Notify of failure
         if: failure()
-        uses: rtCamp/action-slack-notify@v2.2.0
-        env:
-          SLACK_USERNAME: CI bot
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
-          SLACK_COLOR: "#FF0000"
-          SLACK_ICON: None
-          SLACK_TITLE: Nightly tests failed
-          SLACK_MESSAGE: Please investigate
+        id: slack
+        uses: firebolt-db/action-slack-nightly-notify@v1
+        with:
+          os: ${{ matrix.os }}
+          programming-language: Python
+          language-version: ${{ matrix.python-version }}
+          notifications-channel: 'ecosystem-ci-notifications'
+          slack-api-key: ${{ secrets.SLACK_BOT_TOKEN }}
