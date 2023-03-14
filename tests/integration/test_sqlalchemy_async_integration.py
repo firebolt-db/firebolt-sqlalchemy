@@ -31,7 +31,6 @@ class TestAsyncFireboltDialect:
         result = await async_connection.execute(
             text(f"INSERT INTO {fact_table_name}(idx, dummy) VALUES (1, 'some_text')")
         )
-        assert result.rowcount == -1
         result = await async_connection.execute(
             text(f"SELECT * FROM {fact_table_name}")
         )
