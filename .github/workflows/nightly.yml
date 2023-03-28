@@ -25,6 +25,10 @@ jobs:
         os: ['ubuntu-latest', 'macos-latest', 'windows-latest']
         python-version: ['3.7', '3.8', '3.9', '3.10']
     steps:
+      - name: Collect Workflow Telemetry
+        uses: runforesight/foresight-workflow-kit-action@v1
+        if: ${{ always() }}
+
       - name: Check out code
         uses: actions/checkout@v2
     
@@ -66,7 +70,20 @@ jobs:
           ACCOUNT_NAME: "firebolt"
           FIREBOLT_BASE_URL: "api.dev.firebolt.io"
         run: |
-          pytest -o log_cli=true -o log_cli_level=INFO tests/integration
+          pytest -o log_cli=true -o log_cli_level=INFO --junit-xml=report/junit.xml tests/integration
+
+      - name: Foresight Test / Coverage Results
+        uses: runforesight/foresight-test-kit-action@v1
+        if: success() || failure()
+        with:
+          test_format: JUNIT
+          test_framework: PYTEST
+          test_path: ./report/
+          tags: |
+            type:"Nightly"
+            os:${{ matrix.os }}
+            python:${{ matrix.python-version }}
+            language:"Python"
 
       - name: Slack Notify of failure
         if: failure()
