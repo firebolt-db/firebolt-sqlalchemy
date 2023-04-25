@@ -20,6 +20,7 @@ from sqlalchemy.types import (
     DATETIME,
     FLOAT,
     INTEGER,
+    NUMERIC,
     TIMESTAMP,
     VARCHAR,
 )
@@ -38,6 +39,8 @@ type_map = {
     "float": FLOAT,
     "double": FLOAT,
     "double precision": FLOAT,
+    "numeric": NUMERIC,
+    "decimal": NUMERIC,
     "real": FLOAT,
     "boolean": BOOLEAN,
     "int": INTEGER,
