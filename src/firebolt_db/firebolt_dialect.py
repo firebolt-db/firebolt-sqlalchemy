@@ -55,11 +55,12 @@ type_map = {
 
 def resolve_type(fb_type: str) -> sqltypes.TypeEngine:
     def removesuffix(s: str, suffix: str) -> str:
+        """Python < 3.9 compatibility"""
         if s.endswith(suffix):
             s = s[: -len(suffix)]
         return s
 
-    result: Union[sqltypes.TypeEngine, ARRAY[Any]]
+    result: sqltypes.TypeEngine
     if fb_type.startswith("array"):
         # Nested arrays not supported
         dimensions = 0
