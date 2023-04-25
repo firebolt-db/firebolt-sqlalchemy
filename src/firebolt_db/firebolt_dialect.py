@@ -14,30 +14,32 @@ from sqlalchemy.sql import compiler, text
 from sqlalchemy.types import (
     ARRAY,
     BIGINT,
-    BLOB,
     BOOLEAN,
-    CHAR,
     DATE,
     DATETIME,
-    FLOAT,
     INTEGER,
     NUMERIC,
+    REAL,
+    TEXT,
     TIMESTAMP,
-    VARCHAR,
 )
+
+
+class BYTEA(sqltypes.LargeBinary):
+    __visit_name__ = "BYTEA"
+
 
 # Firebolt data types compatibility with sqlalchemy.sql.types
 type_map = {
-    "char": CHAR,
-    "text": VARCHAR,
-    "varchar": VARCHAR,
-    "string": VARCHAR,
-    "float": FLOAT,
-    "double": FLOAT,
-    "double precision": FLOAT,
+    "text": TEXT,
+    "varchar": TEXT,
+    "string": TEXT,
+    "float": REAL,
+    "double": REAL,
+    "double precision": REAL,
     "numeric": NUMERIC,
     "decimal": NUMERIC,
-    "real": FLOAT,
+    "real": REAL,
     "boolean": BOOLEAN,
     "int": INTEGER,
     "integer": INTEGER,
@@ -48,7 +50,7 @@ type_map = {
     "timestampntz": TIMESTAMP,
     "datetime": DATETIME,
     "date": DATE,
-    "bytea": BLOB,
+    "bytea": BYTEA,
 }
 
 
@@ -75,7 +77,7 @@ def resolve_type(fb_type: str) -> sqltypes.TypeEngine:
     return result
 
 
-DEFAULT_TYPE = VARCHAR
+DEFAULT_TYPE = TEXT
 
 
 class UniversalSet(set):
