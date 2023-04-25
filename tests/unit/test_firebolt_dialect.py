@@ -276,13 +276,12 @@ def test_get_is_nullable():
 
 
 def test_types():
-    assert firebolt_db.firebolt_dialect.CHAR is sqlalchemy.sql.sqltypes.CHAR
     assert firebolt_db.firebolt_dialect.DATE is sqlalchemy.sql.sqltypes.DATE
     assert firebolt_db.firebolt_dialect.DATETIME is sqlalchemy.sql.sqltypes.DATETIME
     assert firebolt_db.firebolt_dialect.INTEGER is sqlalchemy.sql.sqltypes.INTEGER
     assert firebolt_db.firebolt_dialect.BIGINT is sqlalchemy.sql.sqltypes.BIGINT
     assert firebolt_db.firebolt_dialect.TIMESTAMP is sqlalchemy.sql.sqltypes.TIMESTAMP
-    assert firebolt_db.firebolt_dialect.VARCHAR is sqlalchemy.sql.sqltypes.VARCHAR
+    assert firebolt_db.firebolt_dialect.TEXT is sqlalchemy.sql.sqltypes.TEXT
     assert firebolt_db.firebolt_dialect.BOOLEAN is sqlalchemy.sql.sqltypes.BOOLEAN
-    assert firebolt_db.firebolt_dialect.FLOAT is sqlalchemy.sql.sqltypes.FLOAT
+    assert firebolt_db.firebolt_dialect.REAL is sqlalchemy.sql.sqltypes.REAL
     assert issubclass(firebolt_db.firebolt_dialect.ARRAY, sqlalchemy.types.TypeEngine)
