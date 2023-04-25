@@ -14,6 +14,7 @@ from sqlalchemy.sql import compiler, text
 from sqlalchemy.types import (
     ARRAY,
     BIGINT,
+    BLOB,
     BOOLEAN,
     CHAR,
     DATE,
@@ -24,11 +25,6 @@ from sqlalchemy.types import (
     TIMESTAMP,
     VARCHAR,
 )
-
-
-class BYTEA(sqltypes.LargeBinary):
-    __visit_name__ = "BYTEA"
-
 
 # Firebolt data types compatibility with sqlalchemy.sql.types
 type_map = {
@@ -52,7 +48,7 @@ type_map = {
     "timestampntz": TIMESTAMP,
     "datetime": DATETIME,
     "date": DATE,
-    "bytea": BYTEA,
+    "bytea": BLOB,
 }
 
 
