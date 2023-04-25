@@ -15,13 +15,13 @@ from sqlalchemy.types import (
     ARRAY,
     BIGINT,
     BOOLEAN,
-    CHAR,
     DATE,
     DATETIME,
-    FLOAT,
     INTEGER,
+    NUMERIC,
+    REAL,
+    TEXT,
     TIMESTAMP,
-    VARCHAR,
 )
 
 
@@ -31,14 +31,15 @@ class BYTEA(sqltypes.LargeBinary):
 
 # Firebolt data types compatibility with sqlalchemy.sql.types
 type_map = {
-    "char": CHAR,
-    "text": VARCHAR,
-    "varchar": VARCHAR,
-    "string": VARCHAR,
-    "float": FLOAT,
-    "double": FLOAT,
-    "double precision": FLOAT,
-    "real": FLOAT,
+    "text": TEXT,
+    "varchar": TEXT,
+    "string": TEXT,
+    "float": REAL,
+    "double": REAL,
+    "double precision": REAL,
+    "numeric": NUMERIC,
+    "decimal": NUMERIC,
+    "real": REAL,
     "boolean": BOOLEAN,
     "int": INTEGER,
     "integer": INTEGER,
@@ -76,7 +77,7 @@ def resolve_type(fb_type: str) -> sqltypes.TypeEngine:
     return result
 
 
-DEFAULT_TYPE = VARCHAR
+DEFAULT_TYPE = TEXT
 
 
 class UniversalSet(set):
