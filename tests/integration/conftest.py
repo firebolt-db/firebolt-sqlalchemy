@@ -1,6 +1,7 @@
 import asyncio
 from logging import getLogger
 from os import environ
+from typing import List
 
 from pytest import fixture
 from sqlalchemy import create_engine, text
@@ -140,6 +141,44 @@ def ex_table_query(ex_table_name: str) -> str:
 
 
 @fixture(scope="class")
+def type_table_name() -> str:
+    return "types_alchemy"
+
+
+@fixture(scope="class")
+def firebolt_columns() -> List[str]:
+    return [
+        "INTEGER",
+        "NUMERIC",
+        "BIGINT",
+        "REAL",
+        "DOUBLE PRECISION",
+        "TEXT",
+        "TIMESTAMPNTZ",
+        "TIMESTAMPTZ",
+        "DATE",
+        "TIMESTAMP",
+        "BOOLEAN",
+        "BYTEA",
+    ]
+
+
+@fixture(scope="class")
+def type_table_query(firebolt_columns: List[str], type_table_name: str) -> str:
+    col_names = [c.replace(" ", "_").lower() for c in firebolt_columns]
+    cols = ",\n".join(
+        [f"c_{name} {c_type}" for name, c_type in zip(col_names, firebolt_columns)]
+    )
+    return f"""
+        CREATE DIMENSION TABLE {type_table_name}
+        (
+            {cols},
+            c_array ARRAY(ARRAY(INTEGER))
+        );
+    """
+
+
+@fixture(scope="class")
 def fact_table_name() -> str:
     return "test_alchemy"
 
@@ -155,6 +194,8 @@ def setup_test_tables(
     engine: Engine,
     fact_table_name: str,
     dimension_table_name: str,
+    type_table_query: str,
+    type_table_name: str,
 ):
     connection.execute(
         text(
@@ -178,11 +219,15 @@ def setup_test_tables(
         """
         )
     )
+    connection.execute(text(type_table_query))
     assert engine.dialect.has_table(connection, fact_table_name)
     assert engine.dialect.has_table(connection, dimension_table_name)
+    assert engine.dialect.has_table(connection, type_table_name)
     yield
     # Teardown
     connection.execute(text(f"DROP TABLE IF EXISTS {fact_table_name} CASCADE;"))
     connection.execute(text(f"DROP TABLE IF EXISTS {dimension_table_name} CASCADE;"))
+    connection.execute(text(f"DROP TABLE IF EXISTS {type_table_name} CASCADE;"))
     assert not engine.dialect.has_table(connection, fact_table_name)
     assert not engine.dialect.has_table(connection, dimension_table_name)
+    assert not engine.dialect.has_table(connection, type_table_name)

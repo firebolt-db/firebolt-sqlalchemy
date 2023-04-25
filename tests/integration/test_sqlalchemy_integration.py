@@ -5,6 +5,7 @@ import pytest
 from sqlalchemy import create_engine, text
 from sqlalchemy.engine.base import Connection, Engine
 from sqlalchemy.exc import OperationalError
+from sqlalchemy.types import ARRAY, INTEGER, TypeEngine
 
 
 class TestFireboltDialect:
@@ -114,17 +115,19 @@ class TestFireboltDialect:
         assert len(results) == 0
 
     def test_get_columns(
-        self, engine: Engine, connection: Connection, fact_table_name: str
+        self, engine: Engine, connection: Connection, type_table_name: str
     ):
-        results = engine.dialect.get_columns(connection, fact_table_name)
+        results = engine.dialect.get_columns(connection, type_table_name)
         assert len(results) > 0
-        row = results[0]
-        assert isinstance(row, dict)
-        row_keys = list(row.keys())
-        assert row_keys[0] == "name"
-        assert row_keys[1] == "type"
-        assert row_keys[2] == "nullable"
-        assert row_keys[3] == "default"
+        for column in results:
+            assert isinstance(column, dict)
+            # Check only works for basic types
+            if type(column["type"]) == ARRAY:
+                # ARRAY[[INT]]
+                assert column["type"].dimensions == 2
+                assert type(column["type"].item_type) == INTEGER
+            else:
+                assert issubclass(column["type"], TypeEngine)
 
     def test_service_account_connect(self, connection_service_account: Connection):
         result = connection_service_account.execute(text("SELECT 1"))
