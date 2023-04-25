@@ -12,6 +12,7 @@ from sqlalchemy.engine import ExecutionContext, default
 from sqlalchemy.engine.url import URL
 from sqlalchemy.sql import compiler, text
 from sqlalchemy.types import (
+    ARRAY,
     BIGINT,
     BOOLEAN,
     CHAR,
@@ -24,8 +25,8 @@ from sqlalchemy.types import (
 )
 
 
-class ARRAY(sqltypes.TypeEngine):
-    __visit_name__ = "ARRAY"
+class BYTEA(sqltypes.LargeBinary):
+    __visit_name__ = "BYTEA"
 
 
 # Firebolt data types compatibility with sqlalchemy.sql.types
@@ -37,16 +38,45 @@ type_map = {
     "float": FLOAT,
     "double": FLOAT,
     "double precision": FLOAT,
+    "real": FLOAT,
     "boolean": BOOLEAN,
     "int": INTEGER,
     "integer": INTEGER,
     "bigint": BIGINT,
     "long": BIGINT,
     "timestamp": TIMESTAMP,
+    "timestamptz": TIMESTAMP,
+    "timestampntz": TIMESTAMP,
     "datetime": DATETIME,
     "date": DATE,
-    "array": ARRAY,
+    "bytea": BYTEA,
 }
+
+
+def resolve_type(fb_type: str) -> sqltypes.TypeEngine:
+    def removesuffix(s: str, suffix: str) -> str:
+        """Python < 3.9 compatibility"""
+        if s.endswith(suffix):
+            s = s[: -len(suffix)]
+        return s
+
+    result: sqltypes.TypeEngine
+    if fb_type.startswith("array"):
+        # Nested arrays not supported
+        dimensions = 0
+        while fb_type.startswith("array"):
+            dimensions += 1
+            fb_type = fb_type[6:-1]  # Strip ARRAY()
+            fb_type = removesuffix(removesuffix(fb_type, " not null"), " null")
+        result = ARRAY(resolve_type(fb_type), dimensions=dimensions)
+    else:
+        # Strip complex type info e.g. DECIMAL(8,23) -> DECIMAL
+        fb_type = fb_type[: fb_type.find("(")] if "(" in fb_type else fb_type
+        result = type_map.get(fb_type, DEFAULT_TYPE)  # type: ignore
+    return result
+
+
+DEFAULT_TYPE = VARCHAR
 
 
 class UniversalSet(set):
@@ -193,6 +223,7 @@ class FireboltDialect(default.DefaultDialect):
         schema: Optional[str] = None,
         **kwargs: Any
     ) -> List[Dict]:
+
         query = """
             select column_name,
                    data_type,
@@ -212,7 +243,7 @@ class FireboltDialect(default.DefaultDialect):
         return [
             {
                 "name": row[0],
-                "type": type_map[row[1].lower()],
+                "type": resolve_type(row[1].lower()),
                 "nullable": get_is_nullable(row[2]),
                 "default": None,
             }
