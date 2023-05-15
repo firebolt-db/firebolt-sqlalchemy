@@ -14,7 +14,7 @@
 
 The [Firebolt](https://www.firebolt.io/) dialect for [SQLAlchemy](https://www.sqlalchemy.org/). `firebolt-sqlalchemy` uses [Firebolt's Python SDK](https://github.com/firebolt-db/firebolt-python-sdk) which implements [PEP 249](https://www.python.org/dev/peps/pep-0249/).
 
-* [SQLAlchemy Dialects](https://docs.sqlalchemy.org/en/14/dialects/index.html)
+* [SQLAlchemy Dialects](https://docs.sqlalchemy.org/en/20/dialects/index.html#external-dialects)
 * [PyPI Package](https://pypi.org/project/firebolt-sqlalchemy/)
 
 ## Installation
@@ -56,7 +56,7 @@ To override the API URL (e.g. for dev testing):
 export FIREBOLT_BASE_URL=<your_url>
 ```
 
-If your password contains % or / characters they need to be sanitised as per https://docs.sqlalchemy.org/en/14/core/engines.html#database-urls
+If your password contains % or / characters they need to be sanitised as per https://docs.sqlalchemy.org/en/20/core/engines.html#database-urls
 ```python
 my_pass = "0920%/2"
 import urllib.parse
@@ -80,7 +80,7 @@ for item in result.fetchall():
     print(item)
 ```
 
-### [AsyncIO](https://docs.sqlalchemy.org/en/14/orm/extensions/asyncio.html) extension
+### [AsyncIO](https://docs.sqlalchemy.org/en/20/orm/extensions/asyncio.html) extension
 
 ```python
 import urllib.parse
