@@ -58,7 +58,7 @@ class TestAsyncFireboltDialect:
         wrapper = await greenlet_spawn(test_connection)
         assert isinstance(wrapper.cursor(), AsyncCursorWrapper)
         async_api.connect.return_value.commit.assert_called_once()
-        async_api.connect.return_value._aclose.assert_awaited_once()
+        async_api.connect.return_value.aclose.assert_awaited_once()
 
     @pytest.mark.asyncio
     async def test_cursor_execute(
