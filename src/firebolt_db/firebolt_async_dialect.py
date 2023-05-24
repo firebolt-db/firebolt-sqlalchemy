@@ -126,7 +126,7 @@ class AsyncConnectionWrapper(AdaptedConnection):
         self._connection.commit()
 
     def close(self) -> None:
-        self.await_(self._connection._aclose())
+        self.await_(self._connection.aclose())
 
 
 class AsyncAPIWrapper(ModuleType):
