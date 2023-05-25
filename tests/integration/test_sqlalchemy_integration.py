@@ -45,7 +45,7 @@ class TestFireboltDialect:
         assert len(result.fetchall()) == 1
 
     def test_firebolt_types(self, connection: Connection):
-        result = connection.execute(text("SELECT '1896-01-01' :: DATE"))
+        result = connection.execute(text("SELECT '1896-01-01' :: PGDATE"))
         assert result.fetchall() == [(date(1896, 1, 1),)]
         result = connection.execute(text("SELECT '1896-01-01 00:01:00' :: TIMESTAMP"))
         assert result.fetchall() == [(datetime(1896, 1, 1, 0, 1, 0, 0),)]

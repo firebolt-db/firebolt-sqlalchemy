@@ -64,7 +64,7 @@ class TestAsyncFireboltDialect:
             inspector = inspect(conn)
             return inspector.get_columns(fact_table_name)
 
-        results = await async_connection.get_columns()
+        results = await async_connection.run_sync(get_columns)
         assert len(results) > 0
         row = results[0]
         assert isinstance(row, dict)
