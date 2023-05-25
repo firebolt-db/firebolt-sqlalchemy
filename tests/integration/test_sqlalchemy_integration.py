@@ -1,10 +1,8 @@
 from datetime import date, datetime
 from decimal import Decimal
 
-import pytest
 from sqlalchemy import create_engine, text
 from sqlalchemy.engine.base import Connection, Engine
-from sqlalchemy.exc import OperationalError
 from sqlalchemy.types import ARRAY, INTEGER, TypeEngine
 
 
@@ -45,22 +43,12 @@ class TestFireboltDialect:
         assert result.fetchall() == [(1, "some_text")]
         result = connection.execute(text(f"SELECT * FROM {fact_table_name}"))
         assert len(result.fetchall()) == 1
-        # Update not supported
-        with pytest.raises(OperationalError):
-            connection.execute(
-                text(
-                    f"UPDATE {fact_table_name} SET dummy='some_other_text' WHERE idx=1"
-                )
-            )
-        # Delete works but is not officially supported yet
-        # with pytest.raises(OperationalError):
-        #     connection.execute(f"DELETE FROM {fact_table_name} WHERE idx=1")
 
     def test_firebolt_types(self, connection: Connection):
-        result = connection.execute(text("SELECT '1896-01-01' :: DATE_EXT"))
+        result = connection.execute(text("SELECT '1896-01-01' :: PGDATE"))
         assert result.fetchall() == [(date(1896, 1, 1),)]
         result = connection.execute(
-            text("SELECT '1896-01-01 00:01:00' :: TIMESTAMP_EXT")
+            text("SELECT '1896-01-01 00:01:00' :: TIMESTAMPNTZ")
         )
         assert result.fetchall() == [(datetime(1896, 1, 1, 0, 1, 0, 0),)]
         result = connection.execute(text("SELECT 100.76 :: DECIMAL(5, 2)"))

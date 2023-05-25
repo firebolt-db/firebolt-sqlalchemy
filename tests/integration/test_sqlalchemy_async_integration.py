@@ -3,7 +3,6 @@ from typing import Dict, List
 import pytest
 from sqlalchemy import inspect, text
 from sqlalchemy.engine.base import Connection, Engine
-from sqlalchemy.exc import OperationalError
 
 
 class TestAsyncFireboltDialect:
@@ -36,18 +35,6 @@ class TestAsyncFireboltDialect:
         )
         assert result.rowcount == 1
         assert len(result.fetchall()) == 1
-        # Update not supported
-        with pytest.raises(OperationalError):
-            await async_connection.execute(
-                text(
-                    f"UPDATE {fact_table_name} SET dummy='some_other_text' WHERE idx=1"
-                )
-            )
-        # Delete works but is not officially supported yet
-        # with pytest.raises(OperationalError):
-        #     await async_connection.execute(
-        #         text(f"DELETE FROM {fact_table_name} WHERE idx=1")
-        #     )
 
     @pytest.mark.asyncio
     async def test_set_params(self, async_connection: Engine):
