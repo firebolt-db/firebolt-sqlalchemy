@@ -1,4 +1,5 @@
 import asyncio
+import urllib.parse
 from logging import getLogger
 from os import environ
 from typing import List
@@ -41,7 +42,7 @@ def username() -> str:
 
 @fixture(scope="session")
 def password() -> str:
-    return must_env(PASSWORD_ENV)
+    return urllib.parse.quote_plus(must_env(PASSWORD_ENV))
 
 
 @fixture(scope="session")
