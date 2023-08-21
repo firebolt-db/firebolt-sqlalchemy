@@ -48,14 +48,15 @@ class TestFireboltDialect:
 
     def test_create_connect_args(self, dialect: FireboltDialect):
         connection_url = (
-            "test_engine://test_user@email:test_password@test_db_name/test_engine_name?"
+            "test_engine://aabbb2bccc-kkkn3nbbb-iii4lll:test_password@"
+            + "test_db_name/test_engine_name?"
         )
         u = url.make_url(connection_url)
         with mock.patch.dict(os.environ, {"FIREBOLT_BASE_URL": "test_url"}):
             result_list, result_dict = dialect.create_connect_args(u)
             assert result_dict["engine_name"] == "test_engine_name"
-            assert result_dict["auth"].username == "test_user@email"
-            assert result_dict["auth"].password == "test_password"
+            assert result_dict["auth"].client_id == "aabbb2bccc-kkkn3nbbb-iii4ll"
+            assert result_dict["auth"].client_secret == "test_password"
             assert result_dict["auth"]._use_token_cache is True
             assert result_dict["database"] == "test_db_name"
             assert result_dict["api_endpoint"] == "test_url"
@@ -71,7 +72,8 @@ class TestFireboltDialect:
 
     def test_create_connect_args_set_params(self, dialect: FireboltDialect):
         connection_url = (
-            "test_engine://test_user@email:test_password@test_db_name/test_engine_name"
+            "test_engine://aabbb2bccc-kkkn3nbbb-iii4ll:test_password@"
+            "test_db_name/test_engine_name"
             "?account_name=FB&param1=1&param2=2"
         )
         u = url.make_url(connection_url)
@@ -83,7 +85,8 @@ class TestFireboltDialect:
 
     def test_create_connect_args_driver_override(self, dialect: FireboltDialect):
         connection_url = (
-            "test_engine://test_user@email:test_password@test_db_name/test_engine_name"
+            "test_engine://aabbb2bccc-kkkn3nbbb-iii4ll:test_password@"
+            "test_db_name/test_engine_name"
             "?user_drivers=DriverA:1.0.2&user_clients=ClientB:2.0.9"
         )
         u = url.make_url(connection_url)
@@ -105,13 +108,14 @@ class TestFireboltDialect:
         self, token, expected, dialect: FireboltDialect
     ):
         connection_url = (
-            "test_engine://test_user@email:test_password@test_db_name/test_engine_name"
+            "test_engine://aabbb2bccc-kkkn3nbbb-iii4ll:test_password@"
+            "test_db_name/test_engine_name"
             f"?use_token_cache={token}&param1=1&param2=2"
         )
         u = url.make_url(connection_url)
         result_list, result_dict = dialect.create_connect_args(u)
-        assert result_dict["auth"].username == "test_user@email"
-        assert result_dict["auth"].password == "test_password"
+        assert result_dict["auth"].client_id == "aabbb2bccc-kkkn3nbbb-iii4ll"
+        assert result_dict["auth"].client_secret == "test_password"
         assert result_dict["auth"]._use_token_cache == expected
         assert dialect._set_parameters == {"param1": "1", "param2": "2"}
 

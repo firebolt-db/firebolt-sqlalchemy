@@ -5,7 +5,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 
 import firebolt.db as dbapi
 import sqlalchemy.types as sqltypes
-from firebolt.client.auth import Auth, ServiceAccount, UsernamePassword
+from firebolt.client.auth import Auth, ClientCredentials
 from firebolt.db import Cursor
 from sqlalchemy.engine import Connection as AlchemyConnection
 from sqlalchemy.engine import ExecutionContext, default
@@ -136,17 +136,13 @@ class FireboltDialect(default.DefaultDialect):
     def create_connect_args(self, url: URL) -> Tuple[List, Dict]:
         """
         Build firebolt-sdk compatible connection arguments.
-        URL format : firebolt://username:password@host:port/db_name
+        URL format : firebolt://id:secret@host:port/db_name
         """
         parameters = dict(url.query)
         # parameters are all passed as a string, we need to convert
         # bool flag to boolean for SDK compatibility
         token_cache_flag = bool(strtobool(parameters.pop("use_token_cache", "True")))
-        auth = (
-            ServiceAccount(url.username, url.password, token_cache_flag)
-            if "@" not in url.username
-            else UsernamePassword(url.username, url.password, token_cache_flag)
-        )
+        auth = ClientCredentials(url.username, url.password, token_cache_flag)
         kwargs: Dict[str, Union[str, Auth, Dict[str, Any], None]] = {
             "database": url.host or None,
             "auth": auth,
@@ -156,6 +152,8 @@ class FireboltDialect(default.DefaultDialect):
         additional_parameters = {}
         if "account_name" in parameters:
             kwargs["account_name"] = parameters.pop("account_name")
+        else:
+            raise Exception("account_name parameter must be provided to authenticate")
         self._set_parameters = parameters
         # If URL override is not provided leave it to the sdk to determine the endpoint
         if "FIREBOLT_BASE_URL" in os.environ:
