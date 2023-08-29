@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from asyncio import Lock
+from functools import partial
 from types import ModuleType
 from typing import Any, Dict, Iterator, List, Optional, Tuple
 
@@ -11,6 +12,7 @@ from firebolt.async_db import Connection
 # and util.concurrency
 from sqlalchemy.engine import AdaptedConnection  # type: ignore[attr-defined]
 from sqlalchemy.util.concurrency import await_only  # type: ignore[import]
+from trio import run
 
 from firebolt_db.firebolt_dialect import FireboltDialect
 
@@ -150,8 +152,10 @@ class AsyncAPIWrapper(ModuleType):
             setattr(self, name, getattr(self.dbapi, name))
 
     def connect(self, *arg: Any, **kw: Any) -> AsyncConnectionWrapper:
-
-        connection = await_only(self.dbapi.connect(*arg, **kw))  # type: ignore[attr-defined] # noqa: F821,E501
+        # Synchronously establish a connection that can execute
+        # asynchronous queries later
+        conn_func = partial(self.dbapi.connect, *arg, **kw)  # type: ignore[attr-defined] # noqa: F821,E501
+        connection = run(conn_func)
         return AsyncConnectionWrapper(
             self,
             connection,
