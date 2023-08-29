@@ -33,6 +33,7 @@ class TestFireboltDialect:
     def test_create_connect_args_service_account(self, dialect: FireboltDialect):
         u = url.make_url(
             "test_engine://test-sa-user-key:test_password@test_db_name/test_engine_name"
+            "?account_name=dummy"
         )
         with mock.patch.dict(os.environ, {"FIREBOLT_BASE_URL": "test_url"}):
             result_list, result_dict = dialect.create_connect_args(u)
@@ -50,12 +51,14 @@ class TestFireboltDialect:
         connection_url = (
             "test_engine://aabbb2bccc-kkkn3nbbb-iii4lll:test_password@"
             + "test_db_name/test_engine_name?"
+            "account_name=dummy"
         )
         u = url.make_url(connection_url)
         with mock.patch.dict(os.environ, {"FIREBOLT_BASE_URL": "test_url"}):
             result_list, result_dict = dialect.create_connect_args(u)
             assert result_dict["engine_name"] == "test_engine_name"
-            assert result_dict["auth"].client_id == "aabbb2bccc-kkkn3nbbb-iii4ll"
+            assert result_dict["account_name"] == "dummy"
+            assert result_dict["auth"].client_id == "aabbb2bccc-kkkn3nbbb-iii4lll"
             assert result_dict["auth"].client_secret == "test_password"
             assert result_dict["auth"]._use_token_cache is True
             assert result_dict["database"] == "test_db_name"
@@ -74,7 +77,7 @@ class TestFireboltDialect:
         connection_url = (
             "test_engine://aabbb2bccc-kkkn3nbbb-iii4ll:test_password@"
             "test_db_name/test_engine_name"
-            "?account_name=FB&param1=1&param2=2"
+            "?account_name=dummy&param1=1&param2=2"
         )
         u = url.make_url(connection_url)
         result_list, result_dict = dialect.create_connect_args(u)
@@ -87,7 +90,8 @@ class TestFireboltDialect:
         connection_url = (
             "test_engine://aabbb2bccc-kkkn3nbbb-iii4ll:test_password@"
             "test_db_name/test_engine_name"
-            "?user_drivers=DriverA:1.0.2&user_clients=ClientB:2.0.9"
+            "?account_name=dummy"
+            "&user_drivers=DriverA:1.0.2&user_clients=ClientB:2.0.9"
         )
         u = url.make_url(connection_url)
         result_list, result_dict = dialect.create_connect_args(u)
@@ -110,7 +114,8 @@ class TestFireboltDialect:
         connection_url = (
             "test_engine://aabbb2bccc-kkkn3nbbb-iii4ll:test_password@"
             "test_db_name/test_engine_name"
-            f"?use_token_cache={token}&param1=1&param2=2"
+            "?account_name=dummy"
+            f"&use_token_cache={token}&param1=1&param2=2"
         )
         u = url.make_url(connection_url)
         result_list, result_dict = dialect.create_connect_args(u)
