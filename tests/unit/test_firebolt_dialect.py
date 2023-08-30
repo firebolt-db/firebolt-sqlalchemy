@@ -2,9 +2,11 @@ import os
 from unittest import mock
 
 import sqlalchemy
+import sqlalchemy.types as sqltypes
 from conftest import MockCursor, MockDBApi
-from pytest import mark
+from pytest import mark, raises
 from sqlalchemy.engine import url
+from sqlalchemy.exc import ArgumentError
 from sqlalchemy.sql import text
 
 import firebolt_db  # SQLAlchemy package
@@ -15,6 +17,7 @@ from firebolt_db.firebolt_dialect import (
     FireboltTypeCompiler,
 )
 from firebolt_db.firebolt_dialect import dialect as dialect_definition
+from firebolt_db.firebolt_dialect import resolve_type
 
 
 class TestFireboltDialect:
@@ -46,6 +49,13 @@ class TestFireboltDialect:
             assert "username" not in result_dict
             assert "password" not in result_dict
             assert result_list == []
+
+    def test_create_connect_no_account(self, dialect: FireboltDialect):
+        u = url.make_url(
+            "test_engine://test-sa-user-key:test_password@test_db_name/test_engine_name"
+        )
+        with raises(ArgumentError):
+            dialect.create_connect_args(u)
 
     def test_create_connect_args(self, dialect: FireboltDialect):
         connection_url = (
@@ -214,7 +224,6 @@ class TestFireboltDialect:
                 expected_query_schema,
             ),
         ):
-
             assert call() == [
                 {
                     "name": "name1",
@@ -234,6 +243,22 @@ class TestFireboltDialect:
                 text(expected_query).compile()
             )
             connection.execute.reset_mock()
+
+    def test_has_table(
+        self, dialect: FireboltDialect, connection: mock.Mock(spec=MockDBApi)
+    ):
+        connection.execute.return_value.fetchone.return_value.exists_ = True
+        assert dialect.has_table(connection, "dummy")
+        assert "dummy" in str(connection.execute.call_args[0][0].compile())
+
+    def test_noop(
+        self, dialect: FireboltDialect, connection: mock.Mock(spec=MockDBApi)
+    ):
+        dialect.get_view_definition(connection, "dummy")
+        dialect.do_rollback(connection)
+        dialect.do_commit(connection)
+        connection.assert_not_called()
+        connection.execute.assert_not_called()
 
     def test_pk_constraint(
         self, dialect: FireboltDialect, connection: mock.Mock(spec=MockDBApi)
@@ -294,3 +319,35 @@ def test_types():
     assert firebolt_db.firebolt_dialect.BOOLEAN is sqlalchemy.sql.sqltypes.BOOLEAN
     assert firebolt_db.firebolt_dialect.REAL is sqlalchemy.sql.sqltypes.REAL
     assert issubclass(firebolt_db.firebolt_dialect.ARRAY, sqlalchemy.types.TypeEngine)
+
+
+@mark.parametrize(
+    ["firebolt_type", "alchemy_type"],
+    [
+        ("TEXT", sqltypes.TEXT),
+        ("LONG", sqltypes.BIGINT),
+        ("DECIMAL", sqltypes.NUMERIC),
+        ("INT", sqltypes.INTEGER),
+        ("TIMESTAMP", sqltypes.TIMESTAMP),
+        ("TIMESTAMPTZ", sqltypes.TIMESTAMP),
+        ("TIMESTAMPNTZ", sqltypes.TIMESTAMP),
+    ],
+)
+def test_resolve_type(firebolt_type: str, alchemy_type: sqltypes.TypeEngine):
+    assert resolve_type(firebolt_type.lower()) == alchemy_type
+
+
+@mark.parametrize(
+    ["firebolt_type", "item_type", "dimensions"],
+    [
+        ("ARRAY(INT NOT NULL)", sqltypes.INTEGER, 1),
+        ("ARRAY(INT NULL)", sqltypes.INTEGER, 1),
+        ("ARRAY(ARRAY(INT NULL))", sqltypes.INTEGER, 2),
+    ],
+)
+def test_resolve_array_type(
+    firebolt_type: str, item_type: sqltypes.TypeEngine, dimensions: int
+):
+    resolved_type = resolve_type(firebolt_type.lower())
+    assert type(resolved_type.item_type) == item_type
+    assert resolved_type.dimensions == dimensions

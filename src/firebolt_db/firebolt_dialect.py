@@ -10,6 +10,7 @@ from firebolt.db import Cursor
 from sqlalchemy.engine import Connection as AlchemyConnection
 from sqlalchemy.engine import ExecutionContext, default
 from sqlalchemy.engine.url import URL
+from sqlalchemy.exc import ArgumentError
 from sqlalchemy.sql import compiler, text
 from sqlalchemy.types import (
     ARRAY,
@@ -153,7 +154,9 @@ class FireboltDialect(default.DefaultDialect):
         if "account_name" in parameters:
             kwargs["account_name"] = parameters.pop("account_name")
         else:
-            raise Exception("account_name parameter must be provided to authenticate")
+            raise ArgumentError(
+                "account_name parameter must be provided to authenticate"
+            )
         self._set_parameters = parameters
         # If URL override is not provided leave it to the sdk to determine the endpoint
         if "FIREBOLT_BASE_URL" in os.environ:
@@ -222,7 +225,6 @@ class FireboltDialect(default.DefaultDialect):
         schema: Optional[str] = None,
         **kwargs: Any
     ) -> List[Dict]:
-
         query = """
             select column_name,
                    data_type,
