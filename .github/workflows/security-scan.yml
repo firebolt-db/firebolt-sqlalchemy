@@ -2,6 +2,11 @@ name: Firebolt Security Scan
 
 on:
   workflow_call:
+    inputs:
+      branch:
+        required: false
+        type: string
+        description: 'Branch to run on'
     secrets:
       FOSSA_TOKEN:
         required: true
@@ -14,6 +19,8 @@ jobs:
     steps:
       - name: "Checkout Code"
         uses: actions/checkout@v2
+        with:
+          ref: ${{ inputs.branch }}
 
       - name: "Download coverage report"
         uses: actions/download-artifact@v2

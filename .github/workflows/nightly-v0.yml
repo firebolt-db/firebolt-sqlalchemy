@@ -1,4 +1,4 @@
-name: Nightly code check
+name: v0.x Nightly code check
 on:
   workflow_dispatch:
   schedule:
@@ -6,13 +6,19 @@ on:
 jobs:
   code-check:
     uses: ./.github/workflows/code-check.yml
+    with:
+      branch: 0.x
   unit-tests:
     uses: ./.github/workflows/unit-tests.yml
+    with:
+      branch: 0.x
     secrets:
       GIST_PAT: ${{ secrets.GIST_PAT }}
   security-scan:
     needs: [unit-tests]
     uses: ./.github/workflows/security-scan.yml
+    with:
+      branch: 0.x
     secrets:
       FOSSA_TOKEN: ${{ secrets.FOSSA_TOKEN }}
       SONARCLOUD_TOKEN: ${{ secrets.SONARCLOUD_TOKEN }}
@@ -44,12 +50,12 @@ jobs:
 
       - name: Setup database and engine
         id: setup
-        uses: firebolt-db/integration-testing-setup@v2
+        uses: firebolt-db/integration-testing-setup@v1
         with:
-          firebolt-client-id: ${{ secrets.FIREBOLT_CLIENT_ID_NEW_IDN }}
-          firebolt-client-secret: ${{ secrets.FIREBOLT_CLIENT_SECRET_NEW_IDN }}
-          account: "developer"
+          firebolt-username: ${{ secrets.FIREBOLT_USERNAME }}
+          firebolt-password: ${{ secrets.FIREBOLT_PASSWORD }}
           api-endpoint: "api.dev.firebolt.io"
+          region: "us-east-1"
           db_suffix: ${{ format('{0}_{1}', matrix.os, matrix.python-version) }}
 
       - name: Restore cached failed tests
@@ -62,13 +68,17 @@ jobs:
 
       - name: Run integration tests
         env:
-          SERVICE_ID: ${{ secrets.FIREBOLT_CLIENT_ID_NEW_IDN }}
-          SERVICE_SECRET: ${{ secrets.FIREBOLT_CLIENT_SECRET_NEW_IDN }}
+          USER_NAME: ${{ secrets.FIREBOLT_USERNAME }}
+          PASSWORD: ${{ secrets.FIREBOLT_PASSWORD }}
+          SERVICE_ID: ${{ secrets.SERVICE_ID }}
+          SERVICE_SECRET: ${{ secrets.SERVICE_SECRET }}
           DATABASE_NAME: ${{ steps.setup.outputs.database_name }}
           ENGINE_NAME: ${{ steps.setup.outputs.engine_name }}
+          ENGINE_URL: ${{ steps.setup.outputs.engine_url }}
           STOPPED_ENGINE_NAME: ${{ steps.setup.outputs.stopped_engine_name }}
+          STOPPED_ENGINE_URL: ${{ steps.setup.outputs.stopped_engine_url }}
+          ACCOUNT_NAME: "firebolt"
           FIREBOLT_BASE_URL: "api.dev.firebolt.io"
-          ACCOUNT_NAME: "developer"
         run: |
           pytest --last-failed -o log_cli=true -o log_cli_level=INFO --junit-xml=report/junit.xml tests/integration
 
