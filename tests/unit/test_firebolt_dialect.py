@@ -2,9 +2,11 @@ import os
 from unittest import mock
 
 import sqlalchemy
+import sqlalchemy.types as sqltypes
 from conftest import MockCursor, MockDBApi
-from pytest import mark
+from pytest import mark, raises
 from sqlalchemy.engine import url
+from sqlalchemy.exc import ArgumentError
 from sqlalchemy.sql import text
 
 import firebolt_db  # SQLAlchemy package
@@ -15,6 +17,7 @@ from firebolt_db.firebolt_dialect import (
     FireboltTypeCompiler,
 )
 from firebolt_db.firebolt_dialect import dialect as dialect_definition
+from firebolt_db.firebolt_dialect import resolve_type
 
 
 class TestFireboltDialect:
@@ -33,6 +36,7 @@ class TestFireboltDialect:
     def test_create_connect_args_service_account(self, dialect: FireboltDialect):
         u = url.make_url(
             "test_engine://test-sa-user-key:test_password@test_db_name/test_engine_name"
+            "?account_name=dummy"
         )
         with mock.patch.dict(os.environ, {"FIREBOLT_BASE_URL": "test_url"}):
             result_list, result_dict = dialect.create_connect_args(u)
@@ -46,16 +50,26 @@ class TestFireboltDialect:
             assert "password" not in result_dict
             assert result_list == []
 
+    def test_create_connect_no_account(self, dialect: FireboltDialect):
+        u = url.make_url(
+            "test_engine://test-sa-user-key:test_password@test_db_name/test_engine_name"
+        )
+        with raises(ArgumentError):
+            dialect.create_connect_args(u)
+
     def test_create_connect_args(self, dialect: FireboltDialect):
         connection_url = (
-            "test_engine://test_user@email:test_password@test_db_name/test_engine_name?"
+            "test_engine://aabbb2bccc-kkkn3nbbb-iii4lll:test_password@"
+            + "test_db_name/test_engine_name?"
+            "account_name=dummy"
         )
         u = url.make_url(connection_url)
         with mock.patch.dict(os.environ, {"FIREBOLT_BASE_URL": "test_url"}):
             result_list, result_dict = dialect.create_connect_args(u)
             assert result_dict["engine_name"] == "test_engine_name"
-            assert result_dict["auth"].username == "test_user@email"
-            assert result_dict["auth"].password == "test_password"
+            assert result_dict["account_name"] == "dummy"
+            assert result_dict["auth"].client_id == "aabbb2bccc-kkkn3nbbb-iii4lll"
+            assert result_dict["auth"].client_secret == "test_password"
             assert result_dict["auth"]._use_token_cache is True
             assert result_dict["database"] == "test_db_name"
             assert result_dict["api_endpoint"] == "test_url"
@@ -71,8 +85,9 @@ class TestFireboltDialect:
 
     def test_create_connect_args_set_params(self, dialect: FireboltDialect):
         connection_url = (
-            "test_engine://test_user@email:test_password@test_db_name/test_engine_name"
-            "?account_name=FB&param1=1&param2=2"
+            "test_engine://aabbb2bccc-kkkn3nbbb-iii4ll:test_password@"
+            "test_db_name/test_engine_name"
+            "?account_name=dummy&param1=1&param2=2"
         )
         u = url.make_url(connection_url)
         result_list, result_dict = dialect.create_connect_args(u)
@@ -83,8 +98,10 @@ class TestFireboltDialect:
 
     def test_create_connect_args_driver_override(self, dialect: FireboltDialect):
         connection_url = (
-            "test_engine://test_user@email:test_password@test_db_name/test_engine_name"
-            "?user_drivers=DriverA:1.0.2&user_clients=ClientB:2.0.9"
+            "test_engine://aabbb2bccc-kkkn3nbbb-iii4ll:test_password@"
+            "test_db_name/test_engine_name"
+            "?account_name=dummy"
+            "&user_drivers=DriverA:1.0.2&user_clients=ClientB:2.0.9"
         )
         u = url.make_url(connection_url)
         result_list, result_dict = dialect.create_connect_args(u)
@@ -105,13 +122,15 @@ class TestFireboltDialect:
         self, token, expected, dialect: FireboltDialect
     ):
         connection_url = (
-            "test_engine://test_user@email:test_password@test_db_name/test_engine_name"
-            f"?use_token_cache={token}&param1=1&param2=2"
+            "test_engine://aabbb2bccc-kkkn3nbbb-iii4ll:test_password@"
+            "test_db_name/test_engine_name"
+            "?account_name=dummy"
+            f"&use_token_cache={token}&param1=1&param2=2"
         )
         u = url.make_url(connection_url)
         result_list, result_dict = dialect.create_connect_args(u)
-        assert result_dict["auth"].username == "test_user@email"
-        assert result_dict["auth"].password == "test_password"
+        assert result_dict["auth"].client_id == "aabbb2bccc-kkkn3nbbb-iii4ll"
+        assert result_dict["auth"].client_secret == "test_password"
         assert result_dict["auth"]._use_token_cache == expected
         assert dialect._set_parameters == {"param1": "1", "param2": "2"}
 
@@ -205,7 +224,6 @@ class TestFireboltDialect:
                 expected_query_schema,
             ),
         ):
-
             assert call() == [
                 {
                     "name": "name1",
@@ -225,6 +243,22 @@ class TestFireboltDialect:
                 text(expected_query).compile()
             )
             connection.execute.reset_mock()
+
+    def test_has_table(
+        self, dialect: FireboltDialect, connection: mock.Mock(spec=MockDBApi)
+    ):
+        connection.execute.return_value.fetchone.return_value.exists_ = True
+        assert dialect.has_table(connection, "dummy")
+        assert "dummy" in str(connection.execute.call_args[0][0].compile())
+
+    def test_noop(
+        self, dialect: FireboltDialect, connection: mock.Mock(spec=MockDBApi)
+    ):
+        dialect.get_view_definition(connection, "dummy")
+        dialect.do_rollback(connection)
+        dialect.do_commit(connection)
+        connection.assert_not_called()
+        connection.execute.assert_not_called()
 
     def test_pk_constraint(
         self, dialect: FireboltDialect, connection: mock.Mock(spec=MockDBApi)
@@ -285,3 +319,35 @@ def test_types():
     assert firebolt_db.firebolt_dialect.BOOLEAN is sqlalchemy.sql.sqltypes.BOOLEAN
     assert firebolt_db.firebolt_dialect.REAL is sqlalchemy.sql.sqltypes.REAL
     assert issubclass(firebolt_db.firebolt_dialect.ARRAY, sqlalchemy.types.TypeEngine)
+
+
+@mark.parametrize(
+    ["firebolt_type", "alchemy_type"],
+    [
+        ("TEXT", sqltypes.TEXT),
+        ("LONG", sqltypes.BIGINT),
+        ("DECIMAL", sqltypes.NUMERIC),
+        ("INT", sqltypes.INTEGER),
+        ("TIMESTAMP", sqltypes.TIMESTAMP),
+        ("TIMESTAMPTZ", sqltypes.TIMESTAMP),
+        ("TIMESTAMPNTZ", sqltypes.TIMESTAMP),
+    ],
+)
+def test_resolve_type(firebolt_type: str, alchemy_type: sqltypes.TypeEngine):
+    assert resolve_type(firebolt_type.lower()) == alchemy_type
+
+
+@mark.parametrize(
+    ["firebolt_type", "item_type", "dimensions"],
+    [
+        ("ARRAY(INT NOT NULL)", sqltypes.INTEGER, 1),
+        ("ARRAY(INT NULL)", sqltypes.INTEGER, 1),
+        ("ARRAY(ARRAY(INT NULL))", sqltypes.INTEGER, 2),
+    ],
+)
+def test_resolve_array_type(
+    firebolt_type: str, item_type: sqltypes.TypeEngine, dimensions: int
+):
+    resolved_type = resolve_type(firebolt_type.lower())
+    assert type(resolved_type.item_type) == item_type
+    assert resolved_type.dimensions == dimensions

@@ -30,24 +30,18 @@ pip install firebolt-sqlalchemy
 Connection strings use the following structure:
 
 ```
-firebolt://{username}:{password}@{database}[/{engine_name}][?account_name={name}}]
+firebolt://{client_id}:{client_secret}@{database}[/{engine_name}]?account_name={name}
 ```
 
-`engine_name` is optional. If omitted, Firebolt will use the default engine for the database.
+`engine_name` is optional.
 
-`account_name` is optional. If omitted a default account will be used for connection.
+`account_name` is required.
 
 Examples:
 
 ```
-firebolt://email@domain:password@sample_database
-firebolt://email@domain:password@sample_database/sample_engine
-```
-
-If a different account name is required, it can be specified in the connection string
-
-```
-firebolt://email@domain:password@sample_database/sample_engine?account_name=my_account
+firebolt://aaa-bbb-ccc-222:$ecret@sample_database?account_name=my_account
+firebolt://aaa-bbb-ccc-222:$ecret@sample_database/sample_engine?account_name=my_account
 ```
 
 To override the API URL (e.g. for dev testing):
@@ -56,11 +50,11 @@ To override the API URL (e.g. for dev testing):
 export FIREBOLT_BASE_URL=<your_url>
 ```
 
-If your password contains % or / characters they need to be sanitised as per https://docs.sqlalchemy.org/en/20/core/engines.html#database-urls
+If your secret contains % or / characters they need to be sanitised as per https://docs.sqlalchemy.org/en/20/core/engines.html#database-urls
 ```python
-my_pass = "0920%/2"
+my_secret = "0920%/2"
 import urllib.parse
-new_pass = urllib.parse.quote_plus(my_pass)
+new_secret = urllib.parse.quote_plus(my_secret)
 ```
 
 ## Quick Start
@@ -69,8 +63,8 @@ new_pass = urllib.parse.quote_plus(my_pass)
 import urllib.parse
 from sqlalchemy import create_engine
 
-password = urllib.parse.quote_plus("your_password_here")
-engine = create_engine("firebolt://email@domain:" + password + "@sample_database/sample_engine")
+secret = urllib.parse.quote_plus("your_secret_here")
+engine = create_engine("firebolt://aaa-bbb-ccc-222:" + secret + "@sample_database/sample_engine?account_name=my_account")
 connection = engine.connect()
 
 connection.execute("CREATE FACT TABLE example(dummy int) PRIMARY INDEX dummy")
@@ -87,8 +81,8 @@ import urllib.parse
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import create_async_engine
 
-password = urllib.parse.quote_plus("your_password_here")
-engine = create_async_engine("asyncio+firebolt://email@domain:" + password + "@sample_database/sample_engine")
+secret = urllib.parse.quote_plus("your_secret_here")
+engine = create_async_engine("asyncio+firebolt://aaa-bbb-ccc-222:" + secret + "@sample_database/sample_engine?account_name=my_account")
 
 async with engine.connect() as conn:
 

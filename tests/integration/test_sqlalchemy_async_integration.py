@@ -1,16 +1,13 @@
 from typing import Dict, List
 
-import pytest
 from sqlalchemy import inspect, text
 from sqlalchemy.engine.base import Connection, Engine
 
 
 class TestAsyncFireboltDialect:
-    @pytest.mark.asyncio
     async def test_create_ex_table(
         self,
         async_connection: Connection,
-        async_engine: Engine,
         ex_table_query: str,
         ex_table_name: str,
     ):
@@ -25,7 +22,6 @@ class TestAsyncFireboltDialect:
         await async_connection.execute(text(f"DROP TABLE {ex_table_name}"))
         assert not await async_connection.run_sync(has_test_table)
 
-    @pytest.mark.asyncio
     async def test_data_write(self, async_connection: Connection, fact_table_name: str):
         result = await async_connection.execute(
             text(f"INSERT INTO {fact_table_name}(idx, dummy) VALUES (1, 'some_text')")
@@ -36,18 +32,12 @@ class TestAsyncFireboltDialect:
         assert result.rowcount == 1
         assert len(result.fetchall()) == 1
 
-    @pytest.mark.asyncio
     async def test_set_params(self, async_connection: Engine):
         await async_connection.execute(text("SET advanced_mode=1"))
-        await async_connection.execute(text("SET use_standard_sql=0"))
-        result = await async_connection.execute(
-            text("SELECT sleepEachRow(1) from numbers(1)")
-        )
+        result = await async_connection.execute(text("SELECT 1"))
         assert len(result.fetchall()) == 1
-        await async_connection.execute(text("SET use_standard_sql=1"))
         await async_connection.execute(text("SET advanced_mode=0"))
 
-    @pytest.mark.asyncio
     async def test_get_table_names(self, async_connection: Connection):
         def get_table_names(conn: Connection) -> bool:
             inspector = inspect(conn)
@@ -56,7 +46,6 @@ class TestAsyncFireboltDialect:
         results = await async_connection.run_sync(get_table_names)
         assert len(results) > 0
 
-    @pytest.mark.asyncio
     async def test_get_columns(
         self, async_connection: Connection, fact_table_name: str
     ):

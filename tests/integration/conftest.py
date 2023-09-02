@@ -1,4 +1,3 @@
-import asyncio
 import urllib.parse
 from logging import getLogger
 from os import environ
@@ -13,10 +12,9 @@ LOGGER = getLogger(__name__)
 
 ENGINE_NAME_ENV = "ENGINE_NAME"
 DATABASE_NAME_ENV = "DATABASE_NAME"
-USERNAME_ENV = "USER_NAME"
-PASSWORD_ENV = "PASSWORD"
-SERVICE_ID = "SERVICE_ID"
-SERVICE_SECRET = "SERVICE_SECRET"
+ACCOUNT_NAME_ENV = "ACCOUNT_NAME"
+CLIENT_ID_ENV = "CLIENT_ID"
+CLIENT_KEY_ENV = "CLIENT_SECRET"
 
 
 def must_env(var_name: str) -> str:
@@ -36,40 +34,45 @@ def database_name() -> str:
 
 
 @fixture(scope="session")
-def username() -> str:
-    return must_env(USERNAME_ENV)
+def client_id() -> str:
+    return must_env(CLIENT_ID_ENV)
 
 
 @fixture(scope="session")
-def password() -> str:
-    return urllib.parse.quote_plus(must_env(PASSWORD_ENV))
+def client_key() -> str:
+    return urllib.parse.quote_plus(must_env(CLIENT_KEY_ENV))
 
 
 @fixture(scope="session")
-def service_id() -> str:
-    return must_env(SERVICE_ID)
-
-
-@fixture(scope="session")
-def service_secret() -> str:
-    return must_env(SERVICE_SECRET)
+def account_name() -> str:
+    return must_env(ACCOUNT_NAME_ENV)
 
 
 @fixture(scope="session")
 def engine(
-    username: str, password: str, database_name: str, engine_name: str
+    client_id: str,
+    client_key: str,
+    database_name: str,
+    engine_name: str,
+    account_name: str,
 ) -> Engine:
     return create_engine(
-        f"firebolt://{username}:{password}@{database_name}/{engine_name}"
+        f"firebolt://{client_id}:{client_key}@{database_name}/{engine_name}"
+        + f"?account_name={account_name}"
     )
 
 
 @fixture(scope="session")
 def engine_service_account(
-    service_id: str, service_secret: str, database_name: str, engine_name: str
+    client_id: str,
+    client_key: str,
+    database_name: str,
+    engine_name: str,
+    account_name: str,
 ) -> Engine:
     return create_engine(
-        f"firebolt://{service_id}:{service_secret}@{database_name}/{engine_name}"
+        f"firebolt://{client_id}:{client_key}@{database_name}/{engine_name}"
+        + f"?account_name={account_name}"
     )
 
 
@@ -85,23 +88,21 @@ def connection_service_account(engine_service_account: Engine) -> Connection:
         yield c
 
 
-@fixture(scope="session")
-def event_loop():
-    loop = asyncio.get_event_loop()
-    yield loop
-    loop.close()
-
-
-@fixture(scope="session")
+@fixture()
 def async_engine(
-    username: str, password: str, database_name: str, engine_name: str
+    client_id: str,
+    client_key: str,
+    database_name: str,
+    engine_name: str,
+    account_name: str,
 ) -> Engine:
     return create_async_engine(
-        f"asyncio+firebolt://{username}:{password}@{database_name}/{engine_name}"
+        f"asyncio+firebolt://{client_id}:{client_key}@{database_name}/{engine_name}"
+        + f"?account_name={account_name}"
     )
 
 
-@fixture(scope="session")
+@fixture()
 async def async_connection(
     async_engine: Engine,
 ) -> Connection:

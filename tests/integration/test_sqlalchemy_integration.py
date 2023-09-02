@@ -21,15 +21,20 @@ class TestFireboltDialect:
         assert not engine.dialect.has_table(connection, ex_table_name)
 
     def test_set_params(
-        self, username: str, password: str, database_name: str, engine_name: str
+        self,
+        client_id: str,
+        client_key: str,
+        database_name: str,
+        engine_name: str,
+        account_name: str,
     ):
         engine = create_engine(
-            f"firebolt://{username}:{password}@{database_name}/{engine_name}"
+            f"firebolt://{client_id}:{client_key}@{database_name}/{engine_name}"
+            + f"?account_name={account_name}"
         )
         with engine.connect() as connection:
             connection.execute(text("SET advanced_mode=1"))
-            connection.execute(text("SET use_standard_sql=0"))
-            result = connection.execute(text("SELECT sleepEachRow(1) from numbers(1)"))
+            result = connection.execute(text("SELECT 1"))
             assert len(result.fetchall()) == 1
         engine.dispose()
 
