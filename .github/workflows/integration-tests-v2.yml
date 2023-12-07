@@ -73,8 +73,8 @@ jobs:
 
       - name: Run integration tests
         env:
-          SERVICE_ID: ${{ env.CLIENT_ID }}
-          SERVICE_SECRET: ${{ env.CLIENT_SECRET }}
+          CLIENT_ID: ${{ env.CLIENT_ID }}
+          CLIENT_SECRET: ${{ env.CLIENT_SECRET }}
           DATABASE_NAME: ${{ steps.setup.outputs.database_name }}
           ENGINE_NAME: ${{ steps.setup.outputs.engine_name }}
           STOPPED_ENGINE_NAME: ${{ steps.setup.outputs.stopped_engine_name }}
