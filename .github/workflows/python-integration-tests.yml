@@ -25,14 +25,6 @@ on:
         required: true
       FIREBOLT_STG_PASSWORD:
         required: true
-      SERVICE_ID:
-        required: true
-      SERVICE_SECRET:
-        required: true
-      SERVICE_ID_STG:
-        required: true
-      SERVICE_SECRET_STG:
-        required: true
       # V2 secrets
       FIREBOLT_CLIENT_ID_STG_NEW_IDN:
         required: true
