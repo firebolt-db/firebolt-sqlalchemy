@@ -8,8 +8,6 @@ on:
         type: string
         description: 'Branch to run on'
     secrets:
-      FOSSA_TOKEN:
-        required: true
       SONARCLOUD_TOKEN:
         required: true
 
@@ -31,5 +29,4 @@ jobs:
         uses: firebolt-db/action-security-scan@main
         with:
           github-key: ${{ secrets.GITHUB_TOKEN }}
-          fossa-key: ${{ secrets.FOSSA_TOKEN }}
           sonar-key: ${{ secrets.SONARCLOUD_TOKEN }}
