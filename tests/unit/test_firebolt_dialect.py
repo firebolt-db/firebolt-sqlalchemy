@@ -33,16 +33,16 @@ class TestFireboltDialect:
         assert isinstance(dialect.type_compiler, FireboltTypeCompiler)
         assert dialect.context == {}
 
-    def test_create_connect_args_service_account(self, dialect: FireboltDialect):
+    def test_create_connect_args_user_password(self, dialect: FireboltDialect):
         u = url.make_url(
-            "test_engine://test-sa-user-key:test_password@test_db_name/test_engine_name"
+            "test_engine://test-sa@user.com:test_password@test_db_name/test_engine_name"
             "?account_name=dummy"
         )
         with mock.patch.dict(os.environ, {"FIREBOLT_BASE_URL": "test_url"}):
             result_list, result_dict = dialect.create_connect_args(u)
             assert result_dict["engine_name"] == "test_engine_name"
-            assert result_dict["auth"].client_id == "test-sa-user-key"
-            assert result_dict["auth"].client_secret == "test_password"
+            assert result_dict["auth"].username == "test-sa@user.com"
+            assert result_dict["auth"].password == "test_password"
             assert result_dict["auth"]._use_token_cache is True
             assert result_dict["database"] == "test_db_name"
             assert result_dict["api_endpoint"] == "test_url"
