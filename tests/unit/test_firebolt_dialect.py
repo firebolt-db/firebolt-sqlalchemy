@@ -36,7 +36,6 @@ class TestFireboltDialect:
     def test_create_connect_args_user_password(self, dialect: FireboltDialect):
         u = url.make_url(
             "test_engine://test-sa@user.com:test_password@test_db_name/test_engine_name"
-            "?account_name=dummy"
         )
         with mock.patch.dict(os.environ, {"FIREBOLT_BASE_URL": "test_url"}):
             result_list, result_dict = dialect.create_connect_args(u)
