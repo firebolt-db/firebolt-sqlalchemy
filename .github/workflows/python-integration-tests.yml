@@ -1,26 +1,8 @@
 name: Integration tests
 on:
   workflow_dispatch:
-    inputs:
-      environment:
-        description: 'Environment to run the tests against'
-        type: choice
-        required: true
-        default: 'dev'
-        options:
-          - dev
-          - staging
   workflow_call:
-    inputs:
-      environment:
-        default: 'staging'
-        required: false
-        type: string
     secrets:
-      FIREBOLT_USERNAME:
-        required: true
-      FIREBOLT_PASSWORD:
-        required: true
       FIREBOLT_STG_USERNAME:
         required: true
       FIREBOLT_STG_PASSWORD:
@@ -30,18 +12,10 @@ on:
         required: true
       FIREBOLT_CLIENT_SECRET_STG_NEW_IDN:
         required: true
-      FIREBOLT_CLIENT_ID_NEW_IDN:
-        required: true
-      FIREBOLT_CLIENT_SECRET_NEW_IDN:
-        required: true
 jobs:
   integration-test-v1:
     uses: ./.github/workflows/integration-tests-v1.yml
-    with:
-      environment: ${{ inputs.environment }}
     secrets: inherit
   integration-test-v2:
     uses: ./.github/workflows/integration-tests-v2.yml
-    with:
-      environment: ${{ inputs.environment }}
     secrets: inherit

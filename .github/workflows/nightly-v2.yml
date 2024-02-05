@@ -47,7 +47,7 @@ jobs:
         with:
           firebolt-client-id: ${{ secrets.FIREBOLT_CLIENT_ID_STG_NEW_IDN }}
           firebolt-client-secret: ${{ secrets.FIREBOLT_CLIENT_SECRET_STG_NEW_IDN }}
-          account: "developer"
+          account: ${{ vars.FIREBOLT_ACCOUNT }}
           api-endpoint: "api.staging.firebolt.io"
           db_suffix: ${{ format('{0}_{1}', matrix.os, matrix.python-version) }}
 
@@ -67,7 +67,7 @@ jobs:
           ENGINE_NAME: ${{ steps.setup.outputs.engine_name }}
           STOPPED_ENGINE_NAME: ${{ steps.setup.outputs.stopped_engine_name }}
           FIREBOLT_BASE_URL: "api.staging.firebolt.io"
-          ACCOUNT_NAME: "developer"
+          ACCOUNT_NAME: ${{ vars.FIREBOLT_ACCOUNT }}
         run: |
           pytest --last-failed -o log_cli=true -o log_cli_level=INFO --junit-xml=report/junit.xml tests/integration
 

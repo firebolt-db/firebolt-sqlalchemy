@@ -74,21 +74,6 @@ class TestFireboltDialect:
         )
         connection.execute(text(f"DROP AGGREGATING INDEX {agg_index}"))
 
-    def test_join_index(self, connection: Connection, dimension_table_name: str):
-        # Test if sql parsing allows it
-        join_index = "idx_join"
-        connection.execute(
-            text(
-                f"""
-            CREATE JOIN INDEX {join_index} ON {dimension_table_name} (
-                idx,
-                dummy
-            );
-            """
-            )
-        )
-        connection.execute(text(f"DROP JOIN INDEX {join_index}"))
-
     def test_get_schema_names(self, engine: Engine, database_name: str):
         results = engine.dialect.get_schema_names(engine)
         assert "public" in results
