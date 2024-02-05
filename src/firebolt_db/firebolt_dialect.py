@@ -153,7 +153,8 @@ class FireboltDialect(default.DefaultDialect):
         additional_parameters = {}
         if "account_name" in parameters:
             kwargs["account_name"] = parameters.pop("account_name")
-        else:
+        elif isinstance(auth, ClientCredentials):
+            # account_name is required for client credentials authentication
             raise ArgumentError(
                 "account_name parameter must be provided to authenticate"
             )
