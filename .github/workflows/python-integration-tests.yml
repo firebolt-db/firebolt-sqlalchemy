@@ -1,21 +1,7 @@
 name: Integration tests
 on:
   workflow_dispatch:
-    inputs:
-      environment:
-        description: 'Environment to run the tests against'
-        type: choice
-        required: true
-        default: 'dev'
-        options:
-          - dev
-          - staging
   workflow_call:
-    inputs:
-      environment:
-        default: 'staging'
-        required: false
-        type: string
     secrets:
       FIREBOLT_STG_USERNAME:
         required: true
@@ -29,11 +15,7 @@ on:
 jobs:
   integration-test-v1:
     uses: ./.github/workflows/integration-tests-v1.yml
-    with:
-      environment: ${{ inputs.environment }}
     secrets: inherit
   integration-test-v2:
     uses: ./.github/workflows/integration-tests-v2.yml
-    with:
-      environment: ${{ inputs.environment }}
     secrets: inherit
