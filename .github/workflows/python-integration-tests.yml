@@ -17,10 +17,6 @@ on:
         required: false
         type: string
     secrets:
-      FIREBOLT_USERNAME:
-        required: true
-      FIREBOLT_PASSWORD:
-        required: true
       FIREBOLT_STG_USERNAME:
         required: true
       FIREBOLT_STG_PASSWORD:
@@ -29,10 +25,6 @@ on:
       FIREBOLT_CLIENT_ID_STG_NEW_IDN:
         required: true
       FIREBOLT_CLIENT_SECRET_STG_NEW_IDN:
-        required: true
-      FIREBOLT_CLIENT_ID_NEW_IDN:
-        required: true
-      FIREBOLT_CLIENT_SECRET_NEW_IDN:
         required: true
 jobs:
   integration-test-v1:
