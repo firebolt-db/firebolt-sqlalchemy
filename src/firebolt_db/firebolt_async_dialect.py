@@ -7,10 +7,11 @@ from typing import Any, Dict, Iterator, List, Optional, Tuple
 
 import firebolt.async_db as async_dbapi
 from firebolt.async_db import Connection
+from sqlalchemy.engine import AdaptedConnection  # type: ignore[attr-defined]
 
 # Ignoring type since sqlalchemy-stubs doesn't cover AdaptedConnection
 # and util.concurrency
-from sqlalchemy.engine import AdaptedConnection  # type: ignore[attr-defined]
+from sqlalchemy.pool import AsyncAdaptedQueuePool  # type: ignore[attr-defined]
 from sqlalchemy.util.concurrency import await_only  # type: ignore[import]
 from trio import run
 
@@ -167,6 +168,7 @@ class AsyncFireboltDialect(FireboltDialect):
     supports_statement_cache: bool = False
     supports_server_side_cursors: bool = False
     is_async: bool = True
+    poolclass = AsyncAdaptedQueuePool
 
     @classmethod
     def dbapi(cls) -> AsyncAPIWrapper:
