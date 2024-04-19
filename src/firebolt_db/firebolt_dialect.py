@@ -119,6 +119,9 @@ class FireboltDialect(default.DefaultDialect):
     supports_empty_insert = False
     supports_unicode_statements = True
     supports_unicode_binds = True
+    supports_statement_cache = False
+    # supports_statement_cache Set to False to disable warning
+    # https://sqlalche.me/e/20/cprf
     returns_unicode_strings = True
     description_encoding = None
     supports_native_boolean = True
@@ -131,7 +134,11 @@ class FireboltDialect(default.DefaultDialect):
         self.context: Union[ExecutionContext, Dict] = context or {}
 
     @classmethod
-    def dbapi(cls) -> ModuleType:
+    def import_dbapi(cls) -> ModuleType:  # For sqlalchemy >= 2.0.0
+        return dbapi
+
+    @classmethod
+    def dbapi(cls) -> ModuleType:  # Kept for backwards compatibility
         return dbapi
 
     def create_connect_args(self, url: URL) -> Tuple[List, Dict]:
