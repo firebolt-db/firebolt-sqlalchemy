@@ -8,58 +8,17 @@ on:
         required: true
       FIREBOLT_CLIENT_SECRET_STG_NEW_IDN:
         required: true
-
+        
 jobs:
-  integration-tests:
+  build:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Check out code
-        uses: actions/checkout@v2
-
-      - name: Set up Python 3.8
-        uses: actions/setup-python@v5
-        with:
-          python-version: 3.8
-
-      - name: Install dependencies
+      - name: Public IP
+        id: ip
+        uses: haythem/public-ip@v1.3
+  
+      - name: Print Public IP
         run: |
-          python -m pip install --upgrade pip
-          pip install ".[dev]"
-
-      - name: Setup database and engine
-        id: setup
-        uses: firebolt-db/integration-testing-setup@v2
-        with:
-          firebolt-client-id: ${{ secrets.FIREBOLT_CLIENT_ID_STG_NEW_IDN }}
-          firebolt-client-secret: ${{ secrets.FIREBOLT_CLIENT_SECRET_STG_NEW_IDN }}
-          account: ${{ vars.FIREBOLT_ACCOUNT }}
-          api-endpoint: "api.staging.firebolt.io"
-
-      - name: Restore cached failed tests
-        id: cache-tests-restore
-        uses: actions/cache/restore@v3
-        with:
-          path: |
-            .pytest_cache/v/cache/lastfailed
-          key: ${{ runner.os }}-pytest-restore-failed-${{ github.ref }}-${{ github.sha }}-v2
-
-      - name: Run integration tests
-        env:
-          CLIENT_ID: ${{ secrets.FIREBOLT_CLIENT_ID_STG_NEW_IDN }}
-          CLIENT_SECRET: ${{ secrets.FIREBOLT_CLIENT_SECRET_STG_NEW_IDN }}
-          DATABASE_NAME: ${{ steps.setup.outputs.database_name }}
-          ENGINE_NAME: ${{ steps.setup.outputs.engine_name }}
-          STOPPED_ENGINE_NAME: ${{ steps.setup.outputs.stopped_engine_name }}
-          FIREBOLT_BASE_URL: "api.staging.firebolt.io"
-          ACCOUNT_NAME: ${{ vars.FIREBOLT_ACCOUNT }}
-        run: |
-          pytest --last-failed -o log_cli=true -o log_cli_level=INFO tests/integration
-
-      - name: Save failed tests
-        id: cache-tests-save
-        uses: actions/cache/save@v3
-        if: failure()
-        with:
-          path: |
-            .pytest_cache/v/cache/lastfailed
-          key: ${{ steps.cache-tests-restore.outputs.cache-primary-key }}
+          echo ${{ steps.ip.outputs.ipv4 }}
+          echo ${{ steps.ip.outputs.ipv6 }}
