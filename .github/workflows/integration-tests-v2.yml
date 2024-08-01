@@ -8,6 +8,16 @@ on:
         required: true
       FIREBOLT_CLIENT_SECRET_STG_NEW_IDN:
         required: true
+    inputs:
+      engine-version:
+        description: 'Engine version to use for integration tests'
+        required: false
+        type: string
+        default: ''
+      token:
+        description: 'GitHub token if called from another workflow'
+        required: false
+        type: string
 
 jobs:
   integration-tests:
@@ -15,6 +25,8 @@ jobs:
     steps:
       - name: Check out code
         uses: actions/checkout@v2
+        with:
+          repository: firebolt-db/firebolt-sqlalchemy
 
       - name: Set up Python 3.8
         uses: actions/setup-python@v5
@@ -53,7 +65,7 @@ jobs:
           FIREBOLT_BASE_URL: "api.staging.firebolt.io"
           ACCOUNT_NAME: ${{ vars.FIREBOLT_ACCOUNT }}
         run: |
-          pytest --last-failed -o log_cli=true -o log_cli_level=INFO tests/integration
+          pytest --last-failed -o log_cli=true -o log_cli_level=INFO tests/integration --alluredir=allure-results
 
       - name: Save failed tests
         id: cache-tests-save
@@ -63,3 +75,22 @@ jobs:
           path: |
             .pytest_cache/v/cache/lastfailed
           key: ${{ steps.cache-tests-restore.outputs.cache-primary-key }}
+
+      # Need to pull the pages branch in order to fetch the previous runs
+      - name: Get Allure history
+        uses: actions/checkout@v4
+        if: always()
+        continue-on-error: true
+        with:
+            ref: gh-pages
+            path: gh-pages
+
+      - name: Allure Report
+        uses: firebolt-db/action-allure-report@v1
+        if: always()
+        with:
+            github-key: ${{ inputs.token || secrets.GITHUB_TOKEN }}
+            test-type: integration
+            allure-dir: allure-results
+            pages-branch: gh-pages
+            repository-name: firebolt-sqlalchemy
