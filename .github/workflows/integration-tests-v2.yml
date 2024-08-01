@@ -27,7 +27,6 @@ jobs:
         uses: actions/checkout@v2
         with:
           repository: firebolt-db/firebolt-sqlalchemy
-          ref: ci-call-from-another-repo
 
       - name: Set up Python 3.8
         uses: actions/setup-python@v5
