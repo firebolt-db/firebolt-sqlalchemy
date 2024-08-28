@@ -1,0 +1,4 @@
+INFO     httpx:_client.py:1038 HTTP Request: POST https://automation-firebolt.api.us-east-1.staging.firebolt.io/?database=integration_testing__1724846978730&engine=integration_testing__1724846978730&output_format=JSON_Compact "HTTP/1.1 200 OK"
+INFO     firebolt.db.cursor:cursor.py:192 Query fetched 0 rows in 0.316342830657959 seconds.
+INFO     httpx:_client.py:1038 HTTP Request: POST https://automation-firebolt.api.us-east-1.staging.firebolt.io/?database=integration_testing__1724846978730&engine=integration_testing__1724846978730&output_format=JSON_Compact "HTTP/1.1 200 OK"
+INFO     firebolt.db.cursor:cursor.py:192 Query fetched 0 rows in 0.17758679389953613 seconds.
