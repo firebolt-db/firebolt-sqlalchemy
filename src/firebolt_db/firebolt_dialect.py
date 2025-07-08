@@ -145,7 +145,7 @@ class FireboltDialect(default.DefaultDialect):
         """
         Build firebolt-sdk compatible connection arguments.
         URL format : firebolt://id:secret@host:port/db_name
-        For Core: firebolt://host:port/db_name?url=core_url
+        For Core: firebolt://db_name?url=http://localhost:8080 (full URL in url parameter)
         """
         parameters = dict(url.query)
         
