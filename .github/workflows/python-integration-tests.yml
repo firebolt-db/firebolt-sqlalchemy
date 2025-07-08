@@ -19,3 +19,5 @@ jobs:
   integration-test-v2:
     uses: ./.github/workflows/integration-tests-v2.yml
     secrets: inherit
+  integration-test-core:
+    uses: ./.github/workflows/integration-tests-core.yml
