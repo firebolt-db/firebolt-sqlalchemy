@@ -1,6 +1,6 @@
+from firebolt.client.auth import FireboltCore
 from sqlalchemy import text
 from sqlalchemy.engine.base import Connection, Engine
-from firebolt.client.auth import FireboltCore
 
 
 class TestFireboltCoreIntegration:
@@ -26,7 +26,7 @@ class TestFireboltCoreIntegration:
         """Test that Core connection doesn't require traditional credentials."""
         connect_args = core_engine.dialect.create_connect_args(core_engine.url)
         result_dict = connect_args[1]
-        
+
         assert "url" in result_dict
         assert result_dict["url"] == "http://localhost:3473"
         assert isinstance(result_dict["auth"], FireboltCore)

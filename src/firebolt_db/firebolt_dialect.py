@@ -154,31 +154,40 @@ class FireboltDialect(default.DefaultDialect):
         (full URL including scheme, host, port in url parameter)
         """
         parameters = dict(url.query)
-
         is_core_connection = "url" in parameters
-        core_url = parameters.pop("url", None) if is_core_connection else None
 
-        # parameters are all passed as a string, we need to convert
-        # bool flag to boolean for SDK compatibility
-        token_cache_flag = bool(strtobool(parameters.pop("use_token_cache", "True")))
-
-        # Validate Core connection parameters
         if is_core_connection:
-            if url.username or url.password:
-                raise ArgumentError(
-                    "Core connections do not support username/password authentication"
-                )
-            if url.database:
-                raise ArgumentError(
-                    "Core connections do not support engine_name parameter"
-                )
-            if "account_name" in parameters:
-                raise ArgumentError(
-                    "Core connections do not support account_name parameter"
-                )
+            self._validate_core_connection(url, parameters)
 
+        token_cache_flag = self._parse_token_cache_flag(parameters)
         auth = _determine_auth(url, token_cache_flag)
+        kwargs = self._build_connection_kwargs(
+            url, parameters, auth, is_core_connection
+        )
 
+        return ([], kwargs)
+
+    def _validate_core_connection(self, url: URL, parameters: Dict[str, str]) -> None:
+        """Validate that Core connection parameters are correct."""
+        if url.username or url.password:
+            raise ArgumentError(
+                "Core connections do not support username/password authentication"
+            )
+        if url.database:
+            raise ArgumentError("Core connections do not support engine_name parameter")
+        if "account_name" in parameters:
+            raise ArgumentError(
+                "Core connections do not support account_name parameter"
+            )
+
+    def _parse_token_cache_flag(self, parameters: Dict[str, str]) -> bool:
+        """Parse and remove token cache flag from parameters."""
+        return bool(strtobool(parameters.pop("use_token_cache", "True")))
+
+    def _build_connection_kwargs(
+        self, url: URL, parameters: Dict[str, str], auth: Auth, is_core_connection: bool
+    ) -> Dict[str, Union[str, Auth, Dict[str, Any], None]]:
+        """Build connection kwargs for the SDK."""
         kwargs: Dict[str, Union[str, Auth, Dict[str, Any], None]] = {
             "database": url.host or None,
             "auth": auth,
@@ -186,27 +195,51 @@ class FireboltDialect(default.DefaultDialect):
             "additional_parameters": {},
         }
 
-        if core_url:
-            kwargs["url"] = core_url
+        if is_core_connection:
+            kwargs["url"] = parameters.pop("url")
 
-        additional_parameters = {}
+        self._handle_account_name(parameters, auth, kwargs)
+        self._handle_environment_config(kwargs)
+        kwargs["additional_parameters"] = self._build_additional_parameters(parameters)
+
+        return kwargs
+
+    def _handle_account_name(
+        self,
+        parameters: Dict[str, str],
+        auth: Auth,
+        kwargs: Dict[str, Union[str, Auth, Dict[str, Any], None]],
+    ) -> None:
+        """Handle account_name parameter and validation."""
         if "account_name" in parameters:
             kwargs["account_name"] = parameters.pop("account_name")
         elif isinstance(auth, ClientCredentials):
-            # account_name is required for client credentials authentication
             raise ArgumentError(
                 "account_name parameter must be provided to authenticate"
             )
-        self._set_parameters = parameters
-        # If URL override is not provided leave it to the sdk to determine the endpoint
+
+    def _handle_environment_config(
+        self, kwargs: Dict[str, Union[str, Auth, Dict[str, Any], None]]
+    ) -> None:
+        """Handle environment-based configuration."""
         if "FIREBOLT_BASE_URL" in os.environ:
             kwargs["api_endpoint"] = os.environ["FIREBOLT_BASE_URL"]
-        # Tracking information
+
+    def _build_additional_parameters(
+        self, parameters: Dict[str, str]
+    ) -> Dict[str, Any]:
+        """Build additional parameters including tracking information."""
+        self._set_parameters = parameters
+        additional_parameters: Dict[str, Any] = {}
+
         if "user_clients" in parameters or "user_drivers" in parameters:
             additional_parameters["user_drivers"] = parameters.pop("user_drivers", [])
             additional_parameters["user_clients"] = parameters.pop("user_clients", [])
-        kwargs["additional_parameters"] = additional_parameters
-        return ([], kwargs)
+
+        for key, value in parameters.items():
+            additional_parameters[key] = value
+
+        return additional_parameters
 
     def get_schema_names(
         self, connection: AlchemyConnection, **kwargs: Any
