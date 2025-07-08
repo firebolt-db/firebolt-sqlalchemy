@@ -201,6 +201,7 @@ class FireboltDialect(default.DefaultDialect):
         self._handle_account_name(parameters, auth, kwargs)
         self._handle_environment_config(kwargs)
         kwargs["additional_parameters"] = self._build_additional_parameters(parameters)
+        self._set_parameters = parameters
 
         return kwargs
 
@@ -229,15 +230,11 @@ class FireboltDialect(default.DefaultDialect):
         self, parameters: Dict[str, str]
     ) -> Dict[str, Any]:
         """Build additional parameters including tracking information."""
-        self._set_parameters = parameters
         additional_parameters: Dict[str, Any] = {}
 
         if "user_clients" in parameters or "user_drivers" in parameters:
             additional_parameters["user_drivers"] = parameters.pop("user_drivers", [])
             additional_parameters["user_clients"] = parameters.pop("user_clients", [])
-
-        for key, value in parameters.items():
-            additional_parameters[key] = value
 
         return additional_parameters
 
