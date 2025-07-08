@@ -162,10 +162,22 @@ class FireboltDialect(default.DefaultDialect):
         # bool flag to boolean for SDK compatibility
         token_cache_flag = bool(strtobool(parameters.pop("use_token_cache", "True")))
 
+        # Validate Core connection parameters
         if is_core_connection:
-            auth = _determine_auth("", "", token_cache_flag, is_core=True)
-        else:
-            auth = _determine_auth(url.username, url.password, token_cache_flag)
+            if url.username or url.password:
+                raise ArgumentError(
+                    "Core connections do not support username/password authentication"
+                )
+            if url.database:
+                raise ArgumentError(
+                    "Core connections do not support engine_name parameter"
+                )
+            if "account_name" in parameters:
+                raise ArgumentError(
+                    "Core connections do not support account_name parameter"
+                )
+
+        auth = _determine_auth(url, token_cache_flag)
 
         kwargs: Dict[str, Union[str, Auth, Dict[str, Any], None]] = {
             "database": url.host or None,
@@ -386,12 +398,13 @@ def get_is_nullable(column_is_nullable: int) -> bool:
     return column_is_nullable == 1
 
 
-def _determine_auth(
-    key: str, secret: str, token_cache_flag: bool = True, is_core: bool = False
-) -> Auth:
-    if is_core:
+def _determine_auth(url: URL, token_cache_flag: bool = True) -> Auth:
+    parameters = dict(url.query)
+    is_core_connection = "url" in parameters
+
+    if is_core_connection:
         return FireboltCore()
-    elif "@" in key:
-        return UsernamePassword(key, secret, token_cache_flag)
+    elif "@" in (url.username or ""):
+        return UsernamePassword(url.username, url.password, token_cache_flag)
     else:
-        return ClientCredentials(key, secret, token_cache_flag)
+        return ClientCredentials(url.username, url.password, token_cache_flag)
