@@ -65,7 +65,7 @@ jobs:
           FIREBOLT_BASE_URL: "api.staging.firebolt.io"
           ACCOUNT_NAME: ${{ vars.FIREBOLT_ACCOUNT }}
         run: |
-          pytest --last-failed -o log_cli=true -o log_cli_level=INFO tests/integration --alluredir=allure-results
+          pytest --last-failed -o log_cli=true -o log_cli_level=INFO tests/integration -k "not core" --alluredir=allure-results
 
       - name: Save failed tests
         id: cache-tests-save

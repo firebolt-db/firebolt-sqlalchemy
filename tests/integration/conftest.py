@@ -190,7 +190,7 @@ def dimension_table_name() -> str:
     return "test_alchemy_dimension"
 
 
-@fixture(scope="class", autouse=True)
+@fixture(scope="class")
 def setup_test_tables(
     connection: Connection,
     engine: Engine,

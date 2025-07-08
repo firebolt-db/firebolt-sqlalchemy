@@ -1,9 +1,11 @@
 from typing import Dict, List
 
+import pytest
 from sqlalchemy import inspect, text
 from sqlalchemy.engine.base import Connection, Engine
 
 
+@pytest.mark.usefixtures("setup_test_tables")
 class TestAsyncFireboltDialect:
     async def test_create_ex_table(
         self,

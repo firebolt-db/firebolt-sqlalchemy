@@ -1,8 +1,10 @@
+import pytest
 from firebolt.client.auth import FireboltCore
 from sqlalchemy import text
 from sqlalchemy.engine.base import Connection, Engine
 
 
+@pytest.mark.core
 class TestFireboltCoreIntegration:
     def test_core_connection(self, core_connection: Connection):
         """Test that Core connection can be established."""

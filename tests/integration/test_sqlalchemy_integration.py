@@ -1,11 +1,13 @@
 from datetime import date, datetime
 from decimal import Decimal
 
+import pytest
 from sqlalchemy import create_engine, text
 from sqlalchemy.engine.base import Connection, Engine
 from sqlalchemy.types import ARRAY, INTEGER, TypeEngine
 
 
+@pytest.mark.usefixtures("setup_test_tables")
 class TestFireboltDialect:
     def test_create_ex_table(
         self,

@@ -84,9 +84,28 @@ jobs:
         env:
           CORE_URL: "http://localhost:3473"
         run: |
-          pytest -o log_cli=true -o log_cli_level=INFO tests/integration/test_core_integration.py
+          pytest -o log_cli=true -o log_cli_level=INFO tests/integration -k "core" --alluredir=allure-results
 
       - name: Stop container
         if: always()
         run: |
           docker compose -f "$DOCKER_COMPOSE_FILE" down
+
+      # Need to pull the pages branch in order to fetch the previous runs
+      - name: Get Allure history
+        uses: actions/checkout@v4
+        if: always()
+        continue-on-error: true
+        with:
+            ref: gh-pages
+            path: gh-pages
+
+      - name: Allure Report
+        uses: firebolt-db/action-allure-report@v1
+        if: always()
+        with:
+            github-key: ${{ secrets.GITHUB_TOKEN }}
+            test-type: integration
+            allure-dir: allure-results
+            pages-branch: gh-pages
+            repository-name: firebolt-sqlalchemy
