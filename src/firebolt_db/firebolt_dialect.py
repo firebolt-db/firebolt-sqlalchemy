@@ -150,14 +150,13 @@ class FireboltDialect(default.DefaultDialect):
         """
         Build firebolt-sdk compatible connection arguments.
         URL format : firebolt://id:secret@host:port/db_name
-        For Core: firebolt://db_name?url=http://localhost:8080 (full URL in url parameter)
+        For Core: firebolt://db_name?url=http://localhost:8080
+        (full URL including scheme, host, port in url parameter)
         """
         parameters = dict(url.query)
 
         is_core_connection = "url" in parameters
-        core_url = (
-            parameters.pop("url", None) if is_core_connection else None
-        )
+        core_url = parameters.pop("url", None) if is_core_connection else None
 
         # parameters are all passed as a string, we need to convert
         # bool flag to boolean for SDK compatibility
