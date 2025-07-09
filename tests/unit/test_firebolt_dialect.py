@@ -352,30 +352,29 @@ class TestFireboltDialect:
         ):
             dialect.create_connect_args(u)
 
-    def test_create_connect_args_core_with_engine_error(self, dialect: FireboltDialect):
+    def test_create_connect_args_core_with_engine_allowed(self, dialect: FireboltDialect):
+        """Test that Core connections now allow engine_name parameter."""
         connection_url = (
             "test_engine://test_db_name/test_engine?url=http://localhost:8080"
         )
         u = url.make_url(connection_url)
+        
+        result_list, result_dict = dialect.create_connect_args(u)
+        assert result_dict["engine_name"] == "test_engine"
+        assert result_dict["url"] == "http://localhost:8080"
 
-        with raises(
-            ArgumentError, match="Core connections do not support engine_name parameter"
-        ):
-            dialect.create_connect_args(u)
-
-    def test_create_connect_args_core_with_account_error(
+    def test_create_connect_args_core_with_account_allowed(
         self, dialect: FireboltDialect
     ):
+        """Test that Core connections now allow account_name parameter."""
         connection_url = (
             "test_engine://test_db_name?url=http://localhost:8080&account_name=test"
         )
         u = url.make_url(connection_url)
-
-        with raises(
-            ArgumentError,
-            match="Core connections do not support account_name parameter",
-        ):
-            dialect.create_connect_args(u)
+        
+        result_list, result_dict = dialect.create_connect_args(u)
+        assert result_dict["account_name"] == "test"
+        assert result_dict["url"] == "http://localhost:8080"
 
 
 def test_get_is_nullable():

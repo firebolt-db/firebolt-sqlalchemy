@@ -170,18 +170,11 @@ class FireboltDialect(default.DefaultDialect):
     def _validate_core_connection(self, url: URL, parameters: Dict[str, str]) -> None:
         """Validate that Core connection parameters are correct.
         
-        Note: In SQLAlchemy URL structure, url.database maps to engine_name
-        and url.host maps to database name in Firebolt context.
+        Only validates credentials since FireboltCore auth handles other parameters.
         """
         if url.username or url.password:
             raise ArgumentError(
                 "Core connections do not support username/password authentication"
-            )
-        if url.database:
-            raise ArgumentError("Core connections do not support engine_name parameter")
-        if "account_name" in parameters:
-            raise ArgumentError(
-                "Core connections do not support account_name parameter"
             )
 
     def _parse_token_cache_flag(self, parameters: Dict[str, str]) -> bool:
