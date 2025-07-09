@@ -1,6 +1,6 @@
 import pytest
 from firebolt.client.auth import FireboltCore
-from sqlalchemy import text
+from sqlalchemy import create_engine, text
 from sqlalchemy.engine.base import Connection, Engine
 
 
@@ -34,3 +34,40 @@ class TestFireboltCoreIntegration:
         assert isinstance(result_dict["auth"], FireboltCore)
         assert result_dict["engine_name"] is None
         assert "account_name" not in result_dict
+
+    def test_core_sdk_validation_with_engine_name(self, core_url: str):
+        """Test that SDK handles engine_name parameter for Core connections."""
+        engine = create_engine(f"firebolt://test_db/test_engine?url={core_url}")
+
+        connect_args = engine.dialect.create_connect_args(engine.url)
+        result_dict = connect_args[1]
+
+        assert result_dict["engine_name"] == "test_engine"
+        assert result_dict["database"] == "test_db"
+        assert result_dict["url"] == core_url
+        assert isinstance(result_dict["auth"], FireboltCore)
+
+    def test_core_sdk_validation_with_account_name(self, core_url: str):
+        """Test that SDK handles account_name parameter for Core connections."""
+        engine = create_engine(
+            f"firebolt://test_db?url={core_url}&account_name=test_account"
+        )
+
+        connect_args = engine.dialect.create_connect_args(engine.url)
+        result_dict = connect_args[1]
+
+        assert result_dict["account_name"] == "test_account"
+        assert result_dict["database"] == "test_db"
+        assert result_dict["url"] == core_url
+        assert isinstance(result_dict["auth"], FireboltCore)
+
+    def test_core_sdk_validation_with_invalid_url(self, core_url: str):
+        """Test that SDK handles invalid URL parameter for Core connections."""
+        engine = create_engine("firebolt://test_db?url=invalid://localhost:9999")
+
+        connect_args = engine.dialect.create_connect_args(engine.url)
+        result_dict = connect_args[1]
+
+        assert result_dict["url"] == "invalid://localhost:9999"
+        assert result_dict["database"] == "test_db"
+        assert isinstance(result_dict["auth"], FireboltCore)
