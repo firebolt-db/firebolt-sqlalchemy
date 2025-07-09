@@ -169,7 +169,7 @@ class FireboltDialect(default.DefaultDialect):
 
     def _validate_core_connection(self, url: URL, parameters: Dict[str, str]) -> None:
         """Validate that Core connection parameters are correct.
-        
+
         Only validates credentials since FireboltCore auth handles other parameters.
         """
         if url.username or url.password:
@@ -185,7 +185,7 @@ class FireboltDialect(default.DefaultDialect):
         self, url: URL, parameters: Dict[str, str], auth: Auth, is_core_connection: bool
     ) -> Dict[str, Union[str, Auth, Dict[str, Any], None]]:
         """Build connection kwargs for the SDK.
-        
+
         SQLAlchemy URL mapping:
         - url.host -> database (Firebolt database name)
         - url.database -> engine_name (Firebolt engine name)
