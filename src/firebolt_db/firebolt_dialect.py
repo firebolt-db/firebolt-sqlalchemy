@@ -168,7 +168,11 @@ class FireboltDialect(default.DefaultDialect):
         return ([], kwargs)
 
     def _validate_core_connection(self, url: URL, parameters: Dict[str, str]) -> None:
-        """Validate that Core connection parameters are correct."""
+        """Validate that Core connection parameters are correct.
+        
+        Note: In SQLAlchemy URL structure, url.database maps to engine_name
+        and url.host maps to database name in Firebolt context.
+        """
         if url.username or url.password:
             raise ArgumentError(
                 "Core connections do not support username/password authentication"
@@ -187,7 +191,12 @@ class FireboltDialect(default.DefaultDialect):
     def _build_connection_kwargs(
         self, url: URL, parameters: Dict[str, str], auth: Auth, is_core_connection: bool
     ) -> Dict[str, Union[str, Auth, Dict[str, Any], None]]:
-        """Build connection kwargs for the SDK."""
+        """Build connection kwargs for the SDK.
+        
+        SQLAlchemy URL mapping:
+        - url.host -> database (Firebolt database name)
+        - url.database -> engine_name (Firebolt engine name)
+        """
         kwargs: Dict[str, Union[str, Auth, Dict[str, Any], None]] = {
             "database": url.host or None,
             "auth": auth,
