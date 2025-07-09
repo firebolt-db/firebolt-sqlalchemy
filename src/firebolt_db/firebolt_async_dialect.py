@@ -156,13 +156,7 @@ class AsyncAPIWrapper(ModuleType):
         # Synchronously establish a connection that can execute
         # asynchronous queries later
         conn_func = partial(self.dbapi.connect, *arg, **kw)  # type: ignore[attr-defined] # noqa: F821,E501
-        try:
-            connection = run(conn_func)
-        except RuntimeError as e:
-            if "Attempted to call run() from inside a run()" in str(e):
-                connection = await_only(conn_func())
-            else:
-                raise
+        connection = run(conn_func)
         return AsyncConnectionWrapper(
             self,
             connection,
