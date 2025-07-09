@@ -2,6 +2,7 @@ import pytest
 from firebolt.client.auth import FireboltCore
 from sqlalchemy import create_engine, text
 from sqlalchemy.engine.base import Connection, Engine
+from sqlalchemy.exc import InterfaceError
 
 
 @pytest.mark.core
@@ -46,6 +47,9 @@ class TestFireboltCoreIntegration:
         assert result_dict["database"] == "test_db"
         assert result_dict["url"] == core_url
         assert isinstance(result_dict["auth"], FireboltCore)
+        with pytest.raises(InterfaceError) as exc_info:
+            engine.connect().execute(text("SELECT 1"))
+        assert "Parameters 'engine_name' are not compatible" in str(exc_info.value)
 
     def test_core_sdk_validation_with_account_name(self, core_url: str):
         """Test that SDK handles account_name parameter for Core connections."""
@@ -60,6 +64,9 @@ class TestFireboltCoreIntegration:
         assert result_dict["database"] == "test_db"
         assert result_dict["url"] == core_url
         assert isinstance(result_dict["auth"], FireboltCore)
+        with pytest.raises(InterfaceError) as exc_info:
+            engine.connect().execute(text("SELECT 1"))
+        assert "Parameters 'account_name' are not compatible" in str(exc_info.value)
 
     def test_core_sdk_validation_with_invalid_url(self, core_url: str):
         """Test that SDK handles invalid URL parameter for Core connections."""
@@ -71,3 +78,6 @@ class TestFireboltCoreIntegration:
         assert result_dict["url"] == "invalid://localhost:9999"
         assert result_dict["database"] == "test_db"
         assert isinstance(result_dict["auth"], FireboltCore)
+        with pytest.raises(InterfaceError) as exc_info:
+            engine.connect().execute(text("SELECT 1"))
+        assert "Invalid protocol" in str(exc_info.value)
