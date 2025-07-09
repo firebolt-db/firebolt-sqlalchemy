@@ -1,0 +1,35 @@
+INFO     conftest:conftest.py:22 CLIENT_ID: U997q3NYgyAytCrobBQAH30VipWk8qYJ
+INFO     conftest:conftest.py:22 CLIENT_SECRET: u5XJKKsytNkC1swcETcElgm4Ct1PLKU9PoQV81cA8oYGvdx8mWmd1mHsY8ZSDjgD
+INFO     conftest:conftest.py:22 DATABASE_NAME: integration_testing__1752073663688
+INFO     conftest:conftest.py:22 ENGINE_NAME: integration_testing__1752073663688
+INFO     conftest:conftest.py:22 ACCOUNT_NAME: automation
+INFO     httpx:_client.py:1025 HTTP Request: POST https://id.staging.firebolt.io/oauth/token "HTTP/1.1 200 OK"
+INFO     httpx:_client.py:1025 HTTP Request: GET https://api.staging.firebolt.io/web/v3/account/automation/engineUrl "HTTP/1.1 200 OK"
+INFO     httpx:_client.py:1025 HTTP Request: POST https://01hzdxdxjqa9n6c07d5j51skep.api.us-east-1.staging.firebolt.io/?output_format=JSON_Compact "HTTP/1.1 200 OK"
+INFO     firebolt.db.cursor:cursor.py:270 Query fetched 0 rows in 0.2688138484954834 seconds.
+INFO     httpx:_client.py:1025 HTTP Request: POST https://01hzdxdxjqa9n6c07d5j51skep.api.us-east-1.staging.firebolt.io/?database=integration_testing__1752073663688&output_format=JSON_Compact "HTTP/1.1 200 OK"
+INFO     firebolt.db.cursor:cursor.py:270 Query fetched 0 rows in 0.06874489784240723 seconds.
+INFO     httpx:_client.py:1025 HTTP Request: POST https://automation-firebolt.api.us-east-1.staging.firebolt.io/?database=integration_testing__1752073663688&engine=integration_testing__1752073663688&output_format=JSON_Compact "HTTP/1.1 200 OK"
+INFO     firebolt.db.cursor:cursor.py:270 Query fetched 0 rows in 0.64697265625 seconds.
+INFO     httpx:_client.py:1025 HTTP Request: POST https://automation-firebolt.api.us-east-1.staging.firebolt.io/?database=integration_testing__1752073663688&engine=integration_testing__1752073663688&output_format=JSON_Compact "HTTP/1.1 200 OK"
+INFO     firebolt.db.cursor:cursor.py:270 Query fetched 0 rows in 0.14112639427185059 seconds.
+INFO     httpx:_client.py:1025 HTTP Request: POST https://automation-firebolt.api.us-east-1.staging.firebolt.io/?database=integration_testing__1752073663688&engine=integration_testing__1752073663688&output_format=JSON_Compact "HTTP/1.1 200 OK"
+INFO     firebolt.db.cursor:cursor.py:270 Query fetched 0 rows in 0.12572240829467773 seconds.
+INFO     httpx:_client.py:1025 HTTP Request: POST https://automation-firebolt.api.us-east-1.staging.firebolt.io/?database=integration_testing__1752073663688&engine=integration_testing__1752073663688&output_format=JSON_Compact "HTTP/1.1 200 OK"
+INFO     firebolt.db.cursor:cursor.py:270 Query fetched 1 rows in 0.06673860549926758 seconds.
+INFO     httpx:_client.py:1025 HTTP Request: POST https://automation-firebolt.api.us-east-1.staging.firebolt.io/?database=integration_testing__1752073663688&engine=integration_testing__1752073663688&output_format=JSON_Compact "HTTP/1.1 200 OK"
+INFO     firebolt.db.cursor:cursor.py:270 Query fetched 1 rows in 0.03311657905578613 seconds.
+INFO     httpx:_client.py:1025 HTTP Request: POST https://automation-firebolt.api.us-east-1.staging.firebolt.io/?database=integration_testing__1752073663688&engine=integration_testing__1752073663688&output_format=JSON_Compact "HTTP/1.1 200 OK"
+INFO     firebolt.db.cursor:cursor.py:270 Query fetched 1 rows in 0.03349018096923828 seconds.
+INFO     httpx:_client.py:1740 HTTP Request: POST https://01hzdxdxjqa9n6c07d5j51skep.api.us-east-1.staging.firebolt.io/?output_format=JSON_Compact "HTTP/1.1 200 OK"
+INFO     firebolt.async_db.cursor:cursor.py:264 Query fetched 0 rows in 0.09236884117126465 seconds.
+INFO     httpx:_client.py:1740 HTTP Request: POST https://01hzdxdxjqa9n6c07d5j51skep.api.us-east-1.staging.firebolt.io/?database=integration_testing__1752073663688&output_format=JSON_Compact "HTTP/1.1 200 OK"
+INFO     firebolt.async_db.cursor:cursor.py:264 Query fetched 0 rows in 0.06011319160461426 seconds.
+INFO     httpx:_client.py:1740 HTTP Request: POST https://automation-firebolt.api.us-east-1.staging.firebolt.io/?database=integration_testing__1752073663688&engine=integration_testing__1752073663688&output_format=JSON_Compact "HTTP/1.1 200 OK"
+INFO     firebolt.async_db.cursor:cursor.py:264 Query fetched 0 rows in 0.30643272399902344 seconds.
+INFO     httpx:_client.py:1740 HTTP Request: POST https://automation-firebolt.api.us-east-1.staging.firebolt.io/?database=integration_testing__1752073663688&engine=integration_testing__1752073663688&output_format=JSON_Compact "HTTP/1.1 200 OK"
+INFO     firebolt.async_db.cursor:cursor.py:264 Query fetched 1 rows in 0.06763839721679688 seconds.
+INFO     httpx:_client.py:1740 HTTP Request: POST https://automation-firebolt.api.us-east-1.staging.firebolt.io/?database=integration_testing__1752073663688&engine=integration_testing__1752073663688&output_format=JSON_Compact "HTTP/1.1 200 OK"
+INFO     firebolt.async_db.cursor:cursor.py:264 Query fetched 0 rows in 0.08376789093017578 seconds.
+INFO     httpx:_client.py:1740 HTTP Request: POST https://automation-firebolt.api.us-east-1.staging.firebolt.io/?database=integration_testing__1752073663688&engine=integration_testing__1752073663688&output_format=JSON_Compact "HTTP/1.1 200 OK"
+INFO     firebolt.async_db.cursor:cursor.py:264 Query fetched 1 rows in 0.05642819404602051 seconds.
