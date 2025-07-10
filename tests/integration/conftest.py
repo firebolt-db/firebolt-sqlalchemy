@@ -190,7 +190,7 @@ def dimension_table_name() -> str:
     return "test_alchemy_dimension"
 
 
-@fixture(scope="class", autouse=True)
+@fixture(scope="class")
 def setup_test_tables(
     connection: Connection,
     engine: Engine,
@@ -233,3 +233,19 @@ def setup_test_tables(
     assert not engine.dialect.has_table(connection, fact_table_name)
     assert not engine.dialect.has_table(connection, dimension_table_name)
     assert not engine.dialect.has_table(connection, type_table_name)
+
+
+@fixture(scope="session")
+def core_url() -> str:
+    return environ.get("CORE_URL", "http://localhost:3473")
+
+
+@fixture(scope="session")
+def core_engine(core_url: str) -> Engine:
+    return create_engine(f"firebolt://firebolt?url={core_url}")
+
+
+@fixture(scope="session")
+def core_connection(core_engine: Engine) -> Connection:
+    with core_engine.connect() as c:
+        yield c

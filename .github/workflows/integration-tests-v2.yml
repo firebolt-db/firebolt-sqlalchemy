@@ -28,10 +28,10 @@ jobs:
         with:
           repository: firebolt-db/firebolt-sqlalchemy
 
-      - name: Set up Python 3.8
+      - name: Set up Python 3.9
         uses: actions/setup-python@v5
         with:
-          python-version: 3.8
+          python-version: 3.9
 
       - name: Install dependencies
         run: |
@@ -65,7 +65,7 @@ jobs:
           FIREBOLT_BASE_URL: "api.staging.firebolt.io"
           ACCOUNT_NAME: ${{ vars.FIREBOLT_ACCOUNT }}
         run: |
-          pytest --last-failed -o log_cli=true -o log_cli_level=INFO tests/integration --alluredir=allure-results
+          pytest --last-failed -o log_cli=true -o log_cli_level=INFO tests/integration -k "not core" --alluredir=allure-results
 
       - name: Save failed tests
         id: cache-tests-save

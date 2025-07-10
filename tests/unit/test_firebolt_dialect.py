@@ -4,6 +4,7 @@ from unittest import mock
 import sqlalchemy
 import sqlalchemy.types as sqltypes
 from conftest import MockCursor, MockDBApi
+from firebolt.client.auth import FireboltCore
 from pytest import mark, raises
 from sqlalchemy.engine import url
 from sqlalchemy.exc import ArgumentError
@@ -301,6 +302,81 @@ class TestFireboltDialect:
         self, dialect: FireboltDialect, connection: mock.Mock(spec=MockDBApi)
     ):
         assert dialect._check_unicode_description(connection)
+
+    def test_create_connect_args_core_connection(self, dialect: FireboltDialect):
+        connection_url = "test_engine://test_db_name?url=http://localhost:8080"
+        u = url.make_url(connection_url)
+        result_list, result_dict = dialect.create_connect_args(u)
+
+        assert result_dict["engine_name"] is None
+        assert result_dict["database"] == "test_db_name"
+        assert result_dict["url"] == "http://localhost:8080"
+        assert isinstance(result_dict["auth"], FireboltCore)
+        assert "account_name" not in result_dict
+        assert result_list == []
+
+    def test_create_connect_args_core_connection_with_database(
+        self, dialect: FireboltDialect
+    ):
+        connection_url = "test_engine://test_db_name?" "url=http://localhost:8080"
+        u = url.make_url(connection_url)
+        result_list, result_dict = dialect.create_connect_args(u)
+
+        assert result_dict["database"] == "test_db_name"
+        assert result_dict["url"] == "http://localhost:8080"
+        assert isinstance(result_dict["auth"], FireboltCore)
+        assert result_dict["engine_name"] is None
+        assert result_list == []
+
+    def test_create_connect_args_core_no_credentials_required(
+        self, dialect: FireboltDialect
+    ):
+        connection_url = "test_engine://test_db_name?url=http://localhost:8080"
+        u = url.make_url(connection_url)
+
+        result_list, result_dict = dialect.create_connect_args(u)
+        assert isinstance(result_dict["auth"], FireboltCore)
+        assert "account_name" not in result_dict
+
+    def test_create_connect_args_core_with_credentials_error(
+        self, dialect: FireboltDialect
+    ):
+        connection_url = (
+            "test_engine://user:pass@test_db_name?url=http://localhost:8080"
+        )
+        u = url.make_url(connection_url)
+
+        with raises(
+            ArgumentError,
+            match="Core connections do not support username/password authentication",
+        ):
+            dialect.create_connect_args(u)
+
+    def test_create_connect_args_core_with_engine_allowed(
+        self, dialect: FireboltDialect
+    ):
+        """Test that Core connections now allow engine_name parameter."""
+        connection_url = (
+            "test_engine://test_db_name/test_engine?url=http://localhost:8080"
+        )
+        u = url.make_url(connection_url)
+
+        result_list, result_dict = dialect.create_connect_args(u)
+        assert result_dict["engine_name"] == "test_engine"
+        assert result_dict["url"] == "http://localhost:8080"
+
+    def test_create_connect_args_core_with_account_allowed(
+        self, dialect: FireboltDialect
+    ):
+        """Test that Core connections now allow account_name parameter."""
+        connection_url = (
+            "test_engine://test_db_name?url=http://localhost:8080&account_name=test"
+        )
+        u = url.make_url(connection_url)
+
+        result_list, result_dict = dialect.create_connect_args(u)
+        assert result_dict["account_name"] == "test"
+        assert result_dict["url"] == "http://localhost:8080"
 
 
 def test_get_is_nullable():
