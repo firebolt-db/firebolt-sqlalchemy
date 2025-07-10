@@ -57,6 +57,23 @@ import urllib.parse
 new_secret = urllib.parse.quote_plus(my_secret)
 ```
 
+## Connecting with Firebolt Core
+
+[Firebolt Core](https://docs.firebolt.io/firebolt-core) is free self-hosted version of Firebolt.
+
+In order to connect to it you can provide a simplified version of the connection string:
+
+```
+firebolt://{database}?url={url}
+```
+
+`{database}` is you Firebolt Core database. By default this is `firebolt`
+
+`{url}` is a fully qualified URL (with port) where your Firebolt Core is hosted. By default it's `http://localhost:3473`
+
+If you are running Firebolt Core locally with defaults the connection string will be `firebolt://firebolt?url=http://localhost:3473`
+
+
 ## Quick Start
 
 ```python
