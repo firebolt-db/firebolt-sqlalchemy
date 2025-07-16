@@ -6,7 +6,7 @@ from sqlalchemy import create_engine, text
 from sqlalchemy.engine.base import Connection, Engine
 from sqlalchemy.types import ARRAY, INTEGER, TypeEngine
 
-from tests.integration.conftest import Secret
+from .conftest import Secret  # noqa: I252 relative import
 
 
 @pytest.mark.usefixtures("setup_test_tables")
