@@ -17,6 +17,25 @@ CLIENT_ID_ENV = "CLIENT_ID"
 CLIENT_KEY_ENV = "CLIENT_SECRET"
 
 
+class Secret:
+    """
+    Class to hold sensitive data in testing. This prevents passwords
+    and such to be printed in logs or any other reports.
+    More info: https://github.com/pytest-dev/pytest/issues/8613
+    NOTE: be careful, assert Secret("") == "" would still print
+    on failure
+    """
+
+    def __init__(self, value):
+        self.value = value
+
+    def __repr__(self):
+        return "Secret(********)"
+
+    def __str___(self):
+        return "*******"
+
+
 def must_env(var_name: str) -> str:
     assert var_name in environ, f"Expected {var_name} to be provided in environment"
     LOGGER.info(f"{var_name}: {environ[var_name]}")
@@ -39,8 +58,8 @@ def client_id() -> str:
 
 
 @fixture(scope="session")
-def client_key() -> str:
-    return urllib.parse.quote_plus(must_env(CLIENT_KEY_ENV))
+def client_key() -> Secret:
+    return Secret(urllib.parse.quote_plus(must_env(CLIENT_KEY_ENV)))
 
 
 @fixture(scope="session")
@@ -51,13 +70,13 @@ def account_name() -> str:
 @fixture(scope="session")
 def engine(
     client_id: str,
-    client_key: str,
+    client_key: Secret,
     database_name: str,
     engine_name: str,
     account_name: str,
 ) -> Engine:
     return create_engine(
-        f"firebolt://{client_id}:{client_key}@{database_name}/{engine_name}"
+        f"firebolt://{client_id}:{client_key.value}@{database_name}/{engine_name}"
         + f"?account_name={account_name}"
     )
 
@@ -65,13 +84,13 @@ def engine(
 @fixture(scope="session")
 def engine_service_account(
     client_id: str,
-    client_key: str,
+    client_key: Secret,
     database_name: str,
     engine_name: str,
     account_name: str,
 ) -> Engine:
     return create_engine(
-        f"firebolt://{client_id}:{client_key}@{database_name}/{engine_name}"
+        f"firebolt://{client_id}:{client_key.value}@{database_name}/{engine_name}"
         + f"?account_name={account_name}"
     )
 
@@ -91,14 +110,14 @@ def connection_service_account(engine_service_account: Engine) -> Connection:
 @fixture()
 def async_engine(
     client_id: str,
-    client_key: str,
+    client_key: Secret,
     database_name: str,
     engine_name: str,
     account_name: str,
 ) -> Engine:
     return create_async_engine(
-        f"asyncio+firebolt://{client_id}:{client_key}@{database_name}/{engine_name}"
-        + f"?account_name={account_name}"
+        f"asyncio+firebolt://{client_id}:{client_key.value}@{database_name}/"
+        + f"{engine_name}?account_name={account_name}"
     )
 
 

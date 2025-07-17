@@ -6,6 +6,8 @@ from sqlalchemy import create_engine, text
 from sqlalchemy.engine.base import Connection, Engine
 from sqlalchemy.types import ARRAY, INTEGER, TypeEngine
 
+from .conftest import Secret  # noqa: I252 relative import
+
 
 @pytest.mark.usefixtures("setup_test_tables")
 class TestFireboltDialect:
@@ -25,13 +27,13 @@ class TestFireboltDialect:
     def test_set_params(
         self,
         client_id: str,
-        client_key: str,
+        client_key: Secret,
         database_name: str,
         engine_name: str,
         account_name: str,
     ):
         engine = create_engine(
-            f"firebolt://{client_id}:{client_key}@{database_name}/{engine_name}"
+            f"firebolt://{client_id}:{client_key.value}@{database_name}/{engine_name}"
             + f"?account_name={account_name}"
         )
         with engine.connect() as connection:
