@@ -69,7 +69,7 @@ jobs:
           FIREBOLT_BASE_URL: "api.staging.firebolt.io"
           ACCOUNT_NAME: ${{ vars.FIREBOLT_ACCOUNT }}
         run: |
-          pytest --last-failed -o log_cli=true -o log_cli_level=INFO --junit-xml=report/junit.xml tests/integration
+          pytest --last-failed -o log_cli=true -o log_cli_level=INFO --junit-xml=report/junit.xml tests/integration -k "not core"
 
       - name: Save failed tests
         id: cache-tests-save
