@@ -22,7 +22,7 @@ jobs:
       max-parallel: 2
       matrix:
         os: ['ubuntu-latest', 'macos-13', 'windows-latest']
-        python-version: ['3.8', '3.9', '3.10', '3.11']
+        python-version: ['3.9', '3.10', '3.11', '3.12', '3.13']
     steps:
       - name: Check out code
         uses: actions/checkout@v2
