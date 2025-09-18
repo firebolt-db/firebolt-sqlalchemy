@@ -1,5 +1,4 @@
 import os
-from distutils.util import strtobool
 from types import ModuleType
 from typing import Any, Dict, List, Optional, Tuple, Union
 
@@ -81,6 +80,24 @@ def resolve_type(fb_type: str) -> sqltypes.TypeEngine:
         fb_type = fb_type[: fb_type.find("(")] if "(" in fb_type else fb_type
         result = type_map.get(fb_type, DEFAULT_TYPE)  # type: ignore
     return result
+
+
+def strtobool(val: str) -> int:
+    """Copy of deprecated distutils.util.strtobool
+    Convert a string representation of truth to true (1) or false (0).
+
+    True values are 'y', 'yes', 't', 'true', 'on', and '1'; false values
+    are 'n', 'no', 'f', 'false', 'off', and '0'. Values are compared
+    case-insensitively. Raises ValueError if
+    'val' is anything else.
+    """
+    val = val.lower()
+    if val in ("y", "yes", "t", "true", "on", "1"):
+        return 1
+    elif val in ("n", "no", "f", "false", "off", "0"):
+        return 0
+    else:
+        raise ValueError("invalid truth value %r" % (val,))
 
 
 DEFAULT_TYPE = TEXT
