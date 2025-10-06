@@ -118,7 +118,7 @@ await engine.dispose()
 
 ## Limitations
 
-1. Transactions are not supported since Firebolt database does not support them at this time.
+1. Transactions are not supported right now.
 1. Parametrised calls to execute and executemany are not implemented.
 
 ## Contributing
