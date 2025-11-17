@@ -5,7 +5,6 @@ from sqlalchemy import inspect, text
 from sqlalchemy.engine.base import Connection, Engine
 
 
-@pytest.mark.skip("FIR-47589")
 @pytest.mark.usefixtures("setup_test_tables")
 class TestAsyncFireboltDialect:
     async def test_create_ex_table(
