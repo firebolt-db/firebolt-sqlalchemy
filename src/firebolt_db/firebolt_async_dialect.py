@@ -109,6 +109,15 @@ class AsyncCursorWrapper:
     def _set_parameters(self, value: Dict[str, Any]) -> None:
         self._cursor._set_parameters = value
 
+    async def _async_soft_close(self) -> None:
+        """close the cursor but keep the results pending, and memoize the
+        description.
+
+        We don't have ability to memorize results with async driver yet so
+        keeping this a no-op.
+
+        """
+
 
 class AsyncConnectionWrapper(AdaptedConnection):
     await_ = staticmethod(await_only)
