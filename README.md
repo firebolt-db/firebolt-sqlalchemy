@@ -19,7 +19,7 @@ The [Firebolt](https://www.firebolt.io/) dialect for [SQLAlchemy](https://www.sq
 
 ## Installation
 
-Requires Python >=3.7.
+Requires Python >=3.9.
 
 ```bash
 pip install firebolt-sqlalchemy
