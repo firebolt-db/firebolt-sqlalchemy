@@ -150,8 +150,24 @@ class TestFireboltDialect:
     def test_schema_names(
         self, dialect: FireboltDialect, connection: mock.Mock(spec=MockDBApi)
     ):
+        def row_with_schema_name(name):
+            return mock.Mock(schema_name=name)
+
+        connection.execute.return_value = [
+            row_with_schema_name("information_schema"),
+            row_with_schema_name("public"),
+            row_with_schema_name("other_schema"),
+        ]
+
         result = dialect.get_schema_names(connection)
-        assert result == ["public"]
+        assert result == ["information_schema", "public", "other_schema"]
+        connection.execute.assert_called_once()
+        assert str(connection.execute.call_args[0][0].compile()) == str(
+            text(
+                "select schema_name from information_schema.schemata"
+                " order by schema_name"
+            ).compile()
+        )
 
     def test_table_names(
         self, dialect: FireboltDialect, connection: mock.Mock(spec=MockDBApi)
@@ -249,7 +265,41 @@ class TestFireboltDialect:
     ):
         connection.execute.return_value.fetchone.return_value.exists_ = True
         assert dialect.has_table(connection, "dummy")
-        assert "dummy" in str(connection.execute.call_args[0][0].compile())
+        compiled_query = str(connection.execute.call_args[0][0].compile())
+        assert compiled_query == str(
+            text(
+                "select count(*) > 0 as exists_ "
+                "from information_schema.tables "
+                "where table_name = 'dummy' "
+            ).compile()
+        )
+
+    def test_has_table_with_schema(
+        self, dialect: FireboltDialect, connection: mock.Mock(spec=MockDBApi)
+    ):
+        connection.execute.return_value.fetchone.return_value.exists_ = True
+        assert dialect.has_table(connection, "dummy", schema="my_schema")
+        compiled_query = str(connection.execute.call_args[0][0].compile())
+        assert compiled_query == str(
+            text(
+                "select count(*) > 0 as exists_ "
+                "from information_schema.tables "
+                "where table_name = 'dummy' "
+                "and table_schema = 'my_schema'"
+            ).compile()
+        )
+        connection.execute.reset_mock()
+        connection.execute.return_value.fetchone.return_value.exists_ = False
+        assert not dialect.has_table(connection, "dummy", schema="missing_schema")
+        compiled_query = str(connection.execute.call_args[0][0].compile())
+        assert compiled_query == str(
+            text(
+                "select count(*) > 0 as exists_ "
+                "from information_schema.tables "
+                "where table_name = 'dummy' "
+                "and table_schema = 'missing_schema'"
+            ).compile()
+        )
 
     def test_noop(
         self, dialect: FireboltDialect, connection: mock.Mock(spec=MockDBApi)

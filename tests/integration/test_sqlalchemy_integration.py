@@ -78,15 +78,32 @@ class TestFireboltDialect:
         )
         connection.execute(text(f"DROP AGGREGATING INDEX {agg_index}"))
 
-    def test_get_schema_names(self, engine: Engine, database_name: str):
-        results = engine.dialect.get_schema_names(engine)
+    def test_get_schema_names(self, engine: Engine, connection: Connection):
+        results = engine.dialect.get_schema_names(connection)
         assert "public" in results
+        assert "information_schema" in results
 
     def test_has_table(
         self, engine: Engine, connection: Connection, fact_table_name: str
     ):
         results = engine.dialect.has_table(connection, fact_table_name)
         assert results == 1
+
+    def test_has_table_with_schema(
+        self,
+        engine: Engine,
+        connection: Connection,
+        fact_table_name: str,
+        custom_schema_with_table,
+    ):
+        custom_schema, custom_table = custom_schema_with_table
+        assert custom_schema in engine.dialect.get_schema_names(connection)
+        assert engine.dialect.has_table(connection, custom_table, schema=custom_schema)
+        assert not engine.dialect.has_table(connection, custom_table, schema="public")
+        assert engine.dialect.has_table(connection, fact_table_name, schema="public")
+        assert not engine.dialect.has_table(
+            connection, fact_table_name, schema="non_existing_schema"
+        )
 
     def test_get_table_names(self, engine: Engine, connection: Connection):
         results = engine.dialect.get_table_names(connection)

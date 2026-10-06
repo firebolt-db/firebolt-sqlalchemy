@@ -260,9 +260,12 @@ class FireboltDialect(default.DefaultDialect):
     def get_schema_names(
         self, connection: AlchemyConnection, **kwargs: Any
     ) -> List[str]:
-        # There's no support for schemas in Firebolt at the moment
-        # Public is used as a placeholder in many system tables.
-        return ["public"]
+        query = (
+            "select schema_name from information_schema.schemata"
+            " order by schema_name"
+        )
+        result = connection.execute(text(query))
+        return [row.schema_name for row in result]
 
     def has_table(
         self,
@@ -271,12 +274,16 @@ class FireboltDialect(default.DefaultDialect):
         schema: Optional[str] = None,
         **kw: Any
     ) -> bool:
-        query = """
-            select count(*) > 0 as exists_
-              from information_schema.tables
-             where table_name = '{table_name}'
-        """.format(
-            table_name=table_name
+        query = (
+            "select count(*) > 0 as exists_ "
+            "from information_schema.tables "
+            "where table_name = '{table_name}' "
+            "{schema_condition}"
+        ).format(
+            table_name=table_name,
+            schema_condition=(
+                "and table_schema = '{schema}'".format(schema=schema) if schema else ""
+            ),
         )
         result = connection.execute(text(query))
         return result.fetchone().exists_

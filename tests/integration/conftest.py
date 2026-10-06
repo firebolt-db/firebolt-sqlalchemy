@@ -1,7 +1,8 @@
 import urllib.parse
 from logging import getLogger
 from os import environ
-from typing import List
+from typing import List, Tuple
+from uuid import uuid4
 
 from pytest import fixture
 from sqlalchemy import create_engine, text
@@ -257,6 +258,35 @@ def setup_test_tables(
     assert not engine.dialect.has_table(connection, fact_table_name)
     assert not engine.dialect.has_table(connection, dimension_table_name)
     assert not engine.dialect.has_table(connection, type_table_name)
+
+
+@fixture
+def custom_schema_with_table(connection: Connection, engine: Engine) -> Tuple[str, str]:
+    """Create a unique custom schema with one table; always tear both down."""
+    suffix = uuid4().hex[:8]
+    schema_name = f"alchemy_schema_{suffix}"
+    table_name = f"alchemy_table_{suffix}"
+    connection.execute(text(f"CREATE SCHEMA IF NOT EXISTS {schema_name}"))
+    connection.execute(
+        text(
+            f"""
+        CREATE DIMENSION TABLE IF NOT EXISTS {schema_name}.{table_name}
+        (
+            idx INT,
+            dummy TEXT
+        );
+        """
+        )
+    )
+    assert engine.dialect.has_table(connection, table_name, schema=schema_name)
+    assert not engine.dialect.has_table(connection, table_name, schema="public")
+    yield schema_name, table_name
+    # Teardown
+    connection.execute(
+        text(f"DROP TABLE IF EXISTS {schema_name}.{table_name} CASCADE;")
+    )
+    connection.execute(text(f"DROP SCHEMA IF EXISTS {schema_name} CASCADE;"))
+    assert not engine.dialect.has_table(connection, table_name, schema=schema_name)
 
 
 @fixture(scope="session")
