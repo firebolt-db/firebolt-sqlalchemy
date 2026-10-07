@@ -15,6 +15,8 @@ DATABASE_NAME_ENV = "DATABASE_NAME"
 ACCOUNT_NAME_ENV = "ACCOUNT_NAME"
 CLIENT_ID_ENV = "CLIENT_ID"
 CLIENT_KEY_ENV = "CLIENT_SECRET"
+# IAM role the engine assumes to read external table data
+AWS_ROLE_ARN_ENV = "AWS_ACCESS_ROLE_ARN"
 # Only these values are safe to print. Anything else, including renamed
 # credentials, stays out of the logs and Allure attachments.
 _LOGGED_ENVS = {ENGINE_NAME_ENV, DATABASE_NAME_ENV, ACCOUNT_NAME_ENV}
@@ -139,8 +141,13 @@ def ex_table_name() -> str:
     return "ex_lineitem_alchemy"
 
 
+@fixture(scope="session")
+def aws_role_arn() -> str:
+    return must_env(AWS_ROLE_ARN_ENV)
+
+
 @fixture
-def ex_table_query(ex_table_name: str) -> str:
+def ex_table_query(ex_table_name: str, aws_role_arn: str) -> str:
     return f"""
             CREATE EXTERNAL TABLE {ex_table_name}
             (       l_orderkey              LONG,
@@ -161,6 +168,7 @@ def ex_table_query(ex_table_name: str) -> str:
                     l_comment               TEXT
             )
             URL = 's3://firebolt-publishing-public/samples/tpc-h/parquet/lineitem/'
+            CREDENTIALS = (AWS_ROLE_ARN = '{aws_role_arn}')
             OBJECT_PATTERN = '*.parquet'
             TYPE = (PARQUET);
             """
