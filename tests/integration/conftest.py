@@ -1,9 +1,10 @@
 import urllib.parse
+from contextlib import contextmanager
 from logging import getLogger
 from os import environ
-from typing import List
+from typing import Iterator, List
 
-from pytest import fixture
+from pytest import fixture, skip
 from sqlalchemy import create_engine, text
 from sqlalchemy.engine.base import Connection, Engine
 from sqlalchemy.ext.asyncio import create_async_engine
@@ -39,6 +40,15 @@ class Secret:
 
     def __str___(self):
         return "*******"
+
+
+@contextmanager
+def redacted(value: str) -> Iterator[None]:
+    """Re-raise any error with value masked, so it stays out of reports."""
+    try:
+        yield
+    except Exception as e:
+        raise RuntimeError(str(e).replace(value, "********")) from None
 
 
 def must_env(var_name: str) -> str:
@@ -143,7 +153,10 @@ def ex_table_name() -> str:
 
 @fixture(scope="session")
 def aws_role_arn() -> str:
-    return must_env(AWS_ROLE_ARN_ENV)
+    # Only the v2 workflows provide the role
+    if AWS_ROLE_ARN_ENV not in environ:
+        skip(f"{AWS_ROLE_ARN_ENV} is not set")
+    return environ[AWS_ROLE_ARN_ENV]
 
 
 @fixture
