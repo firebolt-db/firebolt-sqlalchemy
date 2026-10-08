@@ -4,6 +4,8 @@ import pytest
 from sqlalchemy import inspect, text
 from sqlalchemy.engine.base import Connection, Engine
 
+from .conftest import redacted  # noqa: I252 relative import
+
 
 @pytest.mark.usefixtures("setup_test_tables")
 class TestAsyncFireboltDialect:
@@ -12,8 +14,10 @@ class TestAsyncFireboltDialect:
         async_connection: Connection,
         ex_table_query: str,
         ex_table_name: str,
+        aws_role_arn: str,
     ):
-        await async_connection.execute(text(ex_table_query))
+        with redacted(aws_role_arn):
+            await async_connection.execute(text(ex_table_query))
 
         def has_test_table(conn: Connection) -> bool:
             inspector = inspect(conn)

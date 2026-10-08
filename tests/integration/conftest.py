@@ -1,9 +1,10 @@
 import urllib.parse
+from contextlib import contextmanager
 from logging import getLogger
 from os import environ
-from typing import List
+from typing import Iterator, List
 
-from pytest import fixture
+from pytest import fixture, skip
 from sqlalchemy import create_engine, text
 from sqlalchemy.engine.base import Connection, Engine
 from sqlalchemy.ext.asyncio import create_async_engine
@@ -15,6 +16,8 @@ DATABASE_NAME_ENV = "DATABASE_NAME"
 ACCOUNT_NAME_ENV = "ACCOUNT_NAME"
 CLIENT_ID_ENV = "CLIENT_ID"
 CLIENT_KEY_ENV = "CLIENT_SECRET"
+# IAM role the engine assumes to read external table data
+AWS_ROLE_ARN_ENV = "AWS_ACCESS_ROLE_ARN"
 # Only these values are safe to print. Anything else, including renamed
 # credentials, stays out of the logs and Allure attachments.
 _LOGGED_ENVS = {ENGINE_NAME_ENV, DATABASE_NAME_ENV, ACCOUNT_NAME_ENV}
@@ -37,6 +40,15 @@ class Secret:
 
     def __str___(self):
         return "*******"
+
+
+@contextmanager
+def redacted(value: str) -> Iterator[None]:
+    """Re-raise any error with value masked, so it stays out of reports."""
+    try:
+        yield
+    except Exception as e:
+        raise RuntimeError(str(e).replace(value, "********")) from None
 
 
 def must_env(var_name: str) -> str:
@@ -139,8 +151,16 @@ def ex_table_name() -> str:
     return "ex_lineitem_alchemy"
 
 
+@fixture(scope="session")
+def aws_role_arn() -> str:
+    # Only the v2 workflows provide the role
+    if AWS_ROLE_ARN_ENV not in environ:
+        skip(f"{AWS_ROLE_ARN_ENV} is not set")
+    return environ[AWS_ROLE_ARN_ENV]
+
+
 @fixture
-def ex_table_query(ex_table_name: str) -> str:
+def ex_table_query(ex_table_name: str, aws_role_arn: str) -> str:
     return f"""
             CREATE EXTERNAL TABLE {ex_table_name}
             (       l_orderkey              LONG,
@@ -161,6 +181,7 @@ def ex_table_query(ex_table_name: str) -> str:
                     l_comment               TEXT
             )
             URL = 's3://firebolt-publishing-public/samples/tpc-h/parquet/lineitem/'
+            CREDENTIALS = (AWS_ROLE_ARN = '{aws_role_arn}')
             OBJECT_PATTERN = '*.parquet'
             TYPE = (PARQUET);
             """

@@ -6,7 +6,7 @@ from sqlalchemy import create_engine, text
 from sqlalchemy.engine.base import Connection, Engine
 from sqlalchemy.types import ARRAY, INTEGER, TypeEngine
 
-from .conftest import Secret  # noqa: I252 relative import
+from .conftest import Secret, redacted  # noqa: I252 relative import
 
 
 @pytest.mark.usefixtures("setup_test_tables")
@@ -17,8 +17,10 @@ class TestFireboltDialect:
         engine: Engine,
         ex_table_query: str,
         ex_table_name: str,
+        aws_role_arn: str,
     ):
-        connection.execute(text(ex_table_query))
+        with redacted(aws_role_arn):
+            connection.execute(text(ex_table_query))
         assert engine.dialect.has_table(connection, ex_table_name)
         # Cleanup
         connection.execute(text(f"DROP TABLE {ex_table_name}"))
