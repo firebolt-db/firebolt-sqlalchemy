@@ -2,6 +2,12 @@ name: v2 Integration tests
 
 on:
   workflow_dispatch:
+    inputs:
+      use-cache:
+        description: 'Restore and save the pytest lastfailed cache.'
+        type: boolean
+        required: false
+        default: true
   workflow_call:
     secrets:
       FIREBOLT_CLIENT_ID_STG_NEW_IDN:
@@ -10,30 +16,41 @@ on:
         required: true
       AWS_ACCESS_ROLE_ARN:
         required: true
+      TOKEN:
+        description: 'GitHub token for the Allure report if called from another workflow. Defaults to GITHUB_TOKEN.'
+        required: false
     inputs:
       engine-version:
         description: 'Engine version to use for integration tests'
         required: false
         type: string
         default: ''
-      token:
-        description: 'GitHub token if called from another workflow'
+      use-cache:
+        description: 'Restore and save the pytest lastfailed cache. The release passes false.'
+        type: boolean
         required: false
-        type: string
+        default: true
+
+permissions: {}
 
 jobs:
   integration-tests:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write # the Allure report is pushed to gh-pages
+      statuses: write # the Allure report sets a commit status
+      pages: read     # the Allure report reads the Pages URL
     steps:
       - name: Check out code
-        uses: actions/checkout@v2
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: firebolt-db/firebolt-sqlalchemy
+          persist-credentials: false
 
-      - name: Set up Python 3.9
-        uses: actions/setup-python@v5
+      - name: Set up Python 3.12
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
-          python-version: 3.9
+          python-version: "3.12"
 
       - name: Install dependencies
         run: |
@@ -42,7 +59,7 @@ jobs:
 
       - name: Setup database and engine
         id: setup
-        uses: firebolt-db/integration-testing-setup@v2
+        uses: firebolt-db/integration-testing-setup@813c4835ef38adcba3f8760e7afc21a3c7248023 # v2.6.2
         with:
           firebolt-client-id: ${{ secrets.FIREBOLT_CLIENT_ID_STG_NEW_IDN }}
           firebolt-client-secret: ${{ secrets.FIREBOLT_CLIENT_SECRET_STG_NEW_IDN }}
@@ -51,7 +68,8 @@ jobs:
 
       - name: Restore cached failed tests
         id: cache-tests-restore
-        uses: actions/cache/restore@v3
+        if: inputs.use-cache
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: |
             .pytest_cache/v/cache/lastfailed
@@ -72,8 +90,8 @@ jobs:
 
       - name: Save failed tests
         id: cache-tests-save
-        uses: actions/cache/save@v3
-        if: failure()
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        if: failure() && inputs.use-cache
         with:
           path: |
             .pytest_cache/v/cache/lastfailed
@@ -81,18 +99,19 @@ jobs:
 
       # Need to pull the pages branch in order to fetch the previous runs
       - name: Get Allure history
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         if: always()
         continue-on-error: true
         with:
             ref: gh-pages
             path: gh-pages
+            persist-credentials: false
 
       - name: Allure Report
-        uses: firebolt-db/action-allure-report@v1
+        uses: firebolt-db/action-allure-report@781b4529b67b4f393c63d7dc1e098cb558e1ab16 # v1.4.1
         if: always()
         with:
-            github-key: ${{ inputs.token || secrets.GITHUB_TOKEN }}
+            github-key: ${{ secrets.TOKEN || secrets.GITHUB_TOKEN }}
             test-type: integration
             allure-dir: allure-results
             pages-branch: gh-pages

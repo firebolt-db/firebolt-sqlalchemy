@@ -10,10 +10,24 @@ on:
         required: false
         description: 'Trigger a major release (optional). Leave empty for regular release.'
 
+permissions: {}
+
 jobs:
   integration-tests:
+    permissions:
+      contents: write # integration tests publish the Allure report to gh-pages
+      statuses: write
+      pages: read
     uses: ./.github/workflows/python-integration-tests.yml
-    secrets: inherit
+    with:
+      # Don't let a cache written by another run influence the release tests.
+      use-cache: false
+    secrets:
+      FIREBOLT_STG_USERNAME: ${{ secrets.FIREBOLT_STG_USERNAME }}
+      FIREBOLT_STG_PASSWORD: ${{ secrets.FIREBOLT_STG_PASSWORD }}
+      FIREBOLT_CLIENT_ID_STG_NEW_IDN: ${{ secrets.FIREBOLT_CLIENT_ID_STG_NEW_IDN }}
+      FIREBOLT_CLIENT_SECRET_STG_NEW_IDN: ${{ secrets.FIREBOLT_CLIENT_SECRET_STG_NEW_IDN }}
+      AWS_ACCESS_ROLE_ARN: ${{ secrets.AWS_ACCESS_ROLE_ARN }}
 
   publish:
     runs-on: ubuntu-latest
@@ -30,13 +44,15 @@ jobs:
         permission-contents: write
 
     - name: Check out code
-      uses: actions/checkout@v2
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       with:
         fetch-depth: 0
         token: ${{ steps.app-token.outputs.token }}
+        # The release step pushes the version bump and tag.
+        persist-credentials: true
 
     - name: 'Publish action'
-      uses: firebolt-db/action-python-release@main
+      uses: firebolt-db/action-python-release@535d72bf4fb7ff9ff7f87bb0454e232afe1cef91 # main
       with:
         pre-release-tag: ${{ inputs.pre-release-tag }}
         major-release: ${{ inputs.major-release }}

@@ -12,7 +12,7 @@ on:
         description: 'Python version'
         required: false
         type: string
-        default: '3.9'
+        default: '3.12'
   workflow_call:
     inputs:
       tag_version:
@@ -24,23 +24,31 @@ on:
         description: 'Python version'
         required: false
         type: string
-        default: '3.9'
+        default: '3.12'
+
+permissions: {}
 
 jobs:
   run-core-integration-tests:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write # the Allure report is pushed to gh-pages
+      statuses: write # the Allure report sets a commit status
+      pages: read     # the Allure report reads the Pages URL
     steps:
       - name: Check out code
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Setup Firebolt Core
         id: setup-core
-        uses: firebolt-db/action-setup-core@main
+        uses: firebolt-db/action-setup-core@d89662ec72f2cedccef9a6e4b84d45bf1c429dd4 # main
         with:
           tag_version: ${{ inputs.tag_version || vars.DEFAULT_CORE_IMAGE_TAG }}
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: ${{ inputs.python_version }}
 
@@ -56,15 +64,16 @@ jobs:
 
       # Need to pull the pages branch in order to fetch the previous runs
       - name: Get Allure history
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         if: always()
         continue-on-error: true
         with:
             ref: gh-pages
             path: gh-pages
+            persist-credentials: false
 
       - name: Allure Report
-        uses: firebolt-db/action-allure-report@v1
+        uses: firebolt-db/action-allure-report@781b4529b67b4f393c63d7dc1e098cb558e1ab16 # v1.4.1
         if: always()
         with:
             github-key: ${{ secrets.GITHUB_TOKEN }}
