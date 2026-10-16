@@ -400,8 +400,8 @@ class FireboltDialect(default.DefaultDialect):
         view_name: str,
         schema: Optional[str] = None,
         **kwargs: Any
-    ) -> str:
-        pass
+    ) -> Optional[str]:
+        return None
 
     def do_execute(
         self,

@@ -106,10 +106,10 @@ class TestFireboltDialect:
         for column in results:
             assert isinstance(column, dict)
             # Check only works for basic types
-            if type(column["type"]) == ARRAY:
+            if type(column["type"]) is ARRAY:
                 # ARRAY[[INT]]
                 assert column["type"].dimensions == 2
-                assert type(column["type"].item_type) == INTEGER
+                assert type(column["type"].item_type) is INTEGER
             else:
                 assert issubclass(column["type"], TypeEngine)
 

@@ -88,7 +88,7 @@ class AsyncCursorWrapper:
         else:
             return None
 
-    def fetchmany(self, size: int = None) -> List[List]:
+    def fetchmany(self, size: Optional[int] = None) -> List[List]:
         if size is None:
             size = self._cursor.arraysize
 
@@ -135,7 +135,7 @@ class AsyncConnectionWrapper(AdaptedConnection):
         pass
 
     def commit(self) -> None:
-        self._connection.commit()
+        self._connection.commit()  # type: ignore[unused-coroutine]
 
     def close(self) -> None:
         self.await_(self._connection.aclose())
