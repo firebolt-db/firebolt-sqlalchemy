@@ -2,6 +2,12 @@ name: v2 Integration tests
 
 on:
   workflow_dispatch:
+    inputs:
+      use-cache:
+        description: 'Restore and save the pytest lastfailed cache.'
+        type: boolean
+        required: false
+        default: true
   workflow_call:
     secrets:
       FIREBOLT_CLIENT_ID_STG_NEW_IDN:
@@ -20,6 +26,11 @@ on:
         description: 'GitHub token if called from another workflow'
         required: false
         type: string
+      use-cache:
+        description: 'Restore and save the pytest lastfailed cache. The release passes false.'
+        type: boolean
+        required: false
+        default: true
 
 permissions: {}
 
@@ -58,6 +69,7 @@ jobs:
 
       - name: Restore cached failed tests
         id: cache-tests-restore
+        if: inputs.use-cache
         uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: |
@@ -80,7 +92,7 @@ jobs:
       - name: Save failed tests
         id: cache-tests-save
         uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        if: failure()
+        if: failure() && inputs.use-cache
         with:
           path: |
             .pytest_cache/v/cache/lastfailed

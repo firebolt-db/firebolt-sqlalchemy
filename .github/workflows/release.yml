@@ -19,6 +19,9 @@ jobs:
       statuses: write
       pages: read
     uses: ./.github/workflows/python-integration-tests.yml
+    with:
+      # Don't let a cache written by another run influence the release tests.
+      use-cache: false
     secrets:
       FIREBOLT_STG_USERNAME: ${{ secrets.FIREBOLT_STG_USERNAME }}
       FIREBOLT_STG_PASSWORD: ${{ secrets.FIREBOLT_STG_PASSWORD }}
