@@ -26,12 +26,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v7
         with:
           repository: firebolt-db/firebolt-sqlalchemy
 
       - name: Set up Python 3.9
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: 3.9
 
@@ -51,7 +51,7 @@ jobs:
 
       - name: Restore cached failed tests
         id: cache-tests-restore
-        uses: actions/cache/restore@v3
+        uses: actions/cache/restore@v6
         with:
           path: |
             .pytest_cache/v/cache/lastfailed
@@ -72,7 +72,7 @@ jobs:
 
       - name: Save failed tests
         id: cache-tests-save
-        uses: actions/cache/save@v3
+        uses: actions/cache/save@v6
         if: failure()
         with:
           path: |
@@ -81,7 +81,7 @@ jobs:
 
       # Need to pull the pages branch in order to fetch the previous runs
       - name: Get Allure history
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         if: always()
         continue-on-error: true
         with:
@@ -89,7 +89,7 @@ jobs:
             path: gh-pages
 
       - name: Allure Report
-        uses: firebolt-db/action-allure-report@v1
+        uses: firebolt-db/action-allure-report@v2
         if: always()
         with:
             github-key: ${{ inputs.token || secrets.GITHUB_TOKEN }}
