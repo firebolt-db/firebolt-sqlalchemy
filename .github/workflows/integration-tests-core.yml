@@ -12,7 +12,7 @@ on:
         description: 'Python version'
         required: false
         type: string
-        default: '3.9'
+        default: '3.12'
   workflow_call:
     inputs:
       tag_version:
@@ -24,7 +24,7 @@ on:
         description: 'Python version'
         required: false
         type: string
-        default: '3.9'
+        default: '3.12'
 
 permissions: {}
 
