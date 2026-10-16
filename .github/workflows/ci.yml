@@ -9,23 +9,34 @@ on:
   pull_request:
     branches: [ main ]
 
+permissions: {}
+
 jobs:
   check-title:
     runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write # reads the PR and comments on title violations
     if: github.event_name == 'pull_request'
     steps:
       - name: Check title name convention
-        uses: jef/conventional-commits-pr-action@v1.0.0
+        uses: jef/conventional-commits-pr-action@2ee589f151916f92da5e2887c38d5fe6402e803c # v1.3.0
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
   code-check:
+    permissions:
+      contents: read
     uses: ./.github/workflows/code-check.yml
   unit-tests:
+    permissions:
+      contents: read
     uses: ./.github/workflows/unit-tests.yml
     secrets:
       GIST_PAT: ${{ secrets.GIST_PAT }}
   security-scan:
     needs: [unit-tests]
+    permissions:
+      contents: read
+      pull-requests: read
     uses: ./.github/workflows/security-scan.yml
     secrets:
       SONARCLOUD_TOKEN: ${{ secrets.SONARCLOUD_TOKEN }}

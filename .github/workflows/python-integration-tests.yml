@@ -12,12 +12,32 @@ on:
         required: true
       FIREBOLT_CLIENT_SECRET_STG_NEW_IDN:
         required: true
+      AWS_ACCESS_ROLE_ARN:
+        required: true
+
+permissions: {}
+
 jobs:
   integration-test-v1:
+    permissions:
+      contents: read
     uses: ./.github/workflows/integration-tests-v1.yml
-    secrets: inherit
+    secrets:
+      FIREBOLT_STG_USERNAME: ${{ secrets.FIREBOLT_STG_USERNAME }}
+      FIREBOLT_STG_PASSWORD: ${{ secrets.FIREBOLT_STG_PASSWORD }}
   integration-test-v2:
+    permissions:
+      contents: write
+      statuses: write
+      pages: read
     uses: ./.github/workflows/integration-tests-v2.yml
-    secrets: inherit
+    secrets:
+      FIREBOLT_CLIENT_ID_STG_NEW_IDN: ${{ secrets.FIREBOLT_CLIENT_ID_STG_NEW_IDN }}
+      FIREBOLT_CLIENT_SECRET_STG_NEW_IDN: ${{ secrets.FIREBOLT_CLIENT_SECRET_STG_NEW_IDN }}
+      AWS_ACCESS_ROLE_ARN: ${{ secrets.AWS_ACCESS_ROLE_ARN }}
   integration-test-core:
+    permissions:
+      contents: write
+      statuses: write
+      pages: read
     uses: ./.github/workflows/integration-tests-core.yml
