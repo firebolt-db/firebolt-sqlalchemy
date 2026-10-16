@@ -16,16 +16,15 @@ on:
         required: true
       AWS_ACCESS_ROLE_ARN:
         required: true
+      TOKEN:
+        description: 'GitHub token for the Allure report if called from another workflow. Defaults to GITHUB_TOKEN.'
+        required: false
     inputs:
       engine-version:
         description: 'Engine version to use for integration tests'
         required: false
         type: string
         default: ''
-      token:
-        description: 'GitHub token if called from another workflow'
-        required: false
-        type: string
       use-cache:
         description: 'Restore and save the pytest lastfailed cache. The release passes false.'
         type: boolean
@@ -112,7 +111,7 @@ jobs:
         uses: firebolt-db/action-allure-report@781b4529b67b4f393c63d7dc1e098cb558e1ab16 # v1.4.1
         if: always()
         with:
-            github-key: ${{ inputs.token || secrets.GITHUB_TOKEN }}
+            github-key: ${{ secrets.TOKEN || secrets.GITHUB_TOKEN }}
             test-type: integration
             allure-dir: allure-results
             pages-branch: gh-pages
