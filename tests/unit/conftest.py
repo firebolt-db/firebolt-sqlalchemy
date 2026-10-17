@@ -77,7 +77,20 @@ class MockAsyncDBApi:
 
 
 class MockAsyncConnection:
-    def cursor():
+    def cursor(self):
+        # Mock implementation for cursor creation
+        pass
+
+    def commit(self):
+        # Mock implementation for commit
+        pass
+
+    def rollback(self):
+        # Mock implementation for rollback
+        pass
+
+    async def aclose(self):
+        # Mock implementation for async close
         pass
 
 
@@ -86,16 +99,31 @@ class MockAsyncCursor:
     rowcount = -1
     arraysize = 1
 
-    async def execute():
+    async def execute(self):
+        # Mock implementation for async execute
         pass
 
-    async def executemany():
+    async def executemany(self, **kwargs):
+        # Mock implementation for async executemany
         pass
 
-    async def fetchall():
+    async def fetchall(self):
+        # Mock implementation for async fetchall
         pass
 
-    def close():
+    def close(self):
+        # Mock implementation for close
+        pass
+
+    async def aclose(self):
+        # Mock implementation for async close
+        pass
+
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        # Mock implementation for async context manager exit
         pass
 
 
@@ -131,4 +159,23 @@ def async_connection() -> AsyncMock(spec=MockAsyncConnection):
 
 @fixture
 def async_cursor() -> AsyncMock(spec=MockAsyncCursor):
-    return AsyncMock(spec=MockAsyncCursor)
+    mock = AsyncMock(spec=MockAsyncCursor)
+    # Make sure the async context manager methods return the mock itself
+
+    async def aenter():
+        # Return the mock cursor for async context manager entry
+        return mock
+
+    async def aexit(*args):
+        # Mock implementation for async context manager exit
+        pass
+
+    # Make sure close() returns a coroutine that can be awaited
+    async def close_coro():
+        # Mock implementation for async close
+        pass
+
+    mock.__aenter__ = AsyncMock(side_effect=aenter)
+    mock.__aexit__ = AsyncMock(side_effect=aexit)
+    mock.close.return_value = close_coro()
+    return mock

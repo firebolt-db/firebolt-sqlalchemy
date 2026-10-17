@@ -1,6 +1,6 @@
 import pytest
 from firebolt.client.auth import FireboltCore
-from sqlalchemy import create_engine, text
+from sqlalchemy import Column, Integer, MetaData, Table, create_engine, text
 from sqlalchemy.engine.base import Connection, Engine
 from sqlalchemy.exc import InterfaceError
 
@@ -17,6 +17,18 @@ class TestFireboltCoreIntegration:
         connect_args = core_engine.dialect.create_connect_args(core_engine.url)
         auth = connect_args[1]["auth"]
         assert isinstance(auth, FireboltCore)
+
+    def test_core_table_with_column_int_special_case(self, core_connection: Connection):
+        """Test handling of table with column named 'int' in Core."""
+        table = Table("test_int", MetaData(), Column("int", Integer))
+        table.create(core_connection)
+        stmt = table.insert().values(int=42)
+        core_connection.execute(stmt)
+        result = core_connection.execute(table.select())
+        rows = result.fetchall()
+        assert len(rows) == 1
+        assert rows[0][0] == 42
+        table.drop(core_connection)
 
     def test_core_simple_query(self, core_connection: Connection):
         """Test executing a simple query against Core."""
