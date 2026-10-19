@@ -424,5 +424,5 @@ def test_resolve_array_type(
     firebolt_type: str, item_type: sqltypes.TypeEngine, dimensions: int
 ):
     resolved_type = resolve_type(firebolt_type.lower())
-    assert type(resolved_type.item_type) == item_type
+    assert type(resolved_type.item_type) is item_type
     assert resolved_type.dimensions == dimensions
