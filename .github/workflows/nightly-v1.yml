@@ -56,7 +56,7 @@ jobs:
 
       - name: Setup database and engine
         id: setup
-        uses: firebolt-db/integration-testing-setup@eb35b7719247c93392cb3a8aa4f554a4c11a770b # v1.0.3
+        uses: firebolt-db/integration-testing-setup@1feb289e8da573c5f1f74d8ff3cd69bcb5b5891a # v1.0.4
         with:
           firebolt-username: ${{ secrets.FIREBOLT_STG_USERNAME }}
           firebolt-password: ${{ secrets.FIREBOLT_STG_PASSWORD }}
@@ -98,7 +98,7 @@ jobs:
       - name: Slack Notify of failure
         if: failure()
         id: slack
-        uses: firebolt-db/action-slack-nightly-notify@1bdd915837fbe0986aeacd2ee63a648ae2dcc6db # v1.0.0
+        uses: firebolt-db/action-slack-nightly-notify@38a20fcaeba512af5befb9ae7318c091ac7455e3 # v1.0.1
         with:
           os: ${{ matrix.os }}
           programming-language: Python
